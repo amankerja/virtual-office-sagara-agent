@@ -91,7 +91,7 @@ export const AttentionItemCard: React.FC<AttentionItemCardProps> = ({ item, onRe
           variant="outline"
           size="xs"
           onClick={() => onReview?.(item)}
-          className="border-border bg-surface-subtle text-text-primary hover:bg-surface-hover text-[11px] font-mono-tech min-h-[32px] sm:min-h-[26px]"
+          className="border-border bg-surface-subtle text-text-primary hover:bg-surface-hover text-[11px] font-mono-tech min-h-8 sm:min-h-6.5"
         >
           {item.actionLabel || 'Review'}
           <ArrowRight className="ml-1 h-3 w-3" />

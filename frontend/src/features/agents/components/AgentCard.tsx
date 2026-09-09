@@ -55,7 +55,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({ agent, onSelect, className
         </div>
 
         {/* Short Activity or Description */}
-        <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed min-h-[2.25rem]">
+        <p className="text-xs text-text-secondary line-clamp-2 leading-relaxed min-h-9">
           {runtime.currentActivity || definition.description || 'No operational activity recorded.'}
         </p>
       </CardHeader>

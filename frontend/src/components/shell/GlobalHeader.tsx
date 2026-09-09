@@ -51,7 +51,7 @@ export const GlobalHeader: React.FC = () => {
           variant="ghost"
           size="icon-xs"
           onClick={() => setMobileSidebarOpen(!isMobileSidebarOpen)}
-          className="md:hidden text-text-secondary hover:text-text-primary hover:bg-surface-raised min-h-[44px] min-w-[44px]"
+          className="md:hidden text-text-secondary hover:text-text-primary hover:bg-surface-raised min-h-11 min-w-11"
           aria-label="Open navigation menu"
         >
           <Menu className="h-5 w-5" />
@@ -119,7 +119,7 @@ export const GlobalHeader: React.FC = () => {
             <Button
               variant="ghost"
               size="icon-xs"
-              className="relative text-text-secondary hover:text-text-primary hover:bg-surface-raised transition-colors min-h-[40px] min-w-[40px] sm:min-h-[28px] sm:min-w-[28px]"
+              className="relative text-text-secondary hover:text-text-primary hover:bg-surface-raised transition-colors min-h-10 min-w-10 sm:min-h-7 sm:min-w-7"
               aria-label="Attention Queue"
             >
               <Bell className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
@@ -148,7 +148,7 @@ export const GlobalHeader: React.FC = () => {
         <Button
           variant="ghost"
           size="icon-xs"
-          className="rounded-full bg-surface-raised border border-border text-text-secondary hover:text-text-primary min-h-[36px] min-w-[36px] sm:min-h-[28px] sm:min-w-[28px]"
+          className="rounded-full bg-surface-raised border border-border text-text-secondary hover:text-text-primary min-h-9 min-w-9 sm:min-h-7 sm:min-w-7"
           aria-label="User Account"
         >
           <User className="h-3.5 w-3.5" />

@@ -48,7 +48,7 @@ export const SettingsPage: React.FC = () => {
                   size="sm"
                   onClick={() => setTheme('light')}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-[32px] text-xs font-medium',
+                    'flex items-center justify-center gap-1.5 min-h-10 sm:min-h-8 text-xs font-medium',
                     preference === 'light' ? 'bg-interactive text-white' : 'border-border text-text-secondary hover:text-text-primary'
                   )}
                 >
@@ -60,7 +60,7 @@ export const SettingsPage: React.FC = () => {
                   size="sm"
                   onClick={() => setTheme('dark')}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-[32px] text-xs font-medium',
+                    'flex items-center justify-center gap-1.5 min-h-10 sm:min-h-8 text-xs font-medium',
                     preference === 'dark' ? 'bg-interactive text-white' : 'border-border text-text-secondary hover:text-text-primary'
                   )}
                 >
@@ -72,7 +72,7 @@ export const SettingsPage: React.FC = () => {
                   size="sm"
                   onClick={() => setTheme('system')}
                   className={cn(
-                    'flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-[32px] text-xs font-medium',
+                    'flex items-center justify-center gap-1.5 min-h-10 sm:min-h-8 text-xs font-medium',
                     preference === 'system' ? 'bg-interactive text-white' : 'border-border text-text-secondary hover:text-text-primary'
                   )}
                 >

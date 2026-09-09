@@ -15,7 +15,7 @@ export const NotFoundPage: React.FC = () => {
       <p className="text-xs text-text-secondary max-w-sm mb-6 leading-relaxed">
         The requested Mission Control sector does not exist or has not been provisioned in this release.
       </p>
-      <Button asChild size="sm" className="bg-interactive hover:bg-interactive-hover text-white font-mono-tech text-xs min-h-[40px] sm:min-h-[32px]">
+      <Button asChild size="sm" className="bg-interactive hover:bg-interactive-hover text-white font-mono-tech text-xs min-h-10 sm:min-h-8">
         <Link to="/">
           <Home className="mr-1.5 h-3.5 w-3.5" />
           Return to Command Center

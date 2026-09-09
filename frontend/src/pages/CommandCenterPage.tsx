@@ -100,7 +100,7 @@ export const CommandCenterPage: React.FC = () => {
               variant="outline"
               size="xs"
               onClick={handleManualRefresh}
-              className="border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-hover min-h-[32px] sm:min-h-[28px]"
+              className="border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-hover min-h-8 sm:min-h-7"
               title="Refresh telemetry"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1 text-text-muted" />

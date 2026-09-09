@@ -106,7 +106,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
             variant="ghost"
             size="icon-xs"
             onClick={toggleSidebar}
-            className="hidden md:flex text-text-muted hover:text-text-primary hover:bg-surface-raised min-h-[32px] min-w-[32px]"
+            className="hidden md:flex text-text-muted hover:text-text-primary hover:bg-surface-raised min-h-8 min-w-8"
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
@@ -122,7 +122,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
             variant="ghost"
             size="icon-xs"
             onClick={() => setMobileSidebarOpen(false)}
-            className="flex md:hidden text-text-muted hover:text-text-primary hover:bg-surface-raised min-h-[44px] min-w-[44px]"
+            className="flex md:hidden text-text-muted hover:text-text-primary hover:bg-surface-raised min-h-11 min-w-11"
             aria-label="Close navigation menu"
           >
             <X className="h-4 w-4" />
@@ -152,7 +152,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
                     }}
                     className={({ isActive }) =>
                       cn(
-                        'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-colors min-h-[40px] sm:min-h-[32px]',
+                        'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-xs font-medium transition-colors min-h-10 sm:min-h-8',
                         isActive
                           ? 'bg-interactive/10 text-interactive border border-interactive/30 font-semibold'
                           : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary border border-transparent'

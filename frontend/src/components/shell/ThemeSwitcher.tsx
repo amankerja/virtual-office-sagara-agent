@@ -86,7 +86,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({
           variant="ghost"
           size="icon-xs"
           className={cn(
-            'text-text-muted hover:text-text-primary hover:bg-surface-raised transition-colors min-h-[36px] min-w-[36px] sm:min-h-[28px] sm:min-w-[28px]',
+            'text-text-muted hover:text-text-primary hover:bg-surface-raised transition-colors min-h-9 min-w-9 sm:min-h-7 sm:min-w-7',
             className
           )}
           title={`Appearance: ${preference.toUpperCase()}`}

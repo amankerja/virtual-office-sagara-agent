@@ -54,7 +54,7 @@ export const AgentDetailDrawer: React.FC<AgentDetailDrawerProps> = ({
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-xl md:w-[75vw] lg:w-[540px] p-0 bg-surface border-l border-border flex flex-col h-full overflow-hidden"
+        className="w-full sm:max-w-xl md:w-[75vw] lg:w-135 p-0 bg-surface border-l border-border flex flex-col h-full overflow-hidden"
       >
         <SheetHeader className="p-4 sm:p-5 border-b border-border bg-surface-subtle shrink-0 text-left">
           <div className="flex items-start justify-between gap-3">
@@ -85,7 +85,7 @@ export const AgentDetailDrawer: React.FC<AgentDetailDrawerProps> = ({
               variant="outline"
               size="icon-xs"
               onClick={handleCopyId}
-              className="border-border bg-surface text-text-muted hover:text-text-primary shrink-0 min-h-[36px] min-w-[36px] sm:min-h-[28px] sm:min-w-[28px]"
+              className="border-border bg-surface text-text-muted hover:text-text-primary shrink-0 min-h-9 min-w-9 sm:min-h-7 sm:min-w-7"
               title="Copy Agent ID"
               aria-label="Copy Agent ID"
             >

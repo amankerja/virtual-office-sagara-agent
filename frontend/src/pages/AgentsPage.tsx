@@ -206,7 +206,7 @@ export const AgentsPage: React.FC = () => {
                   variant="outline"
                   size="xs"
                   className={cn(
-                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-[32px]',
+                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-8',
                     stateFilter !== 'All' && 'border-interactive text-interactive font-semibold'
                   )}
                 >
@@ -243,7 +243,7 @@ export const AgentsPage: React.FC = () => {
                   variant="outline"
                   size="xs"
                   className={cn(
-                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-[32px]',
+                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-8',
                     configFilter !== 'All' && 'border-interactive text-interactive font-semibold'
                   )}
                 >
@@ -279,7 +279,7 @@ export const AgentsPage: React.FC = () => {
                   variant="outline"
                   size="xs"
                   className={cn(
-                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-[32px]',
+                    'border-border bg-background text-text-secondary hover:text-text-primary min-h-8',
                     roleFilter !== 'All' && 'border-interactive text-interactive font-semibold'
                   )}
                 >
@@ -323,7 +323,7 @@ export const AgentsPage: React.FC = () => {
                 variant="ghost"
                 size="xs"
                 onClick={handleResetFilters}
-                className="text-text-muted hover:text-rose-500 min-h-[32px]"
+                className="text-text-muted hover:text-rose-500 min-h-8"
                 title="Reset all filters"
               >
                 <X className="h-3.5 w-3.5 mr-1" />
@@ -364,7 +364,7 @@ export const AgentsPage: React.FC = () => {
                   variant="outline"
                   size="sm"
                   className={cn(
-                    'flex-1 justify-center border-border bg-background text-text-secondary min-h-[44px]',
+                    'flex-1 justify-center border-border bg-background text-text-secondary min-h-11',
                     hasActiveFilters && 'border-interactive text-interactive'
                   )}
                 >
@@ -421,7 +421,7 @@ export const AgentsPage: React.FC = () => {
                 variant={agentViewMode === 'grid' ? 'secondary' : 'ghost'}
                 size="icon-xs"
                 onClick={() => setAgentViewMode('grid')}
-                className={cn('min-h-[40px] min-w-[40px]', agentViewMode === 'grid' ? 'bg-surface-raised text-text-primary' : 'text-text-muted')}
+                className={cn('min-h-10 min-w-10', agentViewMode === 'grid' ? 'bg-surface-raised text-text-primary' : 'text-text-muted')}
                 aria-label="Grid View"
               >
                 <LayoutGrid className="h-4 w-4" />
@@ -430,7 +430,7 @@ export const AgentsPage: React.FC = () => {
                 variant={agentViewMode === 'list' ? 'secondary' : 'ghost'}
                 size="icon-xs"
                 onClick={() => setAgentViewMode('list')}
-                className={cn('min-h-[40px] min-w-[40px]', agentViewMode === 'list' ? 'bg-surface-raised text-text-primary' : 'text-text-muted')}
+                className={cn('min-h-10 min-w-10', agentViewMode === 'list' ? 'bg-surface-raised text-text-primary' : 'text-text-muted')}
                 aria-label="List View"
               >
                 <List className="h-4 w-4" />
