@@ -11,6 +11,9 @@ import type {
 } from '@/types/runtime'
 import type { TaskProjection, CreateTaskInput, UpdateTaskInput, TaskQuery } from '@/types/task'
 import type { ApprovalProjection, ApprovalDecisionInput, ApprovalQuery } from '@/types/approval'
+import type { ActivityProjection, ActivityQuery } from '@/types/activity'
+import type { AuditRecord, AuditQuery } from '@/types/audit'
+import type { GovernanceSnapshot } from '@/types/governance'
 
 import { MOCK_MISSION_CONTROL_SNAPSHOT } from '@/mocks/mission-control'
 import { MOCK_AGENTS } from '@/mocks/agents'
@@ -21,6 +24,9 @@ import { MOCK_GATEWAY, MOCK_RUNTIME_OVERVIEW, MOCK_RUNTIME_USAGE } from '@/mocks
 import { MOCK_RUNTIME_EVENTS } from '@/mocks/runtime-events'
 import { MOCK_TASKS } from '@/mocks/tasks'
 import { MOCK_APPROVALS } from '@/mocks/approvals'
+import { MOCK_ACTIVITY_STREAM } from '@/mocks/activity-expanded'
+import { MOCK_AUDIT_RECORDS } from '@/mocks/audit'
+import { MOCK_GOVERNANCE_SNAPSHOT } from '@/mocks/governance'
 import { apiClient, ApiError } from './client'
 
 const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'mock'
@@ -568,6 +574,163 @@ export const dataProvider = {
     }
     try {
       return await apiClient.post<ApprovalProjection>(`/api/approvals/${id}/reject`, input)
+    } catch (err) {
+      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+    }
+  },
+
+  // Activity Stream
+  getActivity: async (filters?: ActivityQuery): Promise<ActivityProjection[]> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      let result = [...MOCK_ACTIVITY_STREAM]
+      const REF_TIME = new Date('2026-09-09T05:30:00Z').getTime()
+
+      if (filters?.search) {
+        const q = filters.search.toLowerCase()
+        result = result.filter(
+          (a) =>
+            a.id.toLowerCase().includes(q) ||
+            a.title.toLowerCase().includes(q) ||
+            (a.description && a.description.toLowerCase().includes(q)) ||
+            (a.entity?.label && a.entity.label.toLowerCase().includes(q)) ||
+            (a.entity?.id && a.entity.id.toLowerCase().includes(q)) ||
+            (a.actor?.label && a.actor.label.toLowerCase().includes(q)) ||
+            (a.actor?.id && a.actor.id.toLowerCase().includes(q)) ||
+            (a.correlationId && a.correlationId.toLowerCase().includes(q))
+        )
+      }
+
+      if (filters?.category && filters.category !== 'ALL') {
+        result = result.filter((a) => a.category === filters.category)
+      }
+
+      if (filters?.severity && filters.severity !== 'ALL') {
+        result = result.filter((a) => a.severity === filters.severity)
+      }
+
+      if (filters?.correlationId) {
+        result = result.filter((a) => a.correlationId === filters.correlationId)
+      }
+
+      if (filters?.timeRange && filters.timeRange !== 'ALL') {
+        const maxAgeMs =
+          filters.timeRange === '1h'
+            ? 60 * 60 * 1000
+            : filters.timeRange === '24h'
+              ? 24 * 60 * 60 * 1000
+              : 7 * 24 * 60 * 60 * 1000
+
+        result = result.filter((a) => {
+          const itemTime = new Date(a.timestamp).getTime()
+          return REF_TIME - itemTime <= maxAgeMs
+        })
+      }
+
+      return result
+    }
+    try {
+      return await apiClient.get<ActivityProjection[]>('/api/activity', {
+        params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
+      })
+    } catch (err) {
+      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+    }
+  },
+
+  getActivityEvent: async (id: string): Promise<ActivityProjection | null> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 40))
+      const found = MOCK_ACTIVITY_STREAM.find((a) => a.id === id)
+      return found ? { ...found } : null
+    }
+    try {
+      return await apiClient.get<ActivityProjection>(`/api/activity/${id}`)
+    } catch (err) {
+      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+    }
+  },
+
+  // Audit Records
+  getAuditRecords: async (filters?: AuditQuery): Promise<AuditRecord[]> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 60))
+      let result = [...MOCK_AUDIT_RECORDS]
+      const REF_TIME = new Date('2026-09-09T05:30:00Z').getTime()
+
+      if (filters?.search) {
+        const q = filters.search.toLowerCase()
+        result = result.filter(
+          (a) =>
+            a.id.toLowerCase().includes(q) ||
+            a.action.toLowerCase().includes(q) ||
+            (a.target?.label && a.target.label.toLowerCase().includes(q)) ||
+            (a.target?.id && a.target.id.toLowerCase().includes(q)) ||
+            (a.actor.label && a.actor.label.toLowerCase().includes(q)) ||
+            (a.actor.id && a.actor.id.toLowerCase().includes(q)) ||
+            (a.reason && a.reason.toLowerCase().includes(q)) ||
+            (a.correlationId && a.correlationId.toLowerCase().includes(q))
+        )
+      }
+
+      if (filters?.actorType && filters.actorType !== 'ALL') {
+        result = result.filter((a) => a.actor.type === filters.actorType)
+      }
+
+      if (filters?.outcome && filters.outcome !== 'ALL') {
+        result = result.filter((a) => a.outcome === filters.outcome)
+      }
+
+      if (filters?.correlationId) {
+        result = result.filter((a) => a.correlationId === filters.correlationId)
+      }
+
+      if (filters?.timeRange && filters.timeRange !== 'ALL') {
+        const maxAgeMs =
+          filters.timeRange === '1h'
+            ? 60 * 60 * 1000
+            : filters.timeRange === '24h'
+              ? 24 * 60 * 60 * 1000
+              : 7 * 24 * 60 * 60 * 1000
+
+        result = result.filter((a) => {
+          const itemTime = new Date(a.timestamp).getTime()
+          return REF_TIME - itemTime <= maxAgeMs
+        })
+      }
+
+      return result
+    }
+    try {
+      return await apiClient.get<AuditRecord[]>('/api/audit', {
+        params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
+      })
+    } catch (err) {
+      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+    }
+  },
+
+  getAuditRecord: async (id: string): Promise<AuditRecord | null> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 40))
+      const found = MOCK_AUDIT_RECORDS.find((a) => a.id === id)
+      return found ? { ...found } : null
+    }
+    try {
+      return await apiClient.get<AuditRecord>(`/api/audit/${id}`)
+    } catch (err) {
+      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+    }
+  },
+
+  // Governance Snapshot
+  getGovernanceSnapshot: async (): Promise<GovernanceSnapshot> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      return { ...MOCK_GOVERNANCE_SNAPSHOT }
+    }
+    try {
+      return await apiClient.get<GovernanceSnapshot>('/api/governance/snapshot')
     } catch (err) {
       throw new ApiError(503, 'Mission Control backend not connected', { original: err })
     }

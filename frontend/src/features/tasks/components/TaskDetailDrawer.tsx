@@ -504,6 +504,17 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
 
             {/* 4. ACTIVITY TAB */}
             <TabsContent value="activity" className="mt-0 space-y-4">
+              <div className="flex items-center justify-between pb-2 border-b border-border">
+                <span className="text-xs font-semibold text-text-primary font-mono-tech">Local Lifecycle Timeline</span>
+                <Link
+                  to="/activity?tab=events"
+                  className="inline-flex items-center gap-1 text-[11px] font-mono-tech text-interactive hover:underline"
+                >
+                  <span>View Global Activity</span>
+                  <ExternalLink className="h-3 w-3" />
+                </Link>
+              </div>
+
               {(!task.timeline || task.timeline.length === 0) ? (
                 <div className="p-8 text-center rounded-xl border border-dashed border-border bg-surface text-text-muted text-xs">
                   No activity events recorded yet.

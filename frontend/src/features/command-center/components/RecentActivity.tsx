@@ -32,7 +32,7 @@ export const RecentActivity: React.FC<RecentActivityProps> = ({ events, isLoadin
       description="Chronological event log of autonomous actions, security boundaries, and capability invocations."
       action={
         <Button variant="ghost" size="xs" asChild className="text-text-muted hover:text-text-primary">
-          <Link to="/activity" className="flex items-center gap-1 font-mono-tech text-[11px]">
+          <Link to="/activity?tab=events" className="flex items-center gap-1 font-mono-tech text-[11px]">
             Full Activity Log
             <ArrowUpRight className="h-3 w-3" />
           </Link>

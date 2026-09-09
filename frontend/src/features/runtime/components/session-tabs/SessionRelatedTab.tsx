@@ -134,6 +134,18 @@ export const SessionRelatedTab: React.FC<SessionRelatedTabProps> = ({
           </div>
         )}
       </div>
+
+      {/* Global Activity Cross-Link */}
+      <div className="pt-3 border-t border-border flex items-center justify-between">
+        <span className="text-[11px] text-text-muted font-mono-tech">Operational Telemetry</span>
+        <a
+          href="/activity?tab=events"
+          className="text-interactive hover:underline inline-flex items-center gap-1 text-[11px] font-mono-tech font-semibold"
+        >
+          View Related Activity
+          <ArrowUpRight className="h-3 w-3" />
+        </a>
+      </div>
     </div>
   )
 }

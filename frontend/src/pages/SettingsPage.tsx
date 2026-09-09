@@ -127,6 +127,43 @@ export const SettingsPage: React.FC = () => {
             </div>
           </div>
         </SectionCard>
+
+        {/* Governance & Policies Placeholder (Prompt 05 Section 47) */}
+        <SectionCard
+          title="Governance Policies & Quotas"
+          description="Advisory budget ceilings, runtime concurrency limits, and human approval risk thresholds."
+          className="md:col-span-2"
+        >
+          <div className="space-y-3 font-mono-tech text-xs">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b border-border">
+              <div>
+                <span className="font-semibold text-text-primary block">Monthly Token Budget Ceiling</span>
+                <span className="text-[11px] text-text-muted font-sans">Enforces advisory warning state when cumulative spend reaches 70% threshold.</span>
+              </div>
+              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
+                Not connected • Future backend policy
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b border-border">
+              <div>
+                <span className="font-semibold text-text-primary block">Runtime Concurrency Quota</span>
+                <span className="text-[11px] text-text-muted font-sans">Limits simultaneous parallel subprocess execution across worker pool.</span>
+              </div>
+              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
+                Not connected • Future backend policy
+              </span>
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2">
+              <div>
+                <span className="font-semibold text-text-primary block">Approval Escalation Policies</span>
+                <span className="text-[11px] text-text-muted font-sans">Automated classification of high-risk socket, credential, or disk mutations.</span>
+              </div>
+              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
+                Not connected • Future backend policy
+              </span>
+            </div>
+          </div>
+        </SectionCard>
       </div>
     </div>
   )

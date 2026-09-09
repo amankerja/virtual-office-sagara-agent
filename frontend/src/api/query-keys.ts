@@ -44,4 +44,17 @@ export const queryKeys = {
     list: (filters?: Record<string, unknown>) => ['delegations', 'list', filters] as const,
     detail: (id: string) => ['delegations', 'detail', id] as const,
   },
+  activity: {
+    all: ['activity'] as const,
+    list: (filters?: Record<string, unknown>) => ['activity', 'list', filters] as const,
+    detail: (id: string) => ['activity', 'detail', id] as const,
+  },
+  audit: {
+    all: ['audit'] as const,
+    list: (filters?: Record<string, unknown>) => ['audit', 'list', filters] as const,
+    detail: (id: string) => ['audit', 'detail', id] as const,
+  },
+  governance: {
+    snapshot: () => ['governance', 'snapshot'] as const,
+  },
 } as const;

@@ -49,3 +49,46 @@ export function formatTimestampRelative(isoTimestamp?: string | null): string {
   const diffDays = Math.floor(diffHours / 24)
   return `${diffDays}d ago`
 }
+
+/**
+ * Format full date and time (UTC/local)
+ */
+export function formatFullDateTime(isoTimestamp?: string | null): string {
+  if (!isoTimestamp) return '—'
+  const date = new Date(isoTimestamp)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+}
+
+/**
+ * Format time only (HH:mm:ss)
+ */
+export function formatTimeOnly(isoTimestamp?: string | null): string {
+  if (!isoTimestamp) return '—'
+  const date = new Date(isoTimestamp)
+  if (Number.isNaN(date.getTime())) return '—'
+  return date.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  })
+}
+
+/**
+ * Format token count compactly (e.g. 1.2M, 45.3k)
+ */
+export function formatCompactTokens(value: number | undefined | null): string {
+  if (value === undefined || value === null) return '—'
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(1)}M`
+  if (value >= 1_000) return `${(value / 1_000).toFixed(1)}k`
+  return value.toLocaleString()
+}

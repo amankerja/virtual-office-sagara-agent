@@ -3,6 +3,8 @@ import { dataProvider, isMockMode } from './provider'
 import { queryKeys } from './query-keys'
 import type { TaskQuery, CreateTaskInput, UpdateTaskInput } from '@/types/task'
 import type { ApprovalQuery, ApprovalDecisionInput } from '@/types/approval'
+import type { ActivityQuery } from '@/types/activity'
+import type { AuditQuery } from '@/types/audit'
 
 // Snapshot
 export function useMissionControlSnapshot() {
@@ -212,6 +214,51 @@ export function useRejectAction() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
       queryClient.invalidateQueries({ queryKey: queryKeys.pulse })
     },
+  })
+}
+
+// Activity
+export function useActivity(filters?: ActivityQuery) {
+  return useQuery({
+    queryKey: queryKeys.activity.list(filters as Record<string, unknown>),
+    queryFn: () => dataProvider.getActivity(filters),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useActivityEvent(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.activity.detail(id) : ['activity', 'detail', 'null'],
+    queryFn: () => (id ? dataProvider.getActivityEvent(id) : Promise.resolve(null)),
+    enabled: Boolean(id),
+    staleTime: 1000 * 30,
+  })
+}
+
+// Audit
+export function useAuditRecords(filters?: AuditQuery) {
+  return useQuery({
+    queryKey: queryKeys.audit.list(filters as Record<string, unknown>),
+    queryFn: () => dataProvider.getAuditRecords(filters),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useAuditRecord(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.audit.detail(id) : ['audit', 'detail', 'null'],
+    queryFn: () => (id ? dataProvider.getAuditRecord(id) : Promise.resolve(null)),
+    enabled: Boolean(id),
+    staleTime: 1000 * 30,
+  })
+}
+
+// Governance
+export function useGovernanceSnapshot() {
+  return useQuery({
+    queryKey: queryKeys.governance.snapshot(),
+    queryFn: () => dataProvider.getGovernanceSnapshot(),
+    staleTime: 1000 * 30,
   })
 }
 
