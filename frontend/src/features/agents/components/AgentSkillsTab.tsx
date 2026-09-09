@@ -1,8 +1,9 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { AgentProjection, AgentSkillEvidence, SkillHealthState } from '@/types/agent'
 import { Badge } from '@/components/ui/badge'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { Cpu, CheckCircle2, AlertCircle, HelpCircle, Activity } from 'lucide-react'
+import { Cpu, CheckCircle2, AlertCircle, HelpCircle, Activity, ChevronRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface AgentSkillsTabProps {
@@ -43,6 +44,7 @@ const HEALTH_CONFIG_MAP: Record<SkillHealthState, { label: string; badgeClass: s
 }
 
 export const AgentSkillsTab: React.FC<AgentSkillsTabProps> = ({ agent }) => {
+  const navigate = useNavigate()
   const skills: AgentSkillEvidence[] = agent.skills || []
 
   if (skills.length === 0) {
@@ -71,12 +73,16 @@ export const AgentSkillsTab: React.FC<AgentSkillsTabProps> = ({ agent }) => {
           return (
             <div
               key={skill.id}
-              className="p-3 rounded-lg border border-border bg-surface hover:border-border-strong transition-colors space-y-2"
+              onClick={() => navigate(`/skills?skill=${skill.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/skills?skill=${skill.id}`)}
+              className="group cursor-pointer p-3 rounded-lg border border-border bg-surface hover:border-interactive transition-colors space-y-2 focus:outline-none focus:ring-1 focus:ring-interactive"
             >
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-semibold text-text-primary font-mono-tech text-xs">
+                    <span className="font-semibold text-text-primary font-mono-tech text-xs group-hover:text-interactive transition-colors">
                       {skill.name}
                     </span>
                     <Badge variant="outline" className="border-border bg-surface-subtle text-[10px] text-text-muted">
@@ -90,15 +96,18 @@ export const AgentSkillsTab: React.FC<AgentSkillsTabProps> = ({ agent }) => {
                   )}
                 </div>
 
-                <span
-                  className={cn(
-                    'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border font-mono-tech uppercase shrink-0',
-                    config.badgeClass
-                  )}
-                >
-                  <IconComponent className="h-3 w-3" />
-                  {config.label}
-                </span>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <span
+                    className={cn(
+                      'inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium border font-mono-tech uppercase',
+                      config.badgeClass
+                    )}
+                  >
+                    <IconComponent className="h-3 w-3" />
+                    {config.label}
+                  </span>
+                  <ChevronRight className="h-3.5 w-3.5 text-text-muted group-hover:text-text-primary group-hover:translate-x-0.5 transition-all" />
+                </div>
               </div>
 
               <div className="flex items-center justify-between pt-1.5 border-t border-border-subtle text-[11px] font-mono-tech text-text-muted">

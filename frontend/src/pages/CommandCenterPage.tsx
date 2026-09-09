@@ -1,5 +1,5 @@
 import React from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -15,6 +15,7 @@ import type { AttentionItem } from '@/types/mission-control'
 
 export const CommandCenterPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
   const selectedAgentId = searchParams.get('agent')
 
   const {
@@ -47,8 +48,14 @@ export const CommandCenterPage: React.FC = () => {
   }
 
   const handleReviewAttentionItem = (item: AttentionItem) => {
-    if (item.entityId && agents.some((a) => a.id === item.entityId)) {
+    if (item.type === 'CAPABILITY' || item.entityId?.startsWith('sk-')) {
+      navigate(`/skills?skill=${item.entityId}`)
+    } else if (item.entityId && agents.some((a) => a.id === item.entityId)) {
       handleSelectAgent(item.entityId)
+    } else if (item.entityId?.startsWith('sess-')) {
+      navigate(`/runtime?tab=sessions&session=${item.entityId}`)
+    } else if (item.entityId?.startsWith('del-')) {
+      navigate(`/runtime?tab=delegations&delegation=${item.entityId}`)
     }
   }
 

@@ -36,14 +36,24 @@ export const SystemPulse: React.FC<SystemPulseProps> = ({ pulse, isLoading = fal
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-        {/* Gateway State */}
-        <MetricCard
-          label="Gateway"
-          value={gateway.status}
-          subtext={gateway.detail}
-          icon={Radio}
-          statusTone={gateway.status === 'HEALTHY' ? 'active' : 'warning'}
-        />
+        {/* Gateway State (Clickable to /runtime?tab=gateway) */}
+        <div
+          onClick={() => navigate('/runtime?tab=gateway')}
+          className="cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/runtime?tab=gateway')}
+          title="Inspect Gateway Telemetry"
+        >
+          <MetricCard
+            label="Gateway"
+            value={gateway.status}
+            subtext={gateway.detail}
+            icon={Radio}
+            statusTone={gateway.status === 'HEALTHY' ? 'active' : 'warning'}
+            className="group-hover:border-interactive transition-colors"
+          />
+        </div>
 
         {/* Profiles */}
         <MetricCard
@@ -60,7 +70,7 @@ export const SystemPulse: React.FC<SystemPulseProps> = ({ pulse, isLoading = fal
           className="cursor-pointer group"
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => e.key === 'Enter' && navigate('/agents?state=Active')}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/agents?state=Active')}
           title="Filter agents by Active state"
         >
           <MetricCard
@@ -73,23 +83,43 @@ export const SystemPulse: React.FC<SystemPulseProps> = ({ pulse, isLoading = fal
           />
         </div>
 
-        {/* Sessions */}
-        <MetricCard
-          label="Sessions"
-          value={sessions.active}
-          subtext={`across ${sessions.totalAgents} active agents`}
-          icon={Activity}
-          statusTone="default"
-        />
+        {/* Sessions (Clickable to /runtime?tab=sessions) */}
+        <div
+          onClick={() => navigate('/runtime?tab=sessions')}
+          className="cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/runtime?tab=sessions')}
+          title="View Sessions Browser"
+        >
+          <MetricCard
+            label="Sessions"
+            value={sessions.active}
+            subtext={`across ${sessions.totalAgents} active agents`}
+            icon={Activity}
+            statusTone="default"
+            className="group-hover:border-interactive transition-colors"
+          />
+        </div>
 
-        {/* Skill Health */}
-        <MetricCard
-          label="Skill Health"
-          value={`${skills.healthy} Healthy`}
-          subtext={`${skills.degraded} degraded, ${skills.missing} missing`}
-          icon={Cpu}
-          statusTone={skills.degraded > 0 || skills.missing > 0 ? 'warning' : 'active'}
-        />
+        {/* Skill Health (Clickable to /skills) */}
+        <div
+          onClick={() => navigate('/skills')}
+          className="cursor-pointer group"
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate('/skills')}
+          title="Open Skills Registry"
+        >
+          <MetricCard
+            label="Skill Health"
+            value={`${skills.healthy} Healthy`}
+            subtext={`${skills.degraded} degraded, ${skills.missing} missing`}
+            icon={Cpu}
+            statusTone={skills.degraded > 0 || skills.missing > 0 ? 'warning' : 'active'}
+            className="group-hover:border-interactive transition-colors"
+          />
+        </div>
 
         {/* Needs Attention */}
         <div

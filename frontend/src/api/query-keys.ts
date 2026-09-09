@@ -22,10 +22,23 @@ export const queryKeys = {
   },
   skills: {
     all: ['skills'] as const,
-    list: () => ['skills', 'list'] as const,
+    list: (filters?: Record<string, unknown>) => ['skills', 'list', filters] as const,
+    detail: (id: string) => ['skills', 'detail', id] as const,
   },
   runtime: {
-    telemetry: () => ['runtime', 'telemetry'] as const,
-    activity: (limit?: number) => ['runtime', 'activity', limit] as const,
+    overview: () => ['runtime', 'overview'] as const,
+    gateway: () => ['runtime', 'gateway'] as const,
+    usage: () => ['runtime', 'usage'] as const,
+    events: (filters?: Record<string, unknown>) => ['runtime', 'events', filters] as const,
+  },
+  sessions: {
+    all: ['sessions'] as const,
+    list: (filters?: Record<string, unknown>) => ['sessions', 'list', filters] as const,
+    detail: (id: string) => ['sessions', 'detail', id] as const,
+  },
+  delegations: {
+    all: ['delegations'] as const,
+    list: (filters?: Record<string, unknown>) => ['delegations', 'list', filters] as const,
+    detail: (id: string) => ['delegations', 'detail', id] as const,
   },
 } as const;

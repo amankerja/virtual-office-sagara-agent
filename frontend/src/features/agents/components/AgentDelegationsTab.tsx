@@ -1,7 +1,8 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { AgentProjection, AgentDelegationItem, DelegationState } from '@/types/agent'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { GitFork, Clock, Cpu } from 'lucide-react'
+import { GitFork, Clock, Cpu, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface AgentDelegationsTabProps {
@@ -17,6 +18,7 @@ const DELEGATION_CONFIG_MAP: Record<DelegationState, { label: string; badgeClass
 }
 
 export const AgentDelegationsTab: React.FC<AgentDelegationsTabProps> = ({ agent }) => {
+  const navigate = useNavigate()
   const delegations: AgentDelegationItem[] = agent.delegations || []
 
   if (delegations.length === 0) {
@@ -44,15 +46,22 @@ export const AgentDelegationsTab: React.FC<AgentDelegationsTabProps> = ({ agent 
           return (
             <div
               key={del.id}
-              className="p-3 rounded-lg border border-border bg-surface hover:border-border-strong transition-colors space-y-2 font-mono-tech"
+              onClick={() => navigate(`/runtime?tab=delegations&delegation=${del.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/runtime?tab=delegations&delegation=${del.id}`)}
+              className="group cursor-pointer p-3 rounded-lg border border-border bg-surface hover:border-interactive transition-colors space-y-2 font-mono-tech focus:outline-none focus:ring-1 focus:ring-interactive"
             >
               <div className="flex items-center justify-between">
-                <span className="font-semibold text-text-primary text-xs">
+                <span className="font-semibold text-text-primary text-xs group-hover:text-interactive transition-colors">
                   {del.taskTitle}
                 </span>
-                <Badge variant="outline" className={`text-[10px] uppercase ${config.badgeClass}`}>
-                  {config.label}
-                </Badge>
+                <div className="flex items-center gap-1.5">
+                  <Badge variant="outline" className={`text-[10px] uppercase ${config.badgeClass}`}>
+                    {config.label}
+                  </Badge>
+                  <ChevronRight className="h-3.5 w-3.5 text-text-muted group-hover:text-text-primary group-hover:translate-x-0.5 transition-all" />
+                </div>
               </div>
 
               {del.summary && (

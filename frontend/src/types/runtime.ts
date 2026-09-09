@@ -1,24 +1,174 @@
 /**
- * Runtime and Hermes telemetry schemas.
- * Frontend displays telemetry via Mission Control API without calling Hermes directly.
+ * Sagara Runtime Operations Domain Contracts
  */
-export type GatewayStatus = 'CONNECTED' | 'DISCONNECTED' | 'RECONNECTING' | 'UNKNOWN';
 
-export interface RuntimePulse {
-  gatewayStatus: GatewayStatus;
-  profilesCount: number | null;
-  activeAgentsCount: number | null;
-  totalSessionsCount: number | null;
-  skillHealthRatio: string | null;
-  needsAttentionCount: number | null;
-  uptimeSeconds?: number | null;
-  lastTelemetryHeartbeat?: string | null;
+export type GatewayState = 'HEALTHY' | 'STALE' | 'DEGRADED' | 'OFFLINE' | 'UNKNOWN';
+
+export interface GatewayTelemetry {
+  state: GatewayState;
+  backendId: string;
+  pid?: number;
+  host: string;
+  startedAt?: string;
+  lastHeartbeat?: string;
+  heartbeatAgeSeconds?: number;
+  restartCount?: number;
+  statusMessage?: string;
+}
+
+export type SessionState = 'ACTIVE' | 'RECENT' | 'COMPLETED' | 'FAILED' | 'ARCHIVED' | 'UNKNOWN';
+
+export interface SessionMessage {
+  id: string;
+  role: 'user' | 'assistant' | 'system' | 'tool';
+  timestamp: string;
+  contentPreview: string;
+  isSensitive?: boolean;
+  redactedReason?: string;
+  toolAssociation?: string;
+}
+
+export interface SessionToolActivity {
+  id: string;
+  toolName: string;
+  state: 'running' | 'completed' | 'failed' | 'unknown';
+  startedAt: string;
+  completedAt?: string;
+  durationMs?: number;
+  resultSummary?: string;
+}
+
+export interface SessionUsage {
+  apiCalls?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
+  reasoningTokens?: number;
+  estimatedCostUsd?: number;
+  actualCostUsd?: number;
+  billingStatus?: 'estimated' | 'settled' | 'unknown';
+}
+
+export interface SessionProjection {
+  id: string;
+  agentId: string;
+  agentName: string;
+  source: string;
+  model?: string;
+  provider?: string;
+  startedAt: string;
+  lastActivityAt: string;
+  state: SessionState;
+  messagesCount: number;
+  toolsCount: number;
+  parentSessionId?: string;
+  childSessionIds?: string[];
+  delegationIds?: string[];
+  endReason?: string;
+  usage?: SessionUsage;
+  messages?: SessionMessage[];
+  tools?: SessionToolActivity[];
+}
+
+export type DelegationState =
+  | 'QUEUED'
+  | 'CLAIMED'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'UNKNOWN';
+
+export interface DelegationTimelineEvent {
+  stage: 'Queued' | 'Claimed' | 'Started' | 'Updated' | 'Completed' | 'Delivered';
+  timestamp: string;
+  details?: string;
+}
+
+export interface DelegationProjection {
+  id: string;
+  taskTitle: string;
+  taskDescription?: string;
+  originAgentId: string;
+  originAgentName: string;
+  originSessionId: string;
+  parentSessionId?: string;
+  state: DelegationState;
+  ownerPid?: number; // Available only when confirmed
+  deliveryState?: 'PENDING' | 'DELIVERED' | 'ACKNOWLEDGED' | 'FAILED' | 'UNKNOWN';
+  startedAt: string;
+  updatedAt: string;
+  completedAt?: string;
+  resultSummary?: string;
+  timeline: DelegationTimelineEvent[];
+}
+
+export interface UsageMetricBreakdown {
+  name: string;
+  apiCalls?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+  cacheTokens?: number;
+  estimatedCostUsd?: number;
+  actualCostUsd?: number;
+}
+
+export interface RuntimeUsageOverview {
+  totalApiCalls?: number;
+  inputTokens?: number;
+  outputTokens?: number;
+  reasoningTokens?: number;
+  cacheTokens?: number;
+  estimatedCostUsd?: number;
+  actualCostUsd?: number;
+  byAgent: UsageMetricBreakdown[];
+  byModel: UsageMetricBreakdown[];
+  byProvider: UsageMetricBreakdown[];
+}
+
+export type EventCategory =
+  | 'GATEWAY'
+  | 'SESSION'
+  | 'DELEGATION'
+  | 'USAGE'
+  | 'SKILL'
+  | 'PROFILE'
+  | 'SYSTEM';
+
+export type EventSeverity = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL';
+
+export interface RuntimeEvent {
+  id: string;
+  timestamp: string;
+  category: EventCategory;
+  severity: EventSeverity;
+  entity: string;
+  entityId?: string;
+  message: string;
+  correlationId?: string;
+}
+
+export interface RuntimeOverview {
+  health: {
+    gateway: GatewayState;
+    runtimeData: 'HEALTHY' | 'DEGRADED' | 'UNKNOWN';
+    sessions: 'HEALTHY' | 'DEGRADED' | 'UNKNOWN';
+    delegations: 'HEALTHY' | 'DEGRADED' | 'UNKNOWN';
+    usage: 'HEALTHY' | 'DEGRADED' | 'UNKNOWN';
+  };
+  gateway: GatewayTelemetry;
+  activeSessionsCount?: number;
+  runningDelegationsCount?: number;
+  totalCostEstimateUsd?: number;
+  recentEvents: RuntimeEvent[];
 }
 
 export interface ActivityEvent {
   id: string;
   timestamp: string;
-  level: 'INFO' | 'WARN' | 'ERROR' | 'DEBUG';
+  level: 'INFO' | 'WARN' | 'DEBUG' | 'ERROR';
   source: string;
   message: string;
   metadata?: Record<string, unknown>;

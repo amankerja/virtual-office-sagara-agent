@@ -1,7 +1,8 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { AgentProjection, AgentSessionItem } from '@/types/agent'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { MessageSquare, Terminal, Clock } from 'lucide-react'
+import { MessageSquare, Terminal, Clock, ChevronRight } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 interface AgentSessionsTabProps {
@@ -9,6 +10,7 @@ interface AgentSessionsTabProps {
 }
 
 export const AgentSessionsTab: React.FC<AgentSessionsTabProps> = ({ agent }) => {
+  const navigate = useNavigate()
   const sessions: AgentSessionItem[] = agent.sessions || []
 
   if (sessions.length === 0) {
@@ -33,23 +35,32 @@ export const AgentSessionsTab: React.FC<AgentSessionsTabProps> = ({ agent }) => 
         {sessions.map((session) => (
           <div
             key={session.id}
-            className="p-3 rounded-lg border border-border bg-surface hover:border-border-strong transition-colors space-y-2.5 font-mono-tech"
+            onClick={() => navigate(`/runtime?tab=sessions&session=${session.id}`)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && navigate(`/runtime?tab=sessions&session=${session.id}`)}
+            className="group cursor-pointer p-3 rounded-lg border border-border bg-surface hover:border-interactive transition-colors space-y-2.5 font-mono-tech focus:outline-none focus:ring-1 focus:ring-interactive"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Terminal className="h-3.5 w-3.5 text-text-muted" />
-                <span className="font-semibold text-text-primary text-xs">{session.id}</span>
+                <Terminal className="h-3.5 w-3.5 text-text-muted group-hover:text-interactive transition-colors" />
+                <span className="font-semibold text-text-primary text-xs group-hover:text-interactive transition-colors">
+                  {session.id}
+                </span>
               </div>
-              <Badge
-                variant="outline"
-                className={
-                  session.status === 'active'
-                    ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]'
-                    : 'border-border bg-surface-subtle text-text-muted text-[10px]'
-                }
-              >
-                {session.status.toUpperCase()}
-              </Badge>
+              <div className="flex items-center gap-1.5">
+                <Badge
+                  variant="outline"
+                  className={
+                    session.status === 'active'
+                      ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px]'
+                      : 'border-border bg-surface-subtle text-text-muted text-[10px]'
+                  }
+                >
+                  {session.status.toUpperCase()}
+                </Badge>
+                <ChevronRight className="h-3.5 w-3.5 text-text-muted group-hover:text-text-primary group-hover:translate-x-0.5 transition-all" />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px] text-text-secondary pt-1 border-t border-border-subtle">
