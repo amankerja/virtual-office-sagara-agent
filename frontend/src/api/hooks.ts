@@ -1,6 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { dataProvider, isMockMode } from './provider'
 import { queryKeys } from './query-keys'
+import type { TaskQuery, CreateTaskInput, UpdateTaskInput } from '@/types/task'
+import type { ApprovalQuery, ApprovalDecisionInput } from '@/types/approval'
 
 // Snapshot
 export function useMissionControlSnapshot() {
@@ -114,4 +116,104 @@ export function useRuntimeEvents() {
   })
 }
 
+// Tasks
+export function useTasks(filters?: TaskQuery) {
+  return useQuery({
+    queryKey: queryKeys.tasks.list(filters as Record<string, unknown>),
+    queryFn: () => dataProvider.getTasks(filters),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useTask(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.tasks.detail(id) : ['tasks', 'detail', 'null'],
+    queryFn: () => (id ? dataProvider.getTaskById(id) : Promise.resolve(null)),
+    enabled: Boolean(id),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useCreateTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: CreateTaskInput) => dataProvider.createTask(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pulse })
+    },
+  })
+}
+
+export function useUpdateTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: UpdateTaskInput }) =>
+      dataProvider.updateTask(id, input),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(variables.id) })
+    },
+  })
+}
+
+export function useDispatchTask() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => dataProvider.dispatchTask(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pulse })
+    },
+  })
+}
+
+// Approvals
+export function useApprovals(filters?: ApprovalQuery) {
+  return useQuery({
+    queryKey: queryKeys.approvals.list(filters as Record<string, unknown>),
+    queryFn: () => dataProvider.getApprovals(filters),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useApproval(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.approvals.detail(id) : ['approvals', 'detail', 'null'],
+    queryFn: () => (id ? dataProvider.getApprovalById(id) : Promise.resolve(null)),
+    enabled: Boolean(id),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useApproveAction() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input?: ApprovalDecisionInput }) =>
+      dataProvider.approveAction(id, input),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pulse })
+    },
+  })
+}
+
+export function useRejectAction() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, input }: { id: string; input: ApprovalDecisionInput }) =>
+      dataProvider.rejectAction(id, input),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.detail(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.pulse })
+    },
+  })
+}
+
 export { isMockMode }
+

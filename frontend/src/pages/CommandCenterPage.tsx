@@ -9,9 +9,10 @@ import { AttentionQueue } from '@/features/command-center/components/AttentionQu
 import { AgentFleetOverview } from '@/features/command-center/components/AgentFleetOverview'
 import { RecentActivity } from '@/features/command-center/components/RecentActivity'
 import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer'
-import { useMissionControlSnapshot, useAgents, useAgent } from '@/api/hooks'
+import { useMissionControlSnapshot, useAgents, useAgent, useTasks } from '@/api/hooks'
 import { ErrorState } from '@/components/shared/ErrorState'
 import type { AttentionItem } from '@/types/mission-control'
+import { CheckSquare, ArrowRight, PlayCircle, AlertTriangle, XCircle, Clock } from 'lucide-react'
 
 export const CommandCenterPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -31,6 +32,8 @@ export const CommandCenterPage: React.FC = () => {
     refetch: refetchAgents,
   } = useAgents()
 
+  const { data: tasks = [] } = useTasks()
+
   const handleSelectAgent = (id: string) => {
     setSearchParams((prev) => {
       const next = new URLSearchParams(prev)
@@ -48,7 +51,11 @@ export const CommandCenterPage: React.FC = () => {
   }
 
   const handleReviewAttentionItem = (item: AttentionItem) => {
-    if (item.type === 'CAPABILITY' || item.entityId?.startsWith('sk-')) {
+    if (item.type === 'APPROVAL' || item.entityId?.startsWith('appr-')) {
+      navigate(`/approvals?approval=${item.entityId}`)
+    } else if (item.entityId?.startsWith('tsk-')) {
+      navigate(`/tasks?task=${item.entityId}`)
+    } else if (item.type === 'CAPABILITY' || item.entityId?.startsWith('sk-')) {
       navigate(`/skills?skill=${item.entityId}`)
     } else if (item.entityId && agents.some((a) => a.id === item.entityId)) {
       handleSelectAgent(item.entityId)
@@ -121,6 +128,86 @@ export const CommandCenterPage: React.FC = () => {
       {snapshot?.pulse && (
         <SystemPulse pulse={snapshot.pulse} isLoading={snapshotLoading} />
       )}
+
+      {/* 1.5 Compact Work Queue Operational Overview (Prompt 04 Section 51) */}
+      <div className="rounded-xl border border-border bg-surface p-3.5 sm:p-4">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded-md bg-interactive/10 text-interactive border border-interactive/25">
+              <CheckSquare className="h-3.5 w-3.5" />
+            </span>
+            <h3 className="text-xs font-bold text-text-primary uppercase tracking-wider font-mono-tech">
+              Work Queue
+            </h3>
+          </div>
+          <button
+            type="button"
+            onClick={() => navigate('/tasks')}
+            className="text-xs font-mono-tech text-interactive hover:underline inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span>Open Tasks Board</span>
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+          <button
+            type="button"
+            onClick={() => navigate('/tasks?state=READY')}
+            className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-surface-subtle hover:border-sky-500/40 hover:bg-surface-hover transition-colors text-left cursor-pointer"
+          >
+            <div>
+              <div className="text-[10px] font-mono-tech text-text-muted uppercase">Ready</div>
+              <div className="text-base font-bold font-mono-tech text-sky-600 dark:text-sky-400 mt-0.5">
+                {tasks.filter((t) => t.state === 'READY').length}
+              </div>
+            </div>
+            <Clock className="h-4 w-4 text-sky-500/60" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/tasks?state=RUNNING')}
+            className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-surface-subtle hover:border-emerald-500/40 hover:bg-surface-hover transition-colors text-left cursor-pointer"
+          >
+            <div>
+              <div className="text-[10px] font-mono-tech text-text-muted uppercase">Running</div>
+              <div className="text-base font-bold font-mono-tech text-emerald-600 dark:text-emerald-400 mt-0.5">
+                {tasks.filter((t) => ['RUNNING', 'DISPATCHING', 'QUEUED'].includes(t.state)).length}
+              </div>
+            </div>
+            <PlayCircle className="h-4 w-4 text-emerald-500/60" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/approvals')}
+            className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-surface-subtle hover:border-amber-500/40 hover:bg-surface-hover transition-colors text-left cursor-pointer"
+          >
+            <div>
+              <div className="text-[10px] font-mono-tech text-text-muted uppercase">Waiting Approval</div>
+              <div className="text-base font-bold font-mono-tech text-amber-600 dark:text-amber-400 mt-0.5">
+                {tasks.filter((t) => t.state === 'AWAITING_APPROVAL').length}
+              </div>
+            </div>
+            <AlertTriangle className="h-4 w-4 text-amber-500/60" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => navigate('/tasks?state=FAILED')}
+            className="flex items-center justify-between p-2.5 rounded-lg border border-border bg-surface-subtle hover:border-rose-500/40 hover:bg-surface-hover transition-colors text-left cursor-pointer"
+          >
+            <div>
+              <div className="text-[10px] font-mono-tech text-text-muted uppercase">Failed</div>
+              <div className="text-base font-bold font-mono-tech text-rose-600 dark:text-rose-400 mt-0.5">
+                {tasks.filter((t) => t.state === 'FAILED').length}
+              </div>
+            </div>
+            <XCircle className="h-4 w-4 text-rose-500/60" />
+          </button>
+        </div>
+      </div>
 
       {/* 2. Priority Grid: Attention Queue & Agent Fleet Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

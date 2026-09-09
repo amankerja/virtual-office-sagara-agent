@@ -15,10 +15,13 @@ export const queryKeys = {
   tasks: {
     all: ['tasks'] as const,
     list: (filters?: Record<string, unknown>) => ['tasks', 'list', filters] as const,
+    detail: (id: string) => ['tasks', 'detail', id] as const,
   },
   approvals: {
     all: ['approvals'] as const,
+    list: (filters?: Record<string, unknown>) => ['approvals', 'list', filters] as const,
     pending: () => ['approvals', 'pending'] as const,
+    detail: (id: string) => ['approvals', 'detail', id] as const,
   },
   skills: {
     all: ['skills'] as const,
