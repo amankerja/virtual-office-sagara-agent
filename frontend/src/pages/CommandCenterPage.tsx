@@ -1,162 +1,151 @@
 import React from 'react'
-import {
-  Activity,
-  AlertTriangle,
-  Bot,
-  Cpu,
-  Layers,
-  Radio,
-  Clock,
-  ShieldCheck,
-  ArrowUpRight,
-} from 'lucide-react'
+import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { MetricCard } from '@/components/shared/MetricCard'
-import { SectionCard } from '@/components/shared/SectionCard'
-import { EmptyState } from '@/components/shared/EmptyState'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Link } from 'react-router-dom'
+import { Badge } from '@/components/ui/badge'
+import { RefreshCw, Sparkles } from 'lucide-react'
+import { SystemPulse } from '@/features/command-center/components/SystemPulse'
+import { AttentionQueue } from '@/features/command-center/components/AttentionQueue'
+import { AgentFleetOverview } from '@/features/command-center/components/AgentFleetOverview'
+import { RecentActivity } from '@/features/command-center/components/RecentActivity'
+import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer'
+import { useMissionControlSnapshot, useAgents, useAgent } from '@/api/hooks'
+import { ErrorState } from '@/components/shared/ErrorState'
+import type { AttentionItem } from '@/types/mission-control'
 
 export const CommandCenterPage: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams()
+  const selectedAgentId = searchParams.get('agent')
+
+  const {
+    data: snapshot,
+    isLoading: snapshotLoading,
+    error: snapshotError,
+    refetch: refetchSnapshot,
+  } = useMissionControlSnapshot()
+
+  const {
+    data: agents = [],
+    isLoading: agentsLoading,
+    refetch: refetchAgents,
+  } = useAgents()
+
+  const handleSelectAgent = (id: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.set('agent', id)
+      return next
+    })
+  }
+
+  const handleCloseDrawer = () => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev)
+      next.delete('agent')
+      return next
+    })
+  }
+
+  const handleReviewAttentionItem = (item: AttentionItem) => {
+    if (item.entityId && agents.some((a) => a.id === item.entityId)) {
+      handleSelectAgent(item.entityId)
+    }
+  }
+
+  const handleManualRefresh = () => {
+    refetchSnapshot()
+    refetchAgents()
+  }
+
+  // Find currently selected agent projection
+  const { data: selectedAgent } = useAgent(selectedAgentId)
+  const activeAgent = selectedAgent || agents.find((a) => a.id === selectedAgentId) || null
+
+  if (snapshotError) {
+    return (
+      <div className="py-12">
+        <ErrorState
+          title="Mission Control Offline"
+          message="Unable to ingest operational telemetry snapshot. Ensure the backend gateway is reachable or prototype mode is active."
+          onRetry={handleManualRefresh}
+        />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
-      {/* Page Header */}
+      {/* Page Header with Prototype Data Badge & Refresh */}
       <PageHeader
         title="Command Center"
-        description="Unified operational overview across Sagara agents, runtime telemetry, and action queues."
+        description="Operational overview of the Sagara AI organization."
         badge={
-          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
-            TELEMETRY V0
-          </Badge>
+          <div className="flex items-center gap-1.5">
+            <Badge
+              variant="outline"
+              className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
+            >
+              <Sparkles className="h-3 w-3" />
+              PROTOTYPE DATA
+            </Badge>
+          </div>
         }
         actions={
-          <Button
-            variant="outline"
-            size="xs"
-            asChild
-            className="border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors min-h-[36px] sm:min-h-[28px]"
-          >
-            <Link to="/agents">
-              View Agents
-              <ArrowUpRight className="ml-1 h-3 w-3" />
-            </Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono-tech text-text-muted hidden sm:inline">
+              Refreshed: {snapshot?.timestamp ? new Date(snapshot.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) : 'Just now'}
+            </span>
+
+            <Button
+              variant="outline"
+              size="xs"
+              onClick={handleManualRefresh}
+              className="border-border bg-surface text-text-secondary hover:text-text-primary hover:bg-surface-hover min-h-[32px] sm:min-h-[28px]"
+              title="Refresh telemetry"
+            >
+              <RefreshCw className="h-3.5 w-3.5 mr-1 text-text-muted" />
+              <span className="font-mono-tech text-[11px]">Refresh</span>
+            </Button>
+          </div>
         }
       />
 
-      {/* 1. System Pulse Section */}
-      <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-          <h2 className="text-xs font-semibold text-text-muted tracking-wider uppercase font-mono-tech">
-            System Pulse
-          </h2>
-          <span className="text-[11px] text-text-muted font-mono-tech">
-            Awaiting backend connection
-          </span>
+      {/* 1. System Pulse Metrics */}
+      {snapshot?.pulse && (
+        <SystemPulse pulse={snapshot.pulse} isLoading={snapshotLoading} />
+      )}
+
+      {/* 2. Priority Grid: Attention Queue & Agent Fleet Overview */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div className="lg:col-span-6 xl:col-span-7">
+          <AttentionQueue
+            items={snapshot?.attentionQueue || []}
+            onReviewItem={handleReviewAttentionItem}
+            isLoading={snapshotLoading}
+          />
         </div>
 
-        {/* Responsive Grid: 1-2 cols mobile, 3 cols tablet, 6 cols desktop */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          <MetricCard
-            label="Gateway"
-            value="Not connected"
-            subtext="Backend offline"
-            icon={Radio}
-            statusTone="neutral"
-          />
-          <MetricCard
-            label="Profiles"
-            value="—"
-            subtext="0 registered"
-            icon={Layers}
-            statusTone="neutral"
-          />
-          <MetricCard
-            label="Active Agents"
-            value="—"
-            subtext="0 running"
-            icon={Bot}
-            statusTone="neutral"
-          />
-          <MetricCard
-            label="Sessions"
-            value="—"
-            subtext="0 active"
-            icon={Activity}
-            statusTone="neutral"
-          />
-          <MetricCard
-            label="Skill Health"
-            value="—"
-            subtext="No telemetry"
-            icon={Cpu}
-            statusTone="neutral"
-          />
-          <MetricCard
-            label="Needs Attention"
-            value="—"
-            subtext="0 pending items"
-            icon={AlertTriangle}
-            statusTone="neutral"
+        <div className="lg:col-span-6 xl:col-span-5">
+          <AgentFleetOverview
+            agents={agents}
+            onSelectAgent={handleSelectAgent}
+            isLoading={agentsLoading}
           />
         </div>
       </div>
 
-      {/* 2. Operational Grids: Attention Queue & Agent Overview */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* Attention Queue */}
-        <SectionCard
-          title="Attention Queue"
-          description="High-priority approval gates, human interventions, and degraded health alerts."
-        >
-          <EmptyState
-            icon={ShieldCheck}
-            title="Attention Queue Clear"
-            description="No agent interventions or approvals currently require human operator sign-off."
-          />
-        </SectionCard>
+      {/* 3. Recent Activity Stream */}
+      <RecentActivity
+        events={snapshot?.recentActivity || []}
+        isLoading={snapshotLoading}
+      />
 
-        {/* Agent Overview */}
-        <SectionCard
-          title="Agent Overview"
-          description="Operational status and active workload projections for registered agent instances."
-          action={
-            <Button variant="ghost" size="xs" asChild className="text-text-muted hover:text-text-primary">
-              <Link to="/agents" className="flex items-center gap-1 font-mono-tech text-[11px]">
-                Directory
-                <ArrowUpRight className="h-3 w-3" />
-              </Link>
-            </Button>
-          }
-        >
-          <EmptyState
-            icon={Bot}
-            title="No Active Agents Detected"
-            description="Agents will appear in this cluster once connected to the Sagara Mission Control API."
-          />
-        </SectionCard>
-      </div>
-
-      {/* 3. Recent Activity */}
-      <SectionCard
-        title="Recent Activity"
-        description="Chronological log of agent actions, system handoffs, and capability executions."
-        action={
-          <Button variant="ghost" size="xs" asChild className="text-text-muted hover:text-text-primary">
-            <Link to="/activity" className="flex items-center gap-1 font-mono-tech text-[11px]">
-              Full Log
-              <ArrowUpRight className="h-3 w-3" />
-            </Link>
-          </Button>
-        }
-      >
-        <EmptyState
-          icon={Clock}
-          title="Event Stream Inactive"
-          description="Live operational telemetry and event feeds will stream here when the Mission Control API is online."
-        />
-      </SectionCard>
+      {/* Reusable Agent Detail Drawer */}
+      <AgentDetailDrawer
+        agent={activeAgent}
+        isOpen={Boolean(selectedAgentId && activeAgent)}
+        onClose={handleCloseDrawer}
+      />
     </div>
   )
 }

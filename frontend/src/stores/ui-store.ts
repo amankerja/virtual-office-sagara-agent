@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 
 const SIDEBAR_STORAGE_KEY = 'sagara-sidebar-collapsed'
+const VIEW_MODE_STORAGE_KEY = 'sagara-agent-view-mode'
 
 interface UIState {
   isSidebarCollapsed: boolean;
@@ -15,6 +16,9 @@ interface UIState {
 
   selectedProfileId: string | null;
   setSelectedProfileId: (id: string | null) => void;
+
+  agentViewMode: 'grid' | 'list';
+  setAgentViewMode: (mode: 'grid' | 'list') => void;
 }
 
 const getInitialSidebarState = (): boolean => {
@@ -24,6 +28,17 @@ const getInitialSidebarState = (): boolean => {
   } catch {
     return false
   }
+}
+
+const getInitialViewModeState = (): 'grid' | 'list' => {
+  if (typeof window === 'undefined') return 'grid'
+  try {
+    const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY)
+    if (stored === 'list' || stored === 'grid') return stored
+  } catch {
+    // ignore
+  }
+  return 'grid'
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -55,4 +70,14 @@ export const useUIStore = create<UIState>((set) => ({
 
   selectedProfileId: null,
   setSelectedProfileId: (id) => set({ selectedProfileId: id }),
+
+  agentViewMode: getInitialViewModeState(),
+  setAgentViewMode: (mode) => {
+    try {
+      localStorage.setItem(VIEW_MODE_STORAGE_KEY, mode)
+    } catch {
+      // ignore
+    }
+    set({ agentViewMode: mode })
+  },
 }))

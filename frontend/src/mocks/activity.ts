@@ -1,0 +1,66 @@
+import type { ActivityEvent } from '@/types/runtime'
+
+export const MOCK_ACTIVITY_EVENTS: ActivityEvent[] = [
+  {
+    id: 'act-001',
+    timestamp: '2026-09-09T04:49:00Z',
+    level: 'INFO',
+    source: 'Alpha — Core Engineer',
+    message: 'Initiated AST indexing across 1,200 exported symbols in frontend package',
+    metadata: { delegationId: 'del-01', target: 'frontend/src' },
+  },
+  {
+    id: 'act-002',
+    timestamp: '2026-09-09T04:47:00Z',
+    level: 'WARN',
+    source: 'Gamma — Gatekeeper',
+    message: 'Staged firewall port modification (TCP 8080) awaiting human operator approval',
+    metadata: { approvalId: 'app-01', requestedPort: 8080 },
+  },
+  {
+    id: 'act-003',
+    timestamp: '2026-09-09T04:45:00Z',
+    level: 'INFO',
+    source: 'Delta — Stream Engine',
+    message: 'Delegated 3 concurrent event partition rollups to background workers',
+    metadata: { partitions: 3, throughput: '4.2 MB/s' },
+  },
+  {
+    id: 'act-004',
+    timestamp: '2026-09-09T04:38:00Z',
+    level: 'WARN',
+    source: 'Zeta — Network Relay',
+    message: 'Upstream webhook latency spike detected (>1,200ms) on secondary proxy bridge',
+    metadata: { latencyMs: 1240, skillId: 'sk-relay' },
+  },
+  {
+    id: 'act-005',
+    timestamp: '2026-09-09T04:35:00Z',
+    level: 'INFO',
+    source: 'Beta — Infra Sentinel',
+    message: 'Completed hourly disk volume snapshot and memory garbage collection cycle',
+    metadata: { freedMemoryMb: 412, diskFreePercent: 78 },
+  },
+  {
+    id: 'act-006',
+    timestamp: '2026-09-09T04:20:00Z',
+    level: 'DEBUG',
+    source: 'Epsilon — Dispatcher',
+    message: 'Scheduled cron runner triggered periodic health reconciliation checks',
+  },
+  {
+    id: 'act-007',
+    timestamp: '2026-09-09T04:10:00Z',
+    level: 'WARN',
+    source: 'Eta — Growth Scout',
+    message: 'Profile configuration incomplete: missing model assignment and capability mapping',
+    metadata: { profileId: 'agent-eta' },
+  },
+  {
+    id: 'act-008',
+    timestamp: '2026-09-09T03:50:00Z',
+    level: 'INFO',
+    source: 'Gateway Supervisor',
+    message: 'Telemetry gateway initialized heartbeat listener on local RPC bus',
+  },
+]
