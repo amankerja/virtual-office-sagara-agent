@@ -11,7 +11,7 @@ export const ActivityPage: React.FC = () => {
         title="Activity"
         description="Unified real-time audit log, capability execution telemetry, and lifecycle events."
         badge={
-          <Badge variant="outline" className="border-[#1e2436] bg-[#0f121a] text-[#94a3b8] font-mono-tech text-[10px]">
+          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
             EVENTS: 0
           </Badge>
         }
@@ -21,7 +21,7 @@ export const ActivityPage: React.FC = () => {
         icon={Activity}
         title="No Activity Logged"
         description="Operational logs and event streams will appear here once connected to the Sagara Mission Control event bus."
-        className="py-20"
+        className="py-16 sm:py-20"
       />
     </div>
   )

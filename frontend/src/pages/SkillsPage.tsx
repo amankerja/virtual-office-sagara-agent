@@ -11,7 +11,7 @@ export const SkillsPage: React.FC = () => {
         title="Skills"
         description="Catalog of integrated tools, agent skill manifests, and provider capability mappings."
         badge={
-          <Badge variant="outline" className="border-[#1e2436] bg-[#0f121a] text-[#94a3b8] font-mono-tech text-[10px]">
+          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
             ACTIVE: 0
           </Badge>
         }
@@ -21,7 +21,7 @@ export const SkillsPage: React.FC = () => {
         icon={Cpu}
         title="Capability Registry Inactive"
         description="Registered Sagara capabilities will appear here once the skill manifest is retrieved from the Mission Control API."
-        className="py-20"
+        className="py-16 sm:py-20"
       />
     </div>
   )

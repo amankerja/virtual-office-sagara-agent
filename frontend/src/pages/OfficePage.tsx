@@ -11,7 +11,7 @@ export const OfficePage: React.FC = () => {
         title="Virtual Office"
         description="Interactive spatial visualizer of autonomous agent workstations, communication channels, and active collaboration."
         badge={
-          <Badge variant="outline" className="border-[#1e2436] bg-[#0f121a] text-[#94a3b8] font-mono-tech text-[10px]">
+          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
             2.5D ENGINE STANDBY
           </Badge>
         }
@@ -21,7 +21,7 @@ export const OfficePage: React.FC = () => {
         icon={Building2}
         title="Virtual Office Visualization Standby"
         description="The 2.5D operational visualization will appear here once the graphical workstation engine is initialized in subsequent milestones."
-        className="py-24"
+        className="py-20 sm:py-24"
       />
     </div>
   )

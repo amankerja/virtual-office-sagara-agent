@@ -20,21 +20,21 @@ export const SectionCard: React.FC<SectionCardProps> = ({
   contentClassName,
 }) => {
   return (
-    <Card className={cn('bg-[#0f121a] border-[#1e2436] shadow-none', className)}>
-      <CardHeader className="flex flex-row items-center justify-between border-b border-[#1e2436] px-5 py-3.5 space-y-0">
+    <Card className={cn('bg-surface border-border shadow-xs transition-colors', className)}>
+      <CardHeader className="flex flex-row items-center justify-between border-b border-border px-4 sm:px-5 py-3.5 space-y-0">
         <div>
-          <CardTitle className="text-sm font-medium text-[#f1f5f9] tracking-tight">
+          <CardTitle className="text-sm font-medium text-text-primary tracking-tight">
             {title}
           </CardTitle>
           {description && (
-            <CardDescription className="text-xs text-[#94a3b8] mt-0.5">
+            <CardDescription className="text-xs text-text-secondary mt-0.5">
               {description}
             </CardDescription>
           )}
         </div>
         {action && <div>{action}</div>}
       </CardHeader>
-      <CardContent className={cn('p-5', contentClassName)}>
+      <CardContent className={cn('p-4 sm:p-5', contentClassName)}>
         {children}
       </CardContent>
     </Card>

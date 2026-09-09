@@ -18,8 +18,8 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
         className
       )}
     >
-      <Loader2 className="h-6 w-6 animate-spin text-blue-500 mb-2" />
-      <span className="text-xs text-[#94a3b8] font-mono-tech">{message}</span>
+      <Loader2 className="h-6 w-6 animate-spin text-interactive mb-2" />
+      <span className="text-xs text-text-muted font-mono-tech">{message}</span>
     </div>
   )
 }

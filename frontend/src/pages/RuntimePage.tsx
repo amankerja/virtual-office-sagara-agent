@@ -11,7 +11,7 @@ export const RuntimePage: React.FC = () => {
         title="Runtime"
         description="Hermes execution engine telemetry, process supervisors, and memory management."
         badge={
-          <Badge variant="outline" className="border-[#1e2436] bg-[#0f121a] text-[#94a3b8] font-mono-tech text-[10px]">
+          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
             HERMES TELEMETRY
           </Badge>
         }
@@ -21,7 +21,7 @@ export const RuntimePage: React.FC = () => {
         icon={Server}
         title="Runtime Telemetry Offline"
         description="Hermes runtime telemetry will appear here when the telemetry stream is ingested via the Mission Control API."
-        className="py-20"
+        className="py-16 sm:py-20"
       />
     </div>
   )

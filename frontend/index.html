@@ -1,13 +1,26 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sagara Mission Control</title>
     <meta name="description" content="Sagara Mission Control — High-density operations dashboard for autonomous agent fleets and runtime telemetry." />
+    <script>
+      (function() {
+        try {
+          var stored = localStorage.getItem('sagara-theme');
+          var resolved = stored === 'light' || stored === 'dark' 
+            ? stored 
+            : (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+          document.documentElement.classList.add(resolved);
+          document.documentElement.setAttribute('data-theme', resolved);
+          document.documentElement.style.colorScheme = resolved;
+        } catch (e) {}
+      })();
+    </script>
   </head>
-  <body class="bg-[#090b10] text-[#f1f5f9]">
+  <body class="bg-background text-foreground">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

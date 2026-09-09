@@ -2,32 +2,33 @@ import React from 'react'
 import { Outlet } from 'react-router-dom'
 import { AppSidebar } from '@/components/shell/AppSidebar'
 import { GlobalHeader } from '@/components/shell/GlobalHeader'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useUIStore } from '@/stores/ui-store'
 
 export const MissionControlLayout: React.FC = () => {
   const { isMobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
 
   return (
-    <div className="flex h-screen w-screen overflow-hidden bg-[#090b10] text-[#f1f5f9]">
-      {/* Desktop Sidebar (hidden on small mobile screens) */}
+    <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors">
+      {/* Desktop & Tablet Sidebar (Hidden on mobile < 768px) */}
       <div className="hidden md:flex h-full shrink-0">
-        <AppSidebar />
+        <AppSidebar isMobile={false} />
       </div>
 
-      {/* Mobile Sidebar Sheet */}
+      {/* Mobile Navigation Sheet */}
       <Sheet open={isMobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-64 bg-[#0b0e17] border-r border-[#1e2436]">
-          <AppSidebar />
+        <SheetContent side="left" className="p-0 w-72 max-w-[85vw] bg-surface-subtle border-r border-border">
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
+          <AppSidebar isMobile={true} />
         </SheetContent>
       </Sheet>
 
-      {/* Main Content Area */}
+      {/* Main Viewport Container */}
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
         <GlobalHeader />
 
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 bg-[#090b10]">
-          <div className="mx-auto max-w-7xl">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 bg-background transition-colors">
+          <div className="mx-auto max-w-7xl w-full">
             <Outlet />
           </div>
         </main>

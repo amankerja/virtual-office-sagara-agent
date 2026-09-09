@@ -1,5 +1,7 @@
 import { create } from 'zustand'
 
+const SIDEBAR_STORAGE_KEY = 'sagara-sidebar-collapsed'
+
 interface UIState {
   isSidebarCollapsed: boolean;
   toggleSidebar: () => void;
@@ -15,10 +17,35 @@ interface UIState {
   setSelectedProfileId: (id: string | null) => void;
 }
 
+const getInitialSidebarState = (): boolean => {
+  if (typeof window === 'undefined') return false
+  try {
+    return localStorage.getItem(SIDEBAR_STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
 export const useUIStore = create<UIState>((set) => ({
-  isSidebarCollapsed: false,
-  toggleSidebar: () => set((state) => ({ isSidebarCollapsed: !state.isSidebarCollapsed })),
-  setSidebarCollapsed: (collapsed) => set({ isSidebarCollapsed: collapsed }),
+  isSidebarCollapsed: getInitialSidebarState(),
+  toggleSidebar: () =>
+    set((state) => {
+      const nextState = !state.isSidebarCollapsed
+      try {
+        localStorage.setItem(SIDEBAR_STORAGE_KEY, String(nextState))
+      } catch {
+        // ignore
+      }
+      return { isSidebarCollapsed: nextState }
+    }),
+  setSidebarCollapsed: (collapsed) => {
+    try {
+      localStorage.setItem(SIDEBAR_STORAGE_KEY, String(collapsed))
+    } catch {
+      // ignore
+    }
+    set({ isSidebarCollapsed: collapsed })
+  },
 
   isMobileSidebarOpen: false,
   setMobileSidebarOpen: (open) => set({ isMobileSidebarOpen: open }),

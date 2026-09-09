@@ -11,7 +11,7 @@ export const ApprovalsPage: React.FC = () => {
         title="Approvals"
         description="Human-in-the-loop validation checkpoints for sensitive actions and capability invocations."
         badge={
-          <Badge variant="outline" className="border-[#1e2436] bg-[#0f121a] text-[#94a3b8] font-mono-tech text-[10px]">
+          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
             PENDING: 0
           </Badge>
         }
@@ -21,7 +21,7 @@ export const ApprovalsPage: React.FC = () => {
         icon={ShieldCheck}
         title="No Approvals Pending"
         description="Human-in-the-loop approvals will appear here when an agent encounters an action boundary requiring operator confirmation."
-        className="py-20"
+        className="py-16 sm:py-20"
       />
     </div>
   )
