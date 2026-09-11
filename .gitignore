@@ -1,9 +1,63 @@
+# Dependencies
 node_modules/
+/.pnp
+.pnp.js
+
+# Python Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+__pypackages__/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Production & Build Outputs
 dist/
+build/
+out/
+
+# Runtime Database & Storage (keep test fixtures intact)
+backend/data/*.db
+backend/data/*.sqlite
+backend/data/*.sqlite3
+backend/data/*.db-journal
+backend/data/*.db-wal
+backend/data/*.db-shm
+!backend/tests/fixtures/*.db
+
+# Verification & Test Artifacts
+.verification/
+*.zip
+
+# Environment & Local Secrets
 .env
-.env.*
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 !.env.example
+
+# Logs
 *.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS & Editor Files
 .DS_Store
+Thumbs.db
+Desktop.ini
 .vscode/
 .idea/
+*.swp
+*.swo

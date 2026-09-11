@@ -2,8 +2,16 @@ import type { ActivityEvent } from './runtime'
 
 export type GatewayHealth = 'HEALTHY' | 'DEGRADED' | 'ERROR' | 'OFFLINE' | 'UNKNOWN';
 
+import type { RelatedEntities } from './common';
+
 export type AttentionType =
+  | 'TASK'
   | 'APPROVAL'
+  | 'AGENT'
+  | 'SKILL'
+  | 'RUNTIME'
+  | 'GOVERNANCE'
+  | 'SYSTEM'
   | 'ERROR'
   | 'DEPENDENCY'
   | 'CONFIGURATION'
@@ -19,9 +27,13 @@ export interface AttentionItem {
   severity: AttentionSeverity;
   title: string;
   description: string;
+  timestamp?: string;
+  createdAt: string;
+  entityType?: string;
   entityId?: string;
   entityName?: string;
-  createdAt: string;
+  relatedEntityIds?: RelatedEntities;
+  related?: RelatedEntities;
   actionLabel?: string;
   metadata?: Record<string, unknown>;
 }

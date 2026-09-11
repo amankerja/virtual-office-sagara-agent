@@ -1,0 +1,22 @@
+[
+  {
+    "name": "production 2.5d excludes Three.js",
+    "passed": true
+  },
+  {
+    "name": "production list excludes Three.js",
+    "passed": true
+  },
+  {
+    "name": "mobile defaults to 2.5d",
+    "passed": true
+  },
+  {
+    "name": "no WebGL defaults to 2.5d",
+    "passed": true
+  },
+  {
+    "name": "production balanced excludes postprocessing",
+    "passed": true
+  }
+]

@@ -3,8 +3,10 @@ import { NavLink } from 'react-router-dom'
 import {
   LayoutDashboard,
   CheckSquare,
+  CalendarDays,
   ShieldCheck,
   Bot,
+  UserCog,
   Building2,
   Activity,
   Cpu,
@@ -39,6 +41,7 @@ const NAVIGATION_SECTIONS: NavSection[] = [
     items: [
       { label: 'Command Center', path: '/', icon: LayoutDashboard },
       { label: 'Tasks', path: '/tasks', icon: CheckSquare },
+      { label: 'Schedule', path: '/schedule', icon: CalendarDays },
       { label: 'Approvals', path: '/approvals', icon: ShieldCheck },
     ],
   },
@@ -46,6 +49,7 @@ const NAVIGATION_SECTIONS: NavSection[] = [
     title: 'AGENTS',
     items: [
       { label: 'Agents', path: '/agents', icon: Bot },
+      { label: 'Agent Configuration', path: '/agent-config', icon: UserCog },
       { label: 'Virtual Office', path: '/office', icon: Building2 },
     ],
   },

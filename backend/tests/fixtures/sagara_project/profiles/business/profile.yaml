@@ -1,0 +1,8 @@
+id: business
+name: Business Analyst
+role: Strategy & Analytics
+description: Executive summaries and financial reviews.
+enabled: true
+memory_namespace: mem-business
+allowed_skills: []
+configuration_state: COMPLETE

@@ -1,0 +1,72 @@
+# Canonical Presentation Seed Specification
+# Version: 1.0.0
+# Description: UI-only presentation metadata, visual accents, and virtual office layout configuration.
+# STRICT INVARIANT: Presentation metadata MUST NOT control authorization, permissions, or security.
+
+schema_version: "1.0.0"
+version: 1
+
+profiles:
+  - id: lead
+    icon: Bot
+    label: Lead Coordinator
+    accent: "#2563eb"
+    office_zone: command
+    desk_style: executive
+    sort_order: 1
+
+  - id: personal
+    icon: Calendar
+    label: Personal Assistant
+    accent: "#0ea5e9"
+    office_zone: personal
+    desk_style: minimal
+    sort_order: 2
+
+  - id: business
+    icon: TrendingUp
+    label: Business Analyst
+    accent: "#f59e0b"
+    office_zone: business
+    desk_style: analytical
+    sort_order: 3
+
+  - id: marketing
+    icon: Megaphone
+    label: Marketing Specialist
+    accent: "#ec4899"
+    office_zone: creative
+    desk_style: studio
+    sort_order: 4
+
+  - id: cs
+    icon: Headphones
+    label: Customer Service
+    accent: "#10b981"
+    office_zone: support
+    desk_style: support_booth
+    sort_order: 5
+
+  - id: it-support
+    icon: ShieldAlert
+    label: IT Support
+    accent: "#8b5cf6"
+    office_zone: support
+    desk_style: monitoring_station
+    sort_order: 6
+
+  - id: it-coding
+    icon: Terminal
+    label: IT Coding
+    accent: "#06b6d4"
+    office_zone: engineering
+    desk_style: developer_rig
+    sort_order: 7
+
+  - id: sagara-lab
+    icon: FlaskConical
+    label: Sagara Lab
+    accent: "#6366f1"
+    office_zone: lab
+    desk_style: research_bench
+    sort_order: 8

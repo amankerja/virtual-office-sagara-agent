@@ -85,6 +85,9 @@ export interface TaskProjection {
   result?: TaskResult
 
   timeline?: TaskActivityEvent[]
+
+  revision?: number
+  version?: number
 }
 
 export interface CreateTaskInput {

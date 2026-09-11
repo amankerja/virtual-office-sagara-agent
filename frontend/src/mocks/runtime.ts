@@ -151,4 +151,10 @@ export const MOCK_RUNTIME_OVERVIEW: RuntimeOverview = {
   runningDelegationsCount: 1,
   totalCostEstimateUsd: 0.93,
   recentEvents: MOCK_RUNTIME_EVENTS.slice(0, 5),
+  systemLoad: {
+    cpuPercent: 14.2,
+    memoryUsedMb: 420,
+    memoryTotalMb: 16384,
+    memoryPercent: 2.6,
+  },
 }

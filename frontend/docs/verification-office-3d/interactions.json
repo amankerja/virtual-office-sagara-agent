@@ -1,0 +1,61 @@
+{
+  "results": [
+    {
+      "name": "balanced: four lights, shadows, no postprocessing import",
+      "passed": true
+    },
+    {
+      "name": "all seven presets and FOV",
+      "passed": true
+    },
+    {
+      "name": "zoom buttons persist, clamp 6..48, repeated reset works",
+      "passed": true
+    },
+    {
+      "name": "on-screen pan all directions and bounds preserve camera offset",
+      "passed": true
+    },
+    {
+      "name": "mouse orbit, right drag pan and wheel zoom remain under user control",
+      "passed": true
+    },
+    {
+      "name": "follow tracks exact workstation, Esc/F and manual exit retain behavior",
+      "passed": true
+    },
+    {
+      "name": "agent select and hover callbacks",
+      "passed": true
+    },
+    {
+      "name": "approval, instanced server rack and vault callbacks",
+      "passed": true
+    },
+    {
+      "name": "dark/light switch reuses environment and updates fog",
+      "passed": true
+    },
+    {
+      "name": "low: only two lights, no shadow maps or contact passes",
+      "passed": true
+    },
+    {
+      "name": "desktop ultra loads isolated effects; leaving ultra disables them",
+      "passed": true
+    },
+    {
+      "name": "remount restores shared geometry and procedural environment",
+      "passed": true
+    },
+    {
+      "name": "touch: one-finger rotate, two-finger pan/pinch; ultra capped on tablet",
+      "passed": true
+    },
+    {
+      "name": "no uncaught browser errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

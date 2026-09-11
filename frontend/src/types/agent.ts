@@ -1,6 +1,8 @@
+import type { UsageMetric } from './governance';
+
 /**
  * Status contract for Sagara Mission Control agents and runtime units.
- * Every status requires: label, visual icon/shape, and semantic color.
+ * Conforms to Prompt 07 Section 6 & 7.
  */
 export type AgentStatus =
   | 'ACTIVE'
@@ -13,17 +15,28 @@ export type AgentStatus =
   | 'UNKNOWN'
   | 'CONFIGURATION_INCOMPLETE';
 
+// Canonical alias
+export type AgentState = AgentStatus;
+
+import type { ProfileDefinition } from './profile';
+
+/**
+ * Runtime Confidence Contract (Prompt 07 Section 11)
+ */
 export type RuntimeConfidence =
   | 'CONFIRMED'
-  | 'HIGH'
-  | 'ESTIMATED'
-  | 'UNCERTAIN'
+  | 'INFERRED'
+  | 'STALE'
   | 'UNKNOWN';
 
+/**
+ * Canonical Skill Health State
+ */
 export type SkillHealthState =
   | 'HEALTHY'
   | 'DEGRADED'
   | 'MISSING'
+  | 'UNKNOWN'
   | 'REQUESTED'
   | 'EXECUTION_UNKNOWN'
   | 'OBSERVED_ACTIVE';
@@ -47,7 +60,14 @@ export interface AgentSessionItem {
   status: 'active' | 'completed' | 'idle';
 }
 
-export type DelegationState = 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'UNKNOWN';
+export type DelegationState =
+  | 'QUEUED'
+  | 'CLAIMED'
+  | 'RUNNING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'CANCELLED'
+  | 'UNKNOWN';
 
 export interface AgentDelegationItem {
   id: string;
@@ -59,16 +79,13 @@ export interface AgentDelegationItem {
   summary?: string;
 }
 
+/**
+ * Canonical Agent Projection (Prompt 07 Section 6)
+ */
 export interface AgentProjection {
   id: string;
 
-  definition: {
-    name: string;
-    role?: string;
-    description?: string;
-    enabled: boolean;
-    configurationState?: 'COMPLETE' | 'INCOMPLETE' | 'DISABLED';
-  };
+  definition: ProfileDefinition;
 
   runtime: {
     state: AgentStatus;
@@ -76,6 +93,8 @@ export interface AgentProjection {
     lastActivityAt?: string;
     sessionCount?: number;
     activeDelegations?: number;
+    currentSessionId?: string;
+    currentTaskId?: string;
     model?: string;
     currentActivity?: string;
   };
@@ -87,13 +106,7 @@ export interface AgentProjection {
     missing?: number;
   };
 
-  usage?: {
-    inputTokens?: number;
-    outputTokens?: number;
-    cacheReadTokens?: number;
-    reasoningTokens?: number;
-    estimatedCostUsd?: number;
-  };
+  usage?: UsageMetric;
 
   skills?: AgentSkillEvidence[];
   sessions?: AgentSessionItem[];

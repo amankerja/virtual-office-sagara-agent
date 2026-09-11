@@ -92,7 +92,7 @@ export const SessionMessagesTab: React.FC<SessionMessagesTabProps> = ({ messages
                   </span>
 
                   {msg.toolAssociation && (
-                    <span className="text-[10px] text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border truncate max-w-[140px]">
+                    <span className="text-[10px] text-text-muted bg-surface px-1.5 py-0.5 rounded border border-border truncate max-w-35">
                       {msg.toolAssociation}
                     </span>
                   )}

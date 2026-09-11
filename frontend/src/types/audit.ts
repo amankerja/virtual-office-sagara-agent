@@ -12,17 +12,15 @@ export type AuditOutcome =
   | 'CANCELLED'
   | 'UNKNOWN'
 
+import type { EntityReference, RelatedEntities } from './common';
+
 export interface AuditActor {
   type: AuditActorType
   id?: string
   label?: string
 }
 
-export interface AuditTarget {
-  type?: string
-  id?: string
-  label?: string
-}
+export type AuditTarget = EntityReference
 
 export interface AuditChange {
   field: string
@@ -31,14 +29,7 @@ export interface AuditChange {
   redacted?: boolean
 }
 
-export interface AuditRelatedEntities {
-  taskId?: string
-  approvalId?: string
-  sessionId?: string
-  delegationId?: string
-  agentId?: string
-  skillId?: string
-}
+export type AuditRelatedEntities = RelatedEntities
 
 export interface AuditRecord {
   id: string

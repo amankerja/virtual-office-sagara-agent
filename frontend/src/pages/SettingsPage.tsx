@@ -6,6 +6,7 @@ import { useTheme } from '@/app/theme-provider'
 import { Button } from '@/components/ui/button'
 import { Monitor, Moon, Sun } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { ActionSafetyCard } from '@/features/action-safety/components/ActionSafetyCard'
 
 export const SettingsPage: React.FC = () => {
   const { preference, resolvedTheme, setTheme } = useTheme()
@@ -23,6 +24,9 @@ export const SettingsPage: React.FC = () => {
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Action Safety & Execution Gate (Prompt 13 Section 112) */}
+        <ActionSafetyCard />
+
         {/* Appearance & Theme Setting */}
         <SectionCard
           title="Appearance & Theme"

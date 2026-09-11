@@ -11,7 +11,7 @@ import { SkillHealthDistribution } from '@/features/skills/components/SkillHealt
 import { SkillFilters } from '@/features/skills/components/SkillFilters'
 import { SkillTable } from '@/features/skills/components/SkillTable'
 import { SkillCard } from '@/features/skills/components/SkillCard'
-import { SkillDetailDrawer } from '@/features/skills/components/SkillDetailDrawer'
+import { SkillDetailModal } from '@/components/modal/SkillDetailModal'
 import { useSkills, useSkill } from '@/api/hooks'
 
 export const SkillsPage: React.FC = () => {
@@ -60,17 +60,17 @@ export const SkillsPage: React.FC = () => {
       }
 
       // 2. Health Filter
-      if (healthFilter !== 'All' && skill.health !== healthFilter) {
+      if (healthFilter !== 'All' && skill.health?.toLowerCase() !== healthFilter.toLowerCase()) {
         return false
       }
 
       // 3. Installation Filter
-      if (installationFilter !== 'All' && skill.installation !== installationFilter) {
+      if (installationFilter !== 'All' && skill.installation?.toLowerCase() !== installationFilter.toLowerCase()) {
         return false
       }
 
       // 4. Execution Filter
-      if (executionFilter !== 'All' && skill.execution !== executionFilter) {
+      if (executionFilter !== 'All' && skill.execution?.toLowerCase() !== executionFilter.toLowerCase()) {
         return false
       }
 
@@ -241,12 +241,12 @@ export const SkillsPage: React.FC = () => {
         </>
       )}
 
-      {/* Skill Detail Drawer */}
-      <SkillDetailDrawer
+      {/* Skill Detail Modal */}
+      <SkillDetailModal
         skill={activeSkill || skills.find((s) => s.id === selectedSkillId) || null}
         isOpen={Boolean(selectedSkillId)}
         onClose={handleCloseDrawer}
-        onNavigateAgent={(agentId) => navigate(`/agents?agent=${agentId}`)}
+        onNavigateAgent={(profileId) => navigate(`/agent-config?profile=${profileId}&tab=skills`)}
         onNavigateSession={(sessionId) => navigate(`/runtime?tab=sessions&session=${sessionId}`)}
       />
     </div>

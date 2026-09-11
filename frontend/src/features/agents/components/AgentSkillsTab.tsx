@@ -26,6 +26,11 @@ const HEALTH_CONFIG_MAP: Record<SkillHealthState, { label: string; badgeClass: s
     badgeClass: 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-600/20',
     icon: AlertCircle,
   },
+  UNKNOWN: {
+    label: 'Unknown',
+    badgeClass: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-600/20',
+    icon: HelpCircle,
+  },
   REQUESTED: {
     label: 'Requested',
     badgeClass: 'bg-cyan-500/15 text-cyan-700 dark:text-cyan-400 border-cyan-600/20',

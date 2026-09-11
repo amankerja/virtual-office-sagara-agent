@@ -5,6 +5,9 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // Prebundle the optional dev dependency without eagerly importing its browser chunk.
+  // Otherwise first selecting ultra can invalidate already-loaded Vite modules.
+  optimizeDeps: { include: ['@react-three/postprocessing'] },
   plugins: [
     react(),
     tailwindcss(),

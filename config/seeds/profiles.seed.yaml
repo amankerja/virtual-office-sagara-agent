@@ -1,0 +1,134 @@
+# Canonical Profiles Seed Specification
+# Version: 1.0.0
+# Description: Canonical 8-agent profile blueprint for Sagara AI fleet.
+
+schema_version: "1.0.0"
+version: 1
+
+profiles:
+  - id: lead
+    name: Lead Coordinator
+    role: Lead Agent / AI Team Manager
+    description: Sagara Agent fleet coordinator, task triage director, and multi-agent workflow manager.
+    enabled: true
+    memory_namespace: profile:lead
+    soul_template: lead.md
+    delegation:
+      can_delegate: true
+      allowed_targets:
+        - personal
+        - business
+        - marketing
+        - cs
+        - it-support
+        - it-coding
+        - sagara-lab
+    configuration:
+      risk_tier: HIGH
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: personal
+    name: Personal Assistant
+    role: Personal Assistant / Secretary
+    description: Executive assistant for personal scheduling, calendar management, reminders, and email triage.
+    enabled: true
+    memory_namespace: profile:personal
+    soul_template: personal.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: MEDIUM
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: business
+    name: Business Analyst
+    role: Business & Product Management
+    description: Commercial strategy, product catalog analytics, sales metrics, and market intelligence.
+    enabled: true
+    memory_namespace: profile:business
+    soul_template: business.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: MEDIUM
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: marketing
+    name: Marketing Specialist
+    role: Marketing / Content / Posting
+    description: Campaign planning, copywriting, visual infographic creation, and social media posting queues.
+    enabled: true
+    memory_namespace: profile:marketing
+    soul_template: marketing.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: HIGH
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: cs
+    name: Customer Service Specialist
+    role: Customer Service & Order Operations
+    description: Customer inquiries, order intake, support response drafting, and license delivery assistance.
+    enabled: true
+    memory_namespace: profile:cs
+    soul_template: cs.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: MEDIUM
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: it-support
+    name: IT Support Specialist
+    role: Systems / Infrastructure / Monitoring
+    description: Continuous gateway monitoring, system telemetry inspection, diagnostic triage, and error alerting.
+    enabled: true
+    memory_namespace: profile:it-support
+    soul_template: it-support.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: HIGH
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: it-coding
+    name: IT Coding Specialist
+    role: Software Development / Debugging / Code Review
+    description: Feature implementation, structured debugging, test execution, code review, and repository maintenance.
+    enabled: true
+    memory_namespace: profile:it-coding
+    soul_template: it-coding.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: HIGH
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE
+
+  - id: sagara-lab
+    name: Sagara Lab Researcher
+    role: Research / Experimentation / Prototyping
+    description: Exploratory AI research, academic paper analysis, architectural spikes, and prototype benchmarking.
+    enabled: true
+    memory_namespace: profile:sagara-lab
+    soul_template: sagara-lab.md
+    delegation:
+      can_delegate: false
+      allowed_targets: []
+    configuration:
+      risk_tier: MEDIUM
+      approval_class: SUPERVISED
+      configuration_state: COMPLETE

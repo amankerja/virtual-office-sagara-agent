@@ -42,7 +42,7 @@ export const ActivityTimeline: React.FC<ActivityTimelineProps> = ({
           >
             {/* Timeline node dot */}
             <div
-              className={`absolute -left-[23px] sm:-left-[31px] top-3.5 h-3 w-3 rounded-full border-2 bg-surface transition-colors ${
+              className={`absolute -left-5.5 sm:-left-7.5 top-3.5 h-3 w-3 rounded-full border-2 bg-surface transition-colors ${
                 isSelected
                   ? 'border-primary bg-primary'
                   : event.severity === 'CRITICAL' || event.severity === 'ERROR'

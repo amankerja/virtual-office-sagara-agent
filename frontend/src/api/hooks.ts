@@ -5,6 +5,16 @@ import type { TaskQuery, CreateTaskInput, UpdateTaskInput } from '@/types/task'
 import type { ApprovalQuery, ApprovalDecisionInput } from '@/types/approval'
 import type { ActivityQuery } from '@/types/activity'
 import type { AuditQuery } from '@/types/audit'
+import {
+  fetchActionSafetyStatus,
+  verifyAuditLedger,
+  fetchActionIntents,
+  fetchActionIntent,
+  createActionIntent,
+  evaluatePreflight,
+  approveActionIntent,
+  rejectActionIntent,
+} from './actionSafety'
 
 // Snapshot
 export function useMissionControlSnapshot() {
@@ -259,6 +269,118 @@ export function useGovernanceSnapshot() {
     queryKey: queryKeys.governance.snapshot(),
     queryFn: () => dataProvider.getGovernanceSnapshot(),
     staleTime: 1000 * 30,
+  })
+}
+
+// Action Safety & Integrity Gates (Prompt 13)
+export function useActionSafetyStatus() {
+  return useQuery({
+    queryKey: queryKeys.actionSafety.status(),
+    queryFn: () => fetchActionSafetyStatus(),
+    staleTime: 1000 * 15,
+  })
+}
+
+export function useVerifyAuditLedger() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: () => verifyAuditLedger(),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.audit.all })
+    },
+  })
+}
+
+export function useActionIntents(filters?: {
+  status?: string;
+  risk?: string;
+  action_type?: string;
+  target_id?: string;
+}) {
+  return useQuery({
+    queryKey: queryKeys.actionSafety.intents(filters),
+    queryFn: () => fetchActionIntents(filters),
+    staleTime: 1000 * 15,
+  })
+}
+
+export function useActionIntent(id: string | null | undefined) {
+  return useQuery({
+    queryKey: id ? queryKeys.actionSafety.intent(id) : ['actionSafety', 'intent', 'null'],
+    queryFn: () => (id ? fetchActionIntent(id) : Promise.resolve(null)),
+    enabled: Boolean(id),
+    staleTime: 1000 * 15,
+  })
+}
+
+export function useCreateActionIntent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (dto: {
+      action_type: string;
+      target_type: string;
+      target_id: string;
+      payload?: Record<string, unknown>;
+      resource_revision?: number;
+      reason?: string;
+    }) => createActionIntent(dto),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.intents() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.all })
+    },
+  })
+}
+
+export function useEvaluatePreflight() {
+  return useMutation({
+    mutationFn: ({ id, dryRun }: { id: string; dryRun?: boolean }) =>
+      evaluatePreflight(id, dryRun),
+  })
+}
+
+export function useApproveActionIntent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      payload,
+      expectedRevision,
+    }: {
+      id: string;
+      payload?: { reason?: string; confirmation_phrase?: string };
+      expectedRevision?: number;
+    }) => approveActionIntent(id, payload, expectedRevision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.intents() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.intent(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.audit.all })
+    },
+  })
+}
+
+export function useRejectActionIntent() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: ({
+      id,
+      reason,
+      expectedRevision,
+    }: {
+      id: string;
+      reason: string;
+      expectedRevision?: number;
+    }) => rejectActionIntent(id, reason, expectedRevision),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.intents() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.intent(variables.id) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.approvals.all })
+      queryClient.invalidateQueries({ queryKey: queryKeys.audit.all })
+    },
   })
 }
 

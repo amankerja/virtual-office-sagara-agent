@@ -1,11 +1,45 @@
 /**
- * Sagara capability and skill domain contracts.
+ * Sagara Capability and Skill Domain Contracts
+ * Conforms to Prompt 07 Section 9.
+ *
+ * Four strictly independent dimensions:
+ * 1. Registration (Profile config knowledge)
+ * 2. Installation (Filesystem / runtime availability)
+ * 3. Health (Dependency & configuration readiness)
+ * 4. Execution (Live runtime telemetry)
  */
 
-export type SkillRegistrationState = 'registered' | 'unregistered';
-export type SkillInstallationState = 'installed' | 'missing' | 'unknown';
-export type SkillHealthState = 'healthy' | 'degraded' | 'missing' | 'unknown';
+export type SkillRegistrationState =
+  | 'REGISTERED'
+  | 'UNREGISTERED'
+  | 'registered'
+  | 'unregistered';
+
+export type SkillInstallationState =
+  | 'INSTALLED'
+  | 'MISSING'
+  | 'UNKNOWN'
+  | 'installed'
+  | 'missing'
+  | 'unknown';
+
+export type SkillHealthState =
+  | 'HEALTHY'
+  | 'DEGRADED'
+  | 'MISSING'
+  | 'UNKNOWN'
+  | 'healthy'
+  | 'degraded'
+  | 'missing'
+  | 'unknown';
+
 export type SkillExecutionState =
+  | 'NOT_OBSERVED'
+  | 'REQUESTED'
+  | 'EXECUTION_UNKNOWN'
+  | 'OBSERVED_ACTIVE'
+  | 'COMPLETED'
+  | 'FAILED'
   | 'not_observed'
   | 'requested'
   | 'execution_unknown'
@@ -61,6 +95,6 @@ export interface SkillProjection {
   lastUsedTimestamp?: string;
 }
 
-// Backward-compatibility alias
+// Backward-compatibility aliases
 export type SkillDefinition = SkillProjection;
 export type SkillStatus = 'HEALTHY' | 'DEGRADED' | 'DISABLED' | 'UNAVAILABLE';

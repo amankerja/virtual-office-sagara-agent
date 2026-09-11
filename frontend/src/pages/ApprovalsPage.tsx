@@ -8,7 +8,8 @@ import { ApprovalSummary } from '@/features/approvals/components/ApprovalSummary
 import { ApprovalFilters } from '@/features/approvals/components/ApprovalFilters'
 import { ApprovalQueue } from '@/features/approvals/components/ApprovalQueue'
 import { ApprovalHistory } from '@/features/approvals/components/ApprovalHistory'
-import { ApprovalDetailDrawer } from '@/features/approvals/components/ApprovalDetailDrawer'
+import { ApprovalDetailModal } from '@/components/modal/ApprovalDetailModal'
+import { useNavigate } from 'react-router-dom'
 import {
   useApprovals,
   useAgents,
@@ -21,6 +22,7 @@ import type { ApprovalProjection, ApprovalQuery } from '@/types/approval'
 
 export const ApprovalsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
+  const navigate = useNavigate()
 
   // URL state
   const selectedApprovalId = searchParams.get('approval')
@@ -244,8 +246,8 @@ export const ApprovalsPage: React.FC = () => {
         />
       </div>
 
-      {/* Approval Detail Drawer */}
-      <ApprovalDetailDrawer
+      {/* Approval Detail Modal */}
+      <ApprovalDetailModal
         approval={selectedApproval}
         agent={assignedAgent}
         task={associatedTask}
@@ -253,6 +255,8 @@ export const ApprovalsPage: React.FC = () => {
         onClose={handleCloseDetailDrawer}
         onApprove={handleApprove}
         onReject={handleReject}
+        onSelectTask={(taskId) => navigate(`/tasks?task=${taskId}`)}
+        onSelectAgent={(agentId) => navigate(`/agents?agent=${agentId}`)}
       />
     </div>
   )

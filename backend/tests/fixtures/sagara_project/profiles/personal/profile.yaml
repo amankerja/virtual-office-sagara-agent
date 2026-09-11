@@ -1,0 +1,9 @@
+id: personal
+name: Personal Assistant
+# Note: role is intentionally omitted/null to test optional role handling
+description: Personal daily scheduling and email management.
+enabled: true
+memory_namespace: mem-personal
+allowed_skills:
+  - skill-google-workspace
+configuration_state: COMPLETE

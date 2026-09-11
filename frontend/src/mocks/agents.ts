@@ -226,7 +226,7 @@ export const MOCK_AGENTS: AgentProjection[] = [
     },
     runtime: {
       state: 'DEGRADED',
-      confidence: 'ESTIMATED',
+      confidence: 'INFERRED',
       lastActivityAt: '2026-09-09T04:38:00Z',
       sessionCount: 6,
       activeDelegations: 0,
@@ -321,6 +321,46 @@ export const MOCK_AGENTS: AgentProjection[] = [
       { id: 'sk-tar', name: 'archive_extractor', category: 'Storage', health: 'HEALTHY', evidence: 'Installed' },
     ],
     sessions: [],
+    delegations: [],
+  },
+  {
+    id: 'agent-iota',
+    definition: {
+      name: 'Iota — Talent & Career Guide',
+      role: 'Career & Talent Development',
+      description: 'Agent competency mapping, capability recruitment, performance trajectory, and skill acquisition coaching.',
+      enabled: true,
+      configurationState: 'COMPLETE',
+    },
+    runtime: {
+      state: 'IDLE',
+      confidence: 'CONFIRMED',
+      lastActivityAt: '2026-09-09T04:22:00Z',
+      sessionCount: 8,
+      activeDelegations: 0,
+      model: 'claude-3-5-sonnet',
+      currentActivity: 'Standing by for candidate evaluations and agent competency matrix review',
+    },
+    capabilities: {
+      total: 6,
+      healthy: 6,
+      degraded: 0,
+      missing: 0,
+    },
+    usage: {
+      inputTokens: 41200,
+      outputTokens: 6800,
+      cacheReadTokens: 24000,
+      reasoningTokens: 1800,
+      estimatedCostUsd: 0.28,
+    },
+    skills: [
+      { id: 'sk-eval', name: 'skill_evaluator', category: 'HR & Coaching', health: 'HEALTHY', evidence: 'Observed active', description: 'Assesses skill health and capabilities' },
+      { id: 'sk-route', name: 'career_pathfinder', category: 'Planning', health: 'HEALTHY', evidence: 'Installed', description: 'Agent trajectory modeling' },
+    ],
+    sessions: [
+      { id: 'ses-701', source: 'Talent Dashboard', model: 'claude-3-5-sonnet', startedAt: '2026-09-09T03:50:00Z', lastActivityAt: '2026-09-09T04:22:00Z', messageCount: 11, status: 'idle' },
+    ],
     delegations: [],
   },
 ]

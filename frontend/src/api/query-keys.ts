@@ -57,4 +57,9 @@ export const queryKeys = {
   governance: {
     snapshot: () => ['governance', 'snapshot'] as const,
   },
+  actionSafety: {
+    status: () => ['actionSafety', 'status'] as const,
+    intents: (filters?: Record<string, unknown>) => ['actionSafety', 'intents', filters] as const,
+    intent: (id: string) => ['actionSafety', 'intent', id] as const,
+  },
 } as const;

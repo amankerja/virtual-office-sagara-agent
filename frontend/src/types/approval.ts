@@ -50,7 +50,7 @@ export interface ApprovalProjection {
 
   title: string
   description?: string
-  reasonRequired?: string
+  reasonRequired?: boolean | string
 
   taskId?: string
   agentId?: string
@@ -63,6 +63,9 @@ export interface ApprovalProjection {
   preview?: ApprovalPreview
   decision?: ApprovalDecision
   audit?: ApprovalAuditEntry[]
+
+  revision?: number
+  version?: number
 }
 
 export interface ApprovalDecisionInput {

@@ -12,8 +12,10 @@ interface AgentDelegationsTabProps {
 const DELEGATION_CONFIG_MAP: Record<DelegationState, { label: string; badgeClass: string }> = {
   RUNNING: { label: 'Running', badgeClass: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-600/25 animate-pulse' },
   QUEUED: { label: 'Queued', badgeClass: 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border-amber-600/25' },
+  CLAIMED: { label: 'Claimed', badgeClass: 'bg-blue-500/15 text-blue-700 dark:text-blue-400 border-blue-600/25' },
   COMPLETED: { label: 'Completed', badgeClass: 'bg-slate-500/15 text-slate-700 dark:text-slate-400 border-slate-600/25' },
   FAILED: { label: 'Failed', badgeClass: 'bg-rose-500/15 text-rose-700 dark:text-rose-400 border-rose-600/25' },
+  CANCELLED: { label: 'Cancelled', badgeClass: 'bg-zinc-500/15 text-zinc-700 dark:text-zinc-400 border-zinc-600/25' },
   UNKNOWN: { label: 'Unknown', badgeClass: 'bg-purple-500/15 text-purple-700 dark:text-purple-400 border-purple-600/25' },
 }
 

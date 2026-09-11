@@ -1,6 +1,7 @@
 import type { MissionControlSnapshot } from '@/types/mission-control'
 import type { AgentProjection } from '@/types/agent'
 import type { SkillProjection } from '@/types/skill'
+import type { ProfileDefinition } from '@/types/profile'
 import type {
   GatewayTelemetry,
   SessionProjection,
@@ -14,6 +15,44 @@ import type { ApprovalProjection, ApprovalDecisionInput, ApprovalQuery } from '@
 import type { ActivityProjection, ActivityQuery } from '@/types/activity'
 import type { AuditRecord, AuditQuery } from '@/types/audit'
 import type { GovernanceSnapshot } from '@/types/governance'
+import type { ArtifactProjection } from '@/types/artifact'
+import type {
+  MissionControlSnapshotDto,
+  AgentDto,
+  SkillDto,
+  ProfileDto,
+  RuntimeOverviewDto,
+  GatewayDto,
+  SessionDto,
+  DelegationDto,
+  RuntimeEventDto,
+  TaskDto,
+  ApprovalDto,
+  ActivityDto,
+  AuditRecordDto,
+  GovernanceSnapshotDto,
+  ArtifactDto,
+} from './dto'
+import {
+  mapMissionControlSnapshotDtoToDomain,
+  mapAgentDtoToDomain,
+  mapSkillDtoToDomain,
+  mapProfileDtoToDomain,
+  mapRuntimeOverviewDtoToDomain,
+  mapGatewayDtoToDomain,
+  mapSessionDtoToDomain,
+  mapDelegationDtoToDomain,
+  mapRuntimeEventDtoToDomain,
+  mapTaskDtoToDomain,
+  mapCreateTaskInputToDto,
+  mapUpdateTaskInputToDto,
+  mapApprovalDtoToDomain,
+  mapApprovalDecisionInputToDto,
+  mapActivityDtoToDomain,
+  mapAuditRecordDtoToDomain,
+  mapGovernanceSnapshotDtoToDomain,
+  mapArtifactDtoToDomain,
+} from './mappers'
 
 import { MOCK_MISSION_CONTROL_SNAPSHOT } from '@/mocks/mission-control'
 import { MOCK_AGENTS } from '@/mocks/agents'
@@ -35,6 +74,13 @@ export const isMockMode = (): boolean => {
   return DATA_MODE === 'mock'
 }
 
+export function handleApiError(err: unknown): never {
+  if (err instanceof ApiError) {
+    throw err
+  }
+  throw new ApiError(503, 'Mission Control API is not connected.', { original: err })
+}
+
 // In-memory prototype state for optimistic / pessimistic testing
 let tasksState: TaskProjection[] = [...MOCK_TASKS]
 let approvalsState: ApprovalProjection[] = [...MOCK_APPROVALS]
@@ -50,9 +96,53 @@ export const dataProvider = {
       }
     }
     try {
-      return await apiClient.get<MissionControlSnapshot>('/api/snapshot')
+      const dto = await apiClient.get<MissionControlSnapshotDto>('/api/v1/mission-control/snapshot')
+      return mapMissionControlSnapshotDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
+    }
+  },
+
+  // Profiles
+  getProfiles: async (): Promise<ProfileDefinition[]> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 40))
+      return MOCK_AGENTS.map((a) => ({
+        id: a.id,
+        name: a.definition.name,
+        role: a.definition.role,
+        description: a.definition.description,
+        enabled: a.definition.enabled,
+        memoryNamespace: a.definition.memoryNamespace,
+      }))
+    }
+    try {
+      const dtos = await apiClient.get<ProfileDto[]>('/api/v1/profiles')
+      return dtos.map(mapProfileDtoToDomain)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  getProfileById: async (id: string): Promise<ProfileDefinition | null> => {
+    if (isMockMode()) {
+      await new Promise((resolve) => setTimeout(resolve, 30))
+      const agent = MOCK_AGENTS.find((a) => a.id === id)
+      if (!agent) return null
+      return {
+        id: agent.id,
+        name: agent.definition.name,
+        role: agent.definition.role,
+        description: agent.definition.description,
+        enabled: agent.definition.enabled,
+        memoryNamespace: agent.definition.memoryNamespace,
+      }
+    }
+    try {
+      const dto = await apiClient.get<ProfileDto>(`/api/v1/profiles/${id}`)
+      return dto ? mapProfileDtoToDomain(dto) : null
+    } catch (err) {
+      handleApiError(err)
     }
   },
 
@@ -63,9 +153,10 @@ export const dataProvider = {
       return [...MOCK_AGENTS]
     }
     try {
-      return await apiClient.get<AgentProjection[]>('/api/agents')
+      const dtos = await apiClient.get<AgentDto[]>('/api/v1/agents')
+      return dtos.map(mapAgentDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -76,9 +167,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<AgentProjection>(`/api/agents/${id}`)
+      const dto = await apiClient.get<AgentDto>(`/api/v1/agents/${id}`)
+      return dto ? mapAgentDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -89,9 +181,10 @@ export const dataProvider = {
       return [...MOCK_SKILLS]
     }
     try {
-      return await apiClient.get<SkillProjection[]>('/api/skills')
+      const dtos = await apiClient.get<SkillDto[]>('/api/v1/skills')
+      return dtos.map(mapSkillDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -102,9 +195,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<SkillProjection>(`/api/skills/${id}`)
+      const dto = await apiClient.get<SkillDto>(`/api/v1/skills/${id}`)
+      return dto ? mapSkillDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -115,9 +209,10 @@ export const dataProvider = {
       return { ...MOCK_RUNTIME_OVERVIEW }
     }
     try {
-      return await apiClient.get<RuntimeOverview>('/api/runtime/overview')
+      const dto = await apiClient.get<RuntimeOverviewDto>('/api/v1/runtime')
+      return mapRuntimeOverviewDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -128,9 +223,10 @@ export const dataProvider = {
       return { ...MOCK_GATEWAY }
     }
     try {
-      return await apiClient.get<GatewayTelemetry>('/api/runtime/gateway')
+      const dto = await apiClient.get<GatewayDto>('/api/v1/runtime/gateway')
+      return mapGatewayDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -141,9 +237,10 @@ export const dataProvider = {
       return [...MOCK_SESSIONS]
     }
     try {
-      return await apiClient.get<SessionProjection[]>('/api/runtime/sessions')
+      const dtos = await apiClient.get<SessionDto[]>('/api/v1/sessions')
+      return dtos.map(mapSessionDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -154,9 +251,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<SessionProjection>(`/api/runtime/sessions/${id}`)
+      const dto = await apiClient.get<SessionDto>(`/api/v1/sessions/${id}`)
+      return dto ? mapSessionDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -167,9 +265,10 @@ export const dataProvider = {
       return [...MOCK_DELEGATIONS]
     }
     try {
-      return await apiClient.get<DelegationProjection[]>('/api/runtime/delegations')
+      const dtos = await apiClient.get<DelegationDto[]>('/api/v1/delegations')
+      return dtos.map(mapDelegationDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -180,9 +279,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<DelegationProjection>(`/api/runtime/delegations/${id}`)
+      const dto = await apiClient.get<DelegationDto>(`/api/v1/delegations/${id}`)
+      return dto ? mapDelegationDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -193,9 +293,9 @@ export const dataProvider = {
       return { ...MOCK_RUNTIME_USAGE }
     }
     try {
-      return await apiClient.get<RuntimeUsageOverview>('/api/runtime/usage')
+      return await apiClient.get<RuntimeUsageOverview>('/api/v1/runtime/usage')
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -206,9 +306,10 @@ export const dataProvider = {
       return [...MOCK_RUNTIME_EVENTS]
     }
     try {
-      return await apiClient.get<RuntimeEvent[]>('/api/runtime/events')
+      const dtos = await apiClient.get<RuntimeEventDto[]>('/api/v1/runtime/events')
+      return dtos.map(mapRuntimeEventDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -269,11 +370,12 @@ export const dataProvider = {
     }
 
     try {
-      return await apiClient.get<TaskProjection[]>('/api/tasks', {
+      const dtos = await apiClient.get<TaskDto[]>('/api/v1/tasks', {
         params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
       })
+      return dtos.map(mapTaskDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -284,9 +386,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<TaskProjection>(`/api/tasks/${id}`)
+      const dto = await apiClient.get<TaskDto>(`/api/v1/tasks/${id}`)
+      return dto ? mapTaskDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -321,9 +424,12 @@ export const dataProvider = {
       return { ...newTask }
     }
     try {
-      return await apiClient.post<TaskProjection>('/api/tasks', input)
+      const dto = await apiClient.post<TaskDto>('/api/v1/tasks', mapCreateTaskInputToDto(input), {
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+      })
+      return mapTaskDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -342,9 +448,10 @@ export const dataProvider = {
       return { ...updated }
     }
     try {
-      return await apiClient.patch<TaskProjection>(`/api/tasks/${id}`, input)
+      const dto = await apiClient.patch<TaskDto>(`/api/v1/tasks/${id}`, mapUpdateTaskInputToDto(input))
+      return mapTaskDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -385,9 +492,12 @@ export const dataProvider = {
       return { ...updated }
     }
     try {
-      return await apiClient.post<TaskProjection>(`/api/tasks/${id}/dispatch`, {})
+      const dto = await apiClient.post<TaskDto>(`/api/v1/tasks/${id}/dispatch`, {}, {
+        headers: { 'Idempotency-Key': crypto.randomUUID() },
+      })
+      return mapTaskDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -425,11 +535,12 @@ export const dataProvider = {
       return result
     }
     try {
-      return await apiClient.get<ApprovalProjection[]>('/api/approvals', {
+      const dtos = await apiClient.get<ApprovalDto[]>('/api/v1/approvals', {
         params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
       })
+      return dtos.map(mapApprovalDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -440,9 +551,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<ApprovalProjection>(`/api/approvals/${id}`)
+      const dto = await apiClient.get<ApprovalDto>(`/api/v1/approvals/${id}`)
+      return dto ? mapApprovalDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -504,9 +616,14 @@ export const dataProvider = {
       return { ...updated }
     }
     try {
-      return await apiClient.post<ApprovalProjection>(`/api/approvals/${id}/approve`, input)
+      const dto = await apiClient.post<ApprovalDto>(
+        `/api/v1/approvals/${id}/approve`,
+        input ? mapApprovalDecisionInputToDto(input) : {},
+        { headers: { 'Idempotency-Key': crypto.randomUUID() } }
+      )
+      return mapApprovalDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -573,9 +690,14 @@ export const dataProvider = {
       return { ...updated }
     }
     try {
-      return await apiClient.post<ApprovalProjection>(`/api/approvals/${id}/reject`, input)
+      const dto = await apiClient.post<ApprovalDto>(
+        `/api/v1/approvals/${id}/reject`,
+        mapApprovalDecisionInputToDto(input),
+        { headers: { 'Idempotency-Key': crypto.randomUUID() } }
+      )
+      return mapApprovalDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -630,11 +752,12 @@ export const dataProvider = {
       return result
     }
     try {
-      return await apiClient.get<ActivityProjection[]>('/api/activity', {
+      const dtos = await apiClient.get<ActivityDto[]>('/api/v1/activity', {
         params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
       })
+      return dtos.map(mapActivityDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -645,9 +768,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<ActivityProjection>(`/api/activity/${id}`)
+      const dto = await apiClient.get<ActivityDto>(`/api/v1/activity/${id}`)
+      return dto ? mapActivityDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -702,11 +826,12 @@ export const dataProvider = {
       return result
     }
     try {
-      return await apiClient.get<AuditRecord[]>('/api/audit', {
+      const dtos = await apiClient.get<AuditRecordDto[]>('/api/v1/audit', {
         params: filters as unknown as Record<string, string | number | boolean | undefined | null>,
       })
+      return dtos.map(mapAuditRecordDtoToDomain)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -717,9 +842,10 @@ export const dataProvider = {
       return found ? { ...found } : null
     }
     try {
-      return await apiClient.get<AuditRecord>(`/api/audit/${id}`)
+      const dto = await apiClient.get<AuditRecordDto>(`/api/v1/audit/${id}`)
+      return dto ? mapAuditRecordDtoToDomain(dto) : null
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
     }
   },
 
@@ -730,10 +856,39 @@ export const dataProvider = {
       return { ...MOCK_GOVERNANCE_SNAPSHOT }
     }
     try {
-      return await apiClient.get<GovernanceSnapshot>('/api/governance/snapshot')
+      const dto = await apiClient.get<GovernanceSnapshotDto>('/api/v1/governance')
+      return mapGovernanceSnapshotDtoToDomain(dto)
     } catch (err) {
-      throw new ApiError(503, 'Mission Control backend not connected', { original: err })
+      handleApiError(err)
+    }
+  },
+
+  // Artifacts
+  getArtifacts: async (taskId?: string, sessionId?: string): Promise<ArtifactProjection[]> => {
+    if (isMockMode()) {
+      return []
+    }
+    try {
+      const dtos = await apiClient.get<ArtifactDto[]>('/api/v1/artifacts', {
+        params: { task_id: taskId, session_id: sessionId },
+      })
+      return dtos.map(mapArtifactDtoToDomain)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  getArtifactById: async (id: string): Promise<ArtifactProjection | null> => {
+    if (isMockMode()) {
+      return null
+    }
+    try {
+      const dto = await apiClient.get<ArtifactDto>(`/api/v1/artifacts/${id}`)
+      return dto ? mapArtifactDtoToDomain(dto) : null
+    } catch (err) {
+      handleApiError(err)
     }
   },
 }
+
 

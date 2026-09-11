@@ -1,0 +1,5 @@
+id: incomplete-agent
+name: Incomplete Agent
+# Role and description missing, allowed_skills null
+enabled: true
+configuration_state: INCOMPLETE

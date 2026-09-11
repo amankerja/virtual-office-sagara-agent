@@ -19,12 +19,12 @@ export const SkillSummary: React.FC<SkillSummaryProps> = ({ skills, isLoading })
     )
   }
 
-  const registeredCount = skills.filter((s) => s.registration === 'registered').length
-  const installedCount = skills.filter((s) => s.installation === 'installed').length
-  const healthyCount = skills.filter((s) => s.health === 'healthy').length
-  const degradedCount = skills.filter((s) => s.health === 'degraded').length
-  const missingCount = skills.filter((s) => s.health === 'missing' || s.installation === 'missing').length
-  const observedCount = skills.filter((s) => s.execution === 'observed_active').length
+  const registeredCount = skills.filter((s) => s.registration?.toLowerCase() === 'registered').length
+  const installedCount = skills.filter((s) => s.installation?.toLowerCase() === 'installed').length
+  const healthyCount = skills.filter((s) => s.health?.toLowerCase() === 'healthy').length
+  const degradedCount = skills.filter((s) => s.health?.toLowerCase() === 'degraded').length
+  const missingCount = skills.filter((s) => s.health?.toLowerCase() === 'missing' || s.installation?.toLowerCase() === 'missing').length
+  const observedCount = skills.filter((s) => s.execution?.toLowerCase() === 'observed_active').length
 
   const metrics = [
     {

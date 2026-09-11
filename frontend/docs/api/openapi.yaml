@@ -1,0 +1,1378 @@
+openapi: 3.1.0
+info:
+  title: Sagara Mission Control API
+  version: 1.0.0
+  description: |
+    Canonical Sagara Mission Control API Specification (Contract V1).
+    Frozen for future FastAPI backend implementation.
+    Adheres strictly to snake_case naming, ISO 8601 UTC timestamps, opaque string IDs,
+    pessimistic mutation locking, explicit idempotency keys, and UNKNOWN != ZERO semantics.
+
+servers:
+  - url: http://localhost:8000/api/v1
+    description: Local Mission Control Backend
+  - url: https://mission-control.sagara.local/api/v1
+    description: Production Internal Gateway
+
+paths:
+  /mission-control/snapshot:
+    get:
+      summary: Command Center Unified Snapshot
+      description: Returns aggregated pulse and summary counts for dashboard cold-start.
+      operationId: getMissionControlSnapshot
+      responses:
+        '200':
+          description: Snapshot projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MissionControlSnapshotDto'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /profiles:
+    get:
+      summary: List Registered Agent Profiles
+      operationId: listProfiles
+      responses:
+        '200':
+          description: List of agent profile manifests
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileDto'
+        '503':
+          $ref: '#/components/responses/ServiceUnavailable'
+
+  /profiles/{profile_id}:
+    get:
+      summary: Get Profile by ID
+      operationId: getProfileById
+      parameters:
+        - name: profile_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Profile definition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /agents:
+    get:
+      summary: List Agent Projections
+      operationId: listAgents
+      parameters:
+        - name: state
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: profile_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of agent runtime projections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AgentDto'
+
+  /agents/{agent_id}:
+    get:
+      summary: Get Agent Projection by ID
+      operationId: getAgentById
+      parameters:
+        - name: agent_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Agent projection details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /skills:
+    get:
+      summary: List Skill Projections
+      operationId: listSkills
+      parameters:
+        - name: registration
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: health
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Skills list with multi-dimensional status
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SkillDto'
+
+  /skills/{skill_id}:
+    get:
+      summary: Get Skill Projection by ID
+      operationId: getSkillById
+      parameters:
+        - name: skill_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Skill details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /runtime:
+    get:
+      summary: Get Runtime Overview
+      operationId: getRuntimeOverview
+      responses:
+        '200':
+          description: Operational health and telemetry summary
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RuntimeOverviewDto'
+
+  /runtime/gateway:
+    get:
+      summary: Get Gateway Telemetry
+      operationId: getGatewayTelemetry
+      responses:
+        '200':
+          description: Hermes daemon and gateway connectivity telemetry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GatewayDto'
+
+  /sessions:
+    get:
+      summary: List Runtime Sessions
+      operationId: listSessions
+      parameters:
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Paginated or array list of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SessionDto'
+
+  /sessions/{session_id}:
+    get:
+      summary: Get Session Projection by ID
+      operationId: getSessionById
+      parameters:
+        - name: session_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Normalized session projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /delegations:
+    get:
+      summary: List Runtime Subtask Delegations
+      operationId: listDelegations
+      parameters:
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: state
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of subtask delegations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DelegationDto'
+
+  /delegations/{delegation_id}:
+    get:
+      summary: Get Delegation by ID
+      operationId: getDelegationById
+      parameters:
+        - name: delegation_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Delegation details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DelegationDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /runtime/events:
+    get:
+      summary: List Runtime Telemetry Events
+      operationId: listRuntimeEvents
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 100
+      responses:
+        '200':
+          description: List of runtime events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RuntimeEventDto'
+
+  /tasks:
+    get:
+      summary: List Tasks
+      operationId: listTasks
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: priority
+          in: query
+          schema:
+            type: string
+        - name: agent_id
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Task projections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TaskDto'
+    post:
+      summary: Create Task
+      operationId: createTask
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskDto'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /tasks/{task_id}:
+    get:
+      summary: Get Task by ID
+      operationId: getTaskById
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task details
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update Task
+      operationId: updateTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskDto'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        '409':
+          description: Concurrency version conflict (ETag mismatch)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDto'
+
+  /tasks/{task_id}/dispatch:
+    post:
+      summary: Dispatch Task for Execution
+      operationId: dispatchTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Task transitioned to DISPATCHING/QUEUED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        '400':
+          description: Invalid state for dispatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDto'
+        '409':
+          description: Task already dispatched or locked
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDto'
+
+  /tasks/{task_id}/cancel:
+    post:
+      summary: Cancel Task
+      operationId: cancelTask
+      parameters:
+        - name: task_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task marked as CANCELLED
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskDto'
+        '409':
+          $ref: '#/components/responses/Conflict'
+
+  /approvals:
+    get:
+      summary: List Human Approval Gates
+      operationId: listApprovals
+      parameters:
+        - name: state
+          in: query
+          schema:
+            type: string
+        - name: risk
+          in: query
+          schema:
+            type: string
+        - name: action_type
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Approvals list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApprovalDto'
+
+  /approvals/{approval_id}:
+    get:
+      summary: Get Approval Gate by ID
+      operationId: getApprovalById
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Approval gate details
+          headers:
+            ETag:
+              schema:
+                type: string
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /approvals/{approval_id}/approve:
+    post:
+      summary: Authorize Action
+      operationId: approveAction
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalDecisionInputDto'
+      responses:
+        '200':
+          description: Action approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalDto'
+        '409':
+          description: Race condition (e.g. APPROVAL_ALREADY_RESOLVED, APPROVAL_EXPIRED)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDto'
+
+  /approvals/{approval_id}/reject:
+    post:
+      summary: Deny Action
+      operationId: rejectAction
+      parameters:
+        - name: approval_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalDecisionInputDto'
+      responses:
+        '200':
+          description: Action rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApprovalDto'
+        '409':
+          description: Race condition
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiErrorDto'
+
+  /activity:
+    get:
+      summary: List Activity Stream Records
+      operationId: listActivity
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+        - name: severity
+          in: query
+          schema:
+            type: string
+        - name: correlation_id
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Activity events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ActivityDto'
+
+  /audit:
+    get:
+      summary: Immutable System Audit Ledger (Read-Only)
+      description: Read-only audit trail. Mutation endpoints (DELETE/PATCH) are strictly prohibited.
+      operationId: listAuditRecords
+      parameters:
+        - name: actor_type
+          in: query
+          schema:
+            type: string
+        - name: outcome
+          in: query
+          schema:
+            type: string
+        - name: correlation_id
+          in: query
+          schema:
+            type: string
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        '200':
+          description: Audit ledger records
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditRecordDto'
+
+  /governance:
+    get:
+      summary: Governance, Cost and Budget Snapshot
+      operationId: getGovernanceSnapshot
+      responses:
+        '200':
+          description: Governance snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GovernanceSnapshotDto'
+
+  /artifacts:
+    get:
+      summary: List Task Output Artifacts
+      operationId: listArtifacts
+      parameters:
+        - name: task_id
+          in: query
+          schema:
+            type: string
+        - name: session_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Artifacts list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ArtifactDto'
+
+  /artifacts/{artifact_id}:
+    get:
+      summary: Get Artifact Metadata
+      operationId: getArtifactById
+      parameters:
+        - name: artifact_id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Artifact projection
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ArtifactDto'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    ApiErrorDto:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              example: APPROVAL_ALREADY_RESOLVED
+            message:
+              type: string
+              example: This approval gate has already been decided.
+            details:
+              type: object
+              nullable: true
+            correlation_id:
+              type: string
+              nullable: true
+              example: corr-20260909-001
+
+    ProfileDto:
+      type: object
+      required:
+        - id
+        - name
+        - enabled
+      properties:
+        id:
+          type: string
+          example: prof-sagara-lead
+        name:
+          type: string
+          example: Sagara Lead Orchestrator
+        role:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        enabled:
+          type: boolean
+        memory_namespace:
+          type: string
+          nullable: true
+        allowed_skills:
+          type: array
+          items:
+            type: string
+          nullable: true
+
+    AgentDto:
+      type: object
+      required:
+        - id
+        - definition
+        - runtime
+        - capabilities
+      properties:
+        id:
+          type: string
+          example: agent-alpha
+        definition:
+          type: object
+          required:
+            - name
+            - enabled
+          properties:
+            name:
+              type: string
+            role:
+              type: string
+              nullable: true
+            description:
+              type: string
+              nullable: true
+            enabled:
+              type: boolean
+            memory_namespace:
+              type: string
+              nullable: true
+        runtime:
+          type: object
+          required:
+            - state
+            - confidence
+          properties:
+            state:
+              type: string
+              enum:
+                - ACTIVE
+                - IDLE
+                - RECENTLY_ACTIVE
+                - AWAITING_APPROVAL
+                - DEGRADED
+                - ERROR
+                - OFFLINE
+                - UNKNOWN
+                - CONFIGURATION_INCOMPLETE
+            confidence:
+              type: string
+              enum:
+                - CONFIRMED
+                - INFERRED
+                - UNKNOWN
+                - STALE
+            last_activity_at:
+              type: string
+              format: date-time
+              nullable: true
+            session_count:
+              type: integer
+              nullable: true
+            active_delegations:
+              type: integer
+              nullable: true
+            current_session_id:
+              type: string
+              nullable: true
+            current_task_id:
+              type: string
+              nullable: true
+            model:
+              type: string
+              nullable: true
+        capabilities:
+          type: object
+          properties:
+            total:
+              type: integer
+              nullable: true
+            healthy:
+              type: integer
+              nullable: true
+            degraded:
+              type: integer
+              nullable: true
+            missing:
+              type: integer
+              nullable: true
+        usage:
+          type: object
+          nullable: true
+          properties:
+            input_tokens:
+              type: integer
+              nullable: true
+            output_tokens:
+              type: integer
+              nullable: true
+            estimated_cost_usd:
+              type: number
+              nullable: true
+
+    SkillDto:
+      type: object
+      required:
+        - id
+        - name
+        - category
+        - registration
+        - installation
+        - health
+        - execution
+      properties:
+        id:
+          type: string
+          example: skill-code-executor
+        name:
+          type: string
+        category:
+          type: string
+        description:
+          type: string
+          nullable: true
+        version:
+          type: string
+          nullable: true
+        registration:
+          type: string
+          enum: [REGISTERED, UNREGISTERED]
+        installation:
+          type: string
+          enum: [INSTALLED, MISSING, UNKNOWN]
+        health:
+          type: string
+          enum: [HEALTHY, DEGRADED, MISSING, UNKNOWN]
+        execution:
+          type: string
+          enum: [NOT_OBSERVED, REQUESTED, EXECUTION_UNKNOWN, OBSERVED_ACTIVE, COMPLETED, FAILED]
+
+    TaskDto:
+      type: object
+      required:
+        - id
+        - title
+        - state
+        - priority
+        - created_at
+      properties:
+        id:
+          type: string
+          example: tsk-01
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        state:
+          type: string
+          enum:
+            - DRAFT
+            - READY
+            - QUEUED
+            - DISPATCHING
+            - RUNNING
+            - AWAITING_APPROVAL
+            - BLOCKED
+            - COMPLETED
+            - FAILED
+            - CANCELLED
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+        assigned_agent_id:
+          type: string
+          nullable: true
+        requested_skills:
+          type: array
+          items:
+            type: string
+          nullable: true
+        progress:
+          type: object
+          nullable: true
+          properties:
+            completed:
+              type: integer
+              nullable: true
+            total:
+              type: integer
+              nullable: true
+            label:
+              type: string
+              nullable: true
+
+    CreateTaskDto:
+      type: object
+      required:
+        - title
+        - priority
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        priority:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        state:
+          type: string
+          enum: [DRAFT, READY, QUEUED]
+        assigned_agent_id:
+          type: string
+          nullable: true
+        requested_skills:
+          type: array
+          items:
+            type: string
+          nullable: true
+
+    UpdateTaskDto:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        priority:
+          type: string
+        state:
+          type: string
+        assigned_agent_id:
+          type: string
+
+    ApprovalDto:
+      type: object
+      required:
+        - id
+        - state
+        - risk
+        - action_type
+        - title
+        - requested_at
+      properties:
+        id:
+          type: string
+          example: appr-01
+        state:
+          type: string
+          enum: [PENDING, APPROVED, REJECTED, EXPIRED, CANCELLED, FAILED]
+        risk:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        action_type:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        reason_required:
+          type: boolean
+          nullable: true
+        task_id:
+          type: string
+          nullable: true
+        agent_id:
+          type: string
+          nullable: true
+        requested_at:
+          type: string
+          format: date-time
+        preview:
+          type: object
+          nullable: true
+          properties:
+            summary:
+              type: string
+              nullable: true
+            sensitive_fields:
+              type: array
+              items:
+                type: string
+              nullable: true
+
+    ApprovalDecisionInputDto:
+      type: object
+      properties:
+        reason:
+          type: string
+          nullable: true
+
+    SessionDto:
+      type: object
+      required:
+        - id
+        - started_at
+        - last_activity_at
+        - message_count
+      properties:
+        id:
+          type: string
+          example: sess-01
+        profile_id:
+          type: string
+          nullable: true
+        agent_id:
+          type: string
+          nullable: true
+        source:
+          type: string
+          nullable: true
+        state:
+          type: string
+          nullable: true
+        model:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+        last_activity_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+        tool_call_count:
+          type: integer
+          nullable: true
+
+    DelegationDto:
+      type: object
+      required:
+        - id
+        - task_title
+        - state
+        - started_at
+      properties:
+        id:
+          type: string
+          example: del-01
+        parent_session_id:
+          type: string
+          nullable: true
+        target_agent_id:
+          type: string
+          nullable: true
+        task_title:
+          type: string
+        state:
+          type: string
+          enum: [QUEUED, CLAIMED, RUNNING, COMPLETED, FAILED, CANCELLED, UNKNOWN]
+        worker_pid:
+          type: string
+          nullable: true
+        started_at:
+          type: string
+          format: date-time
+
+    RuntimeOverviewDto:
+      type: object
+      required:
+        - status
+        - uptime_seconds
+        - active_sessions_count
+        - active_workers_count
+      properties:
+        status:
+          type: string
+          enum: [HEALTHY, DEGRADED, ERROR, OFFLINE, UNKNOWN, NOT_CONNECTED]
+        uptime_seconds:
+          type: integer
+        active_sessions_count:
+          type: integer
+        active_workers_count:
+          type: integer
+
+    GatewayDto:
+      type: object
+      required:
+        - status
+        - connected
+        - latency_ms
+        - last_heartbeat_at
+      properties:
+        status:
+          type: string
+        connected:
+          type: boolean
+        latency_ms:
+          type: integer
+        last_heartbeat_at:
+          type: string
+          format: date-time
+
+    RuntimeEventDto:
+      type: object
+      required:
+        - id
+        - type
+        - timestamp
+        - severity
+        - message
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        severity:
+          type: string
+        message:
+          type: string
+
+    ActivityDto:
+      type: object
+      required:
+        - id
+        - timestamp
+        - category
+        - severity
+        - title
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        category:
+          type: string
+        severity:
+          type: string
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        correlation_id:
+          type: string
+          nullable: true
+
+    AuditRecordDto:
+      type: object
+      required:
+        - id
+        - timestamp
+        - actor
+        - action
+        - target
+        - outcome
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        actor:
+          type: object
+          required: [id, type, label]
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+            label:
+              type: string
+        action:
+          type: string
+        target:
+          type: object
+          required: [id, type, label]
+          properties:
+            id:
+              type: string
+            type:
+              type: string
+            label:
+              type: string
+        outcome:
+          type: string
+          enum: [SUCCESS, DENIED, FAILED]
+        correlation_id:
+          type: string
+          nullable: true
+
+    GovernanceSnapshotDto:
+      type: object
+      required:
+        - usage
+        - budget
+      properties:
+        usage:
+          type: object
+        budget:
+          type: object
+
+    ArtifactDto:
+      type: object
+      required:
+        - id
+        - name
+        - created_at
+      properties:
+        id:
+          type: string
+        task_id:
+          type: string
+          nullable: true
+        session_id:
+          type: string
+          nullable: true
+        name:
+          type: string
+        media_type:
+          type: string
+          nullable: true
+        size_bytes:
+          type: integer
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [AVAILABLE, PROCESSING, MISSING, EXPIRED, UNKNOWN]
+
+    MissionControlSnapshotDto:
+      type: object
+      required:
+        - generated_at
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        system_pulse:
+          type: object
+        agent_counts:
+          type: object
+        task_counts:
+          type: object
+        approval_counts:
+          type: object
+        attention_items:
+          type: array
+          items:
+            type: object
+
+  responses:
+    BadRequest:
+      description: Malformed syntax or invalid request format
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorDto'
+    NotFound:
+      description: Resource was not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorDto'
+    Conflict:
+      description: State conflict or concurrent modification
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorDto'
+    ServiceUnavailable:
+      description: Upstream runtime or service unavailable
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiErrorDto'

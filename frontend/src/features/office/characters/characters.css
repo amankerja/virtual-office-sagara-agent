@@ -1,0 +1,58 @@
+.office-character .rig-body { animation: office-breathe 5.8s ease-in-out var(--phase) infinite; transform-origin: 0px -18px; }
+.office-character .rig-head { animation: office-glance 12s ease-in-out var(--phase) infinite; transform-origin: 0px -40px; }
+.office-character .rig-eyes { animation: office-blink 6.7s var(--phase) infinite; transform-origin: 0px -46px; }
+.office-character .rig-arm-left { transform-origin: -9px -31px; }
+.office-character .rig-arm-right { transform-origin: 9px -31px; }
+.office-character .rig-leg { transform-origin: 0px -19px; }
+.office-character[data-behavior="WORK_TYPING"] .rig-arm-left { animation: office-type 1.2s ease-in-out var(--hand-phase) infinite; }
+.office-character[data-behavior="WORK_TYPING"] .rig-arm-right { animation: office-type 1.4s ease-in-out calc(var(--hand-phase) - .6s) infinite reverse; }
+.office-character[data-behavior="WORK_MOUSE"] .rig-arm-right { animation: office-mouse 3.8s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="WORK_READING"] .rig-head { animation: office-read 8s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="WORK_MONITORING"] .rig-head,
+.office-character[data-behavior="WORK_SUPERVISING"] .rig-head { animation: office-glance 8s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="THINKING"] .rig-torso,
+.office-character[data-behavior="WAITING_APPROVAL"] .rig-torso { transform: rotate(-4deg); transform-origin: 0px -18px; }
+.office-character[data-behavior="TROUBLESHOOTING"] .rig-torso { transform: rotate(6deg); transform-origin: 0px -18px; }
+.office-character[data-behavior="ERROR_REVIEW"] .rig-head { transform: rotate(7deg); animation: office-read 14s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="CONFIGURING"] .rig-arm-right { animation: office-mouse 7s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="WORK_COLLABORATING"] .rig-arm-right { animation: office-gesture 7s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="IDLE_LOOK_AROUND"] .rig-head { animation: office-glance 9s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="BREAK_COFFEE"][data-posture="STANDING"] .rig-arm-right { animation: office-sip 16s ease-in-out var(--phase) infinite; }
+.office-character[data-behavior="BREAK_STRETCH"][data-posture="STANDING"] .rig-arm { animation: office-stretch 9s ease-in-out var(--phase) infinite; }
+.office-character[data-posture="WALKING"] .rig-leg-left { animation: office-step .95s ease-in-out var(--hand-phase) infinite; }
+.office-character[data-posture="WALKING"] .rig-leg-right { animation: office-step .95s ease-in-out calc(var(--hand-phase) - .475s) infinite; }
+.office-character[data-posture="WALKING"] .rig-arm-left { animation: office-swing .95s ease-in-out calc(var(--hand-phase) - .475s) infinite; }
+.office-character[data-posture="WALKING"] .rig-arm-right { animation: office-swing .95s ease-in-out var(--hand-phase) infinite; }
+.office-character[data-posture="WALKING"] .rig-body { animation: office-walk-bob .475s ease-in-out var(--hand-phase) infinite; }
+.office-character[data-posture="STAND_UP"] .rig-body { animation: office-stand .8s ease-out both; }
+.office-character[data-posture="SIT_DOWN"] .rig-body { animation: office-sit .8s ease-in-out both; }
+.office-character[data-quality="BALANCED"] .rig-eyes,
+.office-character[data-quality="LITE"] .rig-head,
+.office-character[data-quality="LITE"] .rig-eyes,
+.office-character[data-quality="LITE"] .rig-body { animation: none; }
+.office-character[data-paused="true"] *, .office-character[data-paused="true"] { animation-play-state: paused !important; }
+.office-actor:focus { outline: none; }
+.office-actor:focus .office-focus-ring { opacity: 1; }
+.office-focus-ring { opacity: 0; }
+.office-ambient { animation: office-steam 6s ease-in-out infinite; }
+[data-office-quality="BALANCED"] .office-ambient,
+[data-office-quality="LITE"] .office-ambient { animation: none; }
+@keyframes office-breathe { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.015); } }
+@keyframes office-blink { 0%,43%,46%,100% { transform: scaleY(1); } 44%,45% { transform: scaleY(.1); } }
+@keyframes office-glance { 0%,65%,100% { transform: rotate(0deg); } 75%,85% { transform: rotate(5deg); } }
+@keyframes office-read { 0%,100% { transform: rotate(2deg); } 50% { transform: rotate(6deg); } }
+@keyframes office-type { 0%,100% { transform: rotate(-3deg); } 45% { transform: rotate(4deg); } 70% { transform: rotate(0deg); } }
+@keyframes office-mouse { 0%,100% { transform: rotate(0deg); } 35%,60% { transform: rotate(-7deg); } }
+@keyframes office-gesture { 0%,55%,100% { transform: rotate(0deg); } 65%,80% { transform: rotate(-30deg); } }
+@keyframes office-sip { 0%,65%,100% { transform: rotate(15deg); } 75%,85% { transform: rotate(-7deg); } }
+@keyframes office-stretch { 0%,100% { transform: rotate(0deg); } 45%,65% { transform: rotate(8deg); } }
+@keyframes office-step { 0%,100% { transform: rotate(-14deg); } 50% { transform: rotate(14deg); } }
+@keyframes office-swing { 0%,100% { transform: rotate(12deg); } 50% { transform: rotate(-12deg); } }
+@keyframes office-walk-bob { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-1.3px); } }
+@keyframes office-stand { from { transform: translateY(6px) scaleY(.87); } to { transform: translateY(0) scaleY(1); } }
+@keyframes office-sit { from { transform: translateY(-5px) scaleY(1.08); } to { transform: translateY(0) scaleY(1); } }
+@keyframes office-steam { 0%,100% { opacity: .2; transform: translateY(0); } 50% { opacity: .6; transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .office-character *, .office-character, .office-ambient { animation: none !important; transition: none !important; }
+  [data-office-viewport] * { animation: none !important; transition: none !important; }
+}

@@ -6,7 +6,6 @@ import {
   SlidersHorizontal,
   Menu,
   User,
-  Radio,
 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { Button } from '@/components/ui/button'
@@ -20,12 +19,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { ThemeSwitcher } from '@/components/shell/ThemeSwitcher'
+import { RealtimeStatus } from '@/features/realtime'
 
 const ROUTE_CONTEXT_MAP: Record<string, { title: string; section: string }> = {
   '/': { title: 'Command Center', section: 'COMMAND' },
   '/tasks': { title: 'Tasks', section: 'COMMAND' },
+  '/schedule': { title: 'Schedule', section: 'COMMAND' },
   '/approvals': { title: 'Approvals', section: 'COMMAND' },
   '/agents': { title: 'Agents', section: 'AGENTS' },
+  '/agent-config': { title: 'Agent & Profile Configuration', section: 'AGENTS' },
   '/office': { title: 'Virtual Office', section: 'AGENTS' },
   '/activity': { title: 'Activity', section: 'OPERATIONS' },
   '/skills': { title: 'Skills', section: 'OPERATIONS' },
@@ -106,12 +108,8 @@ export const GlobalHeader: React.FC = () => {
           </kbd>
         </button>
 
-        {/* Global System Health Indicator (Desktop & Tablet) */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2 py-1 rounded-md bg-surface border border-border text-[11px] font-mono-tech text-text-secondary">
-          <Radio className="h-3 w-3 text-status-idle" />
-          <span className="hidden md:inline text-text-muted">API:</span>
-          <span className="text-text-secondary font-medium">Not connected</span>
-        </div>
+        {/* Global Realtime Connection Status Indicator */}
+        <RealtimeStatus className="hidden sm:flex" />
 
         {/* Attention Indicator */}
         <DropdownMenu>

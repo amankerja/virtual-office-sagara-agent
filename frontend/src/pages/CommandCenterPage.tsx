@@ -8,7 +8,8 @@ import { SystemPulse } from '@/features/command-center/components/SystemPulse'
 import { AttentionQueue } from '@/features/command-center/components/AttentionQueue'
 import { AgentFleetOverview } from '@/features/command-center/components/AgentFleetOverview'
 import { RecentActivity } from '@/features/command-center/components/RecentActivity'
-import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer'
+import { UpcomingScheduleCard } from '@/features/command-center/components/UpcomingScheduleCard'
+import { AgentDetailModal } from '@/components/modal/AgentDetailModal'
 import { useMissionControlSnapshot, useAgents, useAgent, useTasks } from '@/api/hooks'
 import { ErrorState } from '@/components/shared/ErrorState'
 import type { AttentionItem } from '@/types/mission-control'
@@ -219,12 +220,15 @@ export const CommandCenterPage: React.FC = () => {
           />
         </div>
 
-        <div className="lg:col-span-6 xl:col-span-5">
+        <div className="lg:col-span-6 xl:col-span-5 space-y-6">
           <AgentFleetOverview
             agents={agents}
             onSelectAgent={handleSelectAgent}
             isLoading={agentsLoading}
           />
+
+          {/* Compact Upcoming Schedule Preview (Prompt 11.5 Section 82) */}
+          <UpcomingScheduleCard />
         </div>
       </div>
 
@@ -234,8 +238,8 @@ export const CommandCenterPage: React.FC = () => {
         isLoading={snapshotLoading}
       />
 
-      {/* Reusable Agent Detail Drawer */}
-      <AgentDetailDrawer
+      {/* Reusable Agent Detail Modal */}
+      <AgentDetailModal
         agent={activeAgent}
         isOpen={Boolean(selectedAgentId && activeAgent)}
         onClose={handleCloseDrawer}

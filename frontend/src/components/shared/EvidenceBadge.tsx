@@ -33,8 +33,10 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
   let badgeClass = 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-400/20'
   let IconComponent = HelpCircle
 
+  const val = String(value || '').toLowerCase()
+
   if (type === 'health') {
-    switch (value) {
+    switch (val) {
       case 'healthy':
         label = 'Healthy'
         badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-600/25'
@@ -56,7 +58,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
         IconComponent = HelpCircle
     }
   } else if (type === 'installation') {
-    switch (value) {
+    switch (val) {
       case 'installed':
         label = 'Installed'
         badgeClass = 'bg-sky-500/15 text-sky-700 dark:text-sky-400 border-sky-600/25'
@@ -73,7 +75,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
         IconComponent = HelpCircle
     }
   } else if (type === 'execution') {
-    switch (value) {
+    switch (val) {
       case 'observed_active':
         label = 'Observed Active'
         badgeClass = 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-emerald-600/25'
@@ -106,7 +108,7 @@ export const EvidenceBadge: React.FC<EvidenceBadgeProps> = ({
         IconComponent = Clock
     }
   } else if (type === 'registration') {
-    switch (value) {
+    switch (val) {
       case 'registered':
         label = 'Registered'
         badgeClass = 'bg-interactive/10 text-interactive border-interactive/30'

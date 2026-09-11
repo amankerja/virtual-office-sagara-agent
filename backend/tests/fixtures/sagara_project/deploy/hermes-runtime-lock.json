@@ -1,0 +1,8 @@
+{
+  "lock_version": 2,
+  "runtime_paths": [
+    "/opt/sagara/skills/autonomous-ai-agents/hermes-agent",
+    "/opt/sagara/skills/software-development/systematic-debugging",
+    "/opt/sagara/skills/productivity/google-workspace"
+  ]
+}

@@ -1,0 +1,8 @@
+id: retired-bot
+name: Retired Legacy Agent
+role: Decommissioned
+description: Archived agent from previous architecture generation.
+enabled: false
+memory_namespace: mem-retired
+allowed_skills: []
+configuration_state: COMPLETE

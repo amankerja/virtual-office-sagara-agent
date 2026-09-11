@@ -177,7 +177,7 @@ export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({
                 )}
 
                 {task && (
-                  <span className="inline-flex items-center gap-1 truncate hidden sm:inline-flex">
+                  <span className="hidden sm:inline-flex items-center gap-1 truncate">
                     <CheckSquare className="h-3 w-3 text-text-muted shrink-0" />
                     <span className="truncate">{task.id}</span>
                   </span>

@@ -7,9 +7,9 @@ import { Sparkles } from 'lucide-react'
 import { RuntimeOverview } from '@/features/runtime/components/RuntimeOverview'
 import { GatewayPanel } from '@/features/runtime/components/GatewayPanel'
 import { SessionsTable } from '@/features/runtime/components/SessionsTable'
-import { SessionDetailDrawer } from '@/features/runtime/components/SessionDetailDrawer'
+import { SessionDetailModal } from '@/components/modal/SessionDetailModal'
 import { DelegationsTable } from '@/features/runtime/components/DelegationsTable'
-import { DelegationDetailDrawer } from '@/features/runtime/components/DelegationDetailDrawer'
+import { DelegationDetailModal } from '@/components/modal/DelegationDetailModal'
 import { UsageSummary } from '@/features/runtime/components/UsageSummary'
 import { RuntimeEvents } from '@/features/runtime/components/RuntimeEvents'
 import {
@@ -235,8 +235,8 @@ export const RuntimePage: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      {/* Session Detail Drawer */}
-      <SessionDetailDrawer
+      {/* Session Detail Modal */}
+      <SessionDetailModal
         session={activeSession || sessions.find((s) => s.id === selectedSessionId) || null}
         isOpen={Boolean(selectedSessionId)}
         onClose={handleCloseSessionDrawer}
@@ -248,8 +248,8 @@ export const RuntimePage: React.FC = () => {
         }}
       />
 
-      {/* Delegation Detail Drawer */}
-      <DelegationDetailDrawer
+      {/* Delegation Detail Modal */}
+      <DelegationDetailModal
         delegation={activeDelegation || delegations.find((d) => d.id === selectedDelegationId) || null}
         isOpen={Boolean(selectedDelegationId)}
         onClose={handleCloseDelegationDrawer}

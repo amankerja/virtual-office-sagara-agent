@@ -227,7 +227,11 @@ export const ApprovalDetailDrawer: React.FC<ApprovalDetailDrawerProps> = ({
                       <ShieldAlert className="h-3.5 w-3.5" />
                       Policy Boundary Checkpoint
                     </span>
-                    <p className="leading-relaxed">{approval.reasonRequired}</p>
+                    <p className="leading-relaxed">
+                      {typeof approval.reasonRequired === 'string'
+                        ? approval.reasonRequired
+                        : 'Manual authorization required before dispatching external action.'}
+                    </p>
                   </div>
                 )}
 

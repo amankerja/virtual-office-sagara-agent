@@ -1,0 +1,492 @@
+openapi: 3.0.3
+info:
+  title: Sagara Mission Control API (Proposed Extension)
+  description: Proposed extension V1.1 defining Action Safety Gate, Preflight, Approval, and Persistent Audit. (PROPOSED — NOT FROZEN)
+  version: 1.1.0-proposed
+servers:
+  - url: /api/v1
+    description: API v1 Base Path
+
+paths:
+  /action-safety/status:
+    get:
+      tags:
+        - Action Safety
+      summary: Retrieve Action Safety Gate Status
+      responses:
+        '200':
+          description: Control-plane safety posture and execution locks
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionSafetyStatus'
+
+  /action-safety/audit/verify:
+    post:
+      tags:
+        - Action Safety
+      summary: Verify Tamper-Evident Audit Ledger
+      responses:
+        '200':
+          description: Cryptographic audit chain verification result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditVerificationResult'
+
+  /action-intents:
+    get:
+      tags:
+        - Action Intents
+      summary: List Action Intents
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+        - name: risk
+          in: query
+          schema:
+            type: string
+        - name: action_type
+          in: query
+          schema:
+            type: string
+        - name: target_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of action intents
+    post:
+      tags:
+        - Action Intents
+      summary: Create Action Intent
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: X-Correlation-ID
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateActionIntent'
+      responses:
+        '201':
+          description: Action Intent Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionIntent'
+
+  /action-intents/{id}:
+    get:
+      tags:
+        - Action Intents
+      summary: Get Action Intent by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Action Intent detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionIntent'
+
+  /action-intents/{id}/preflight:
+    post:
+      tags:
+        - Action Intents
+      summary: Evaluate Intent Preflight
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: dry_run
+          in: query
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Preflight result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PreflightResult'
+
+  /action-intents/{id}/request-approval:
+    post:
+      tags:
+        - Action Intents
+      summary: Request Approval for Intent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intent status updated to PENDING_APPROVAL
+
+  /action-intents/{id}/approve:
+    post:
+      tags:
+        - Action Intents
+      summary: Approve Action Intent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: false
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                confirmation_phrase:
+                  type: string
+      responses:
+        '200':
+          description: Intent approved and marked READY_TO_EXECUTE
+
+  /action-intents/{id}/execute:
+    post:
+      tags:
+        - Action Intents
+      summary: Execute Approved Action Intent (Controlled Hermes Dispatch)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+        - name: If-Match
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Task execution acknowledged or submitted with receipt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExecutionResponse'
+        '400':
+          description: Final preflight failed or intent not approved
+        '403':
+          description: Execution disabled by kill switch or untrusted auth
+        '409':
+          description: Authorization already claimed or revision conflict
+
+  /action-intents/{id}/reject:
+    post:
+      tags:
+        - Action Intents
+      summary: Reject Action Intent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Intent rejected
+
+  /action-intents/{id}/cancel:
+    post:
+      tags:
+        - Action Intents
+      summary: Cancel Action Intent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Intent cancelled
+
+components:
+  schemas:
+    ActionSafetyStatus:
+      type: object
+      required:
+        - execution_mode
+        - action_signing
+        - persistent_idempotency
+        - audit_chain
+        - approval_policy
+        - executor
+        - control_db
+        - schema_version
+      properties:
+        execution_mode:
+          type: string
+          example: "DISABLED"
+        action_signing:
+          type: string
+          example: "CONFIGURED"
+        persistent_idempotency:
+          type: string
+          example: "HEALTHY"
+        audit_chain:
+          type: string
+          example: "VALID"
+        approval_policy:
+          type: string
+          example: "LOADED"
+        executor:
+          type: string
+          example: "DISABLED"
+        control_db:
+          type: string
+          example: "CONNECTED"
+        schema_version:
+          type: integer
+          example: 1
+
+    AuditVerificationResult:
+      type: object
+      required: [valid, status, detail, records_checked]
+      properties:
+        valid:
+          type: boolean
+        status:
+          type: string
+        detail:
+          type: string
+        records_checked:
+          type: integer
+
+    CreateActionIntent:
+      type: object
+      required: [action_type, target_type, target_id]
+      properties:
+        action_type:
+          type: string
+          example: "TASK_DISPATCH"
+        target_type:
+          type: string
+          example: "TASK"
+        target_id:
+          type: string
+          example: "task-001"
+        payload:
+          type: object
+        resource_revision:
+          type: integer
+        reason:
+          type: string
+
+    ActionIntent:
+      type: object
+      required:
+        - id
+        - action_type
+        - target_type
+        - target_id
+        - requested_by
+        - requested_at
+        - payload
+        - payload_hash
+        - risk
+        - status
+        - requires_approval
+        - preflight_revision
+        - nonce
+        - signature
+        - expires_at
+        - correlation_id
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        action_type:
+          type: string
+        target_type:
+          type: string
+        target_id:
+          type: string
+        requested_by:
+          type: string
+        requested_at:
+          type: string
+        payload:
+          type: object
+        payload_hash:
+          type: string
+        risk:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        status:
+          type: string
+        requires_approval:
+          type: boolean
+        preflight_revision:
+          type: integer
+        resource_revision:
+          type: integer
+        nonce:
+          type: string
+        signature:
+          type: string
+        expires_at:
+          type: string
+        correlation_id:
+          type: string
+        created_at:
+          type: string
+        updated_at:
+          type: string
+        execution_authorization_id:
+          type: string
+
+    PreflightResult:
+      type: object
+      required: [checked_at, result, risk]
+      properties:
+        checked_at:
+          type: string
+        result:
+          type: string
+          enum: [PASS, FAIL, REQUIRES_APPROVAL, BLOCKED]
+        risk:
+          type: string
+          enum: [LOW, MEDIUM, HIGH, CRITICAL]
+        requirements:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        blocking_reasons:
+          type: array
+          items:
+            type: string
+        action_plan:
+          type: object
+
+    ExecutionResponse:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ACKNOWLEDGED, FAILED_PRE_SUBMISSION, OUTCOME_UNKNOWN]
+        receipt_id:
+          type: string
+        attempt_id:
+          type: string
+        hermes_session_id:
+          type: string
+        receipt_hash:
+          type: string
+        submitted_at:
+          type: string
+        acknowledged_at:
+          type: string
+        error_code:
+          type: string
+        detail:
+          type: string
+        receipt:
+          $ref: '#/components/schemas/ExecutionReceipt'
+
+    ExecutionReceipt:
+      type: object
+      required:
+        - receipt_id
+        - attempt_id
+        - intent_id
+        - task_id
+        - profile_id
+        - hermes_session_id
+        - submitted_at
+        - acknowledged_at
+        - executor_type
+        - executor_version
+        - correlation_id
+        - result
+        - receipt_hash
+      properties:
+        receipt_id:
+          type: string
+        attempt_id:
+          type: string
+        intent_id:
+          type: string
+        task_id:
+          type: string
+        profile_id:
+          type: string
+        hermes_session_id:
+          type: string
+        submitted_at:
+          type: string
+        acknowledged_at:
+          type: string
+        executor_type:
+          type: string
+        executor_version:
+          type: string
+        correlation_id:
+          type: string
+        result:
+          type: string
+        receipt_hash:
+          type: string
+        created_at:
+          type: string

@@ -1,0 +1,114 @@
+# Canonical Profile Skills Seed Specification
+# Version: 1.0.0
+# Description: Skill allocations and role domain policies for Sagara AI fleet.
+
+schema_version: "1.0.0"
+version: 1
+
+profile_domains:
+  lead:
+    - autonomous-ai-agents
+    - software-development
+    - productivity
+    - general
+  personal:
+    - productivity
+    - communication
+    - note-taking
+    - general
+  business:
+    - devops
+    - productivity
+    - business
+    - research
+    - general
+  marketing:
+    - creative
+    - media
+    - social-media
+    - marketing
+    - general
+  cs:
+    - productivity
+    - customer-service
+    - communication
+    - email
+    - general
+  it-support:
+    - software-development
+    - devops
+    - infrastructure
+    - systems
+    - general
+  it-coding:
+    - software-development
+    - devops
+    - autonomous-ai-agents
+    - general
+  sagara-lab:
+    - autonomous-ai-agents
+    - research
+    - creative
+    - experimental
+    - general
+
+base_skills: []
+
+assignments:
+  lead:
+    - skill-hermes-agent
+    - skill-systematic-debugging
+  personal:
+    - skill-google-workspace
+  business:
+    - skill-unreferenced-tool
+  marketing:
+    - skill-baoyu-infographic
+  cs:
+    - skill-google-workspace
+  it-support:
+    - skill-systematic-debugging
+    - skill-unreferenced-tool
+  it-coding:
+    - skill-systematic-debugging
+  sagara-lab:
+    - skill-hermes-agent
+
+# Reference: Desired future capabilities from architecture blueprint (to be registered in future prompts)
+proposed_extensions:
+  lead:
+    - research/grounded-citations
+    - productivity/weekly-review-planning
+  personal:
+    - note-taking/obsidian
+    - email/himalaya
+    - productivity/product-price-monitor
+  business:
+    - productivity/airtable
+    - productivity/notion
+    - research/competitor-news-monitor
+    - productivity/xlsx
+  marketing:
+    - media/gif-search
+    - creative/claude-design
+    - social-media/xurl
+    - media/youtube-content
+  cs:
+    - email/email-inbox-triage
+    - career/follow-up
+    - productivity/docx
+  it-support:
+    - software-development/codebase-inspection
+    - software-development/requesting-code-review
+    - devops/sdlc-review
+  it-coding:
+    - software-development/github
+    - software-development/python-debugpy
+    - software-development/node-inspect-debugger
+    - software-development/test-driven-development
+    - autonomous-ai-agents/claude-code
+  sagara-lab:
+    - research/arxiv
+    - research/llm-wiki
+    - creative/architecture-diagram
+    - software-development/spike

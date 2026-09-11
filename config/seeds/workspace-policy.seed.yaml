@@ -1,0 +1,147 @@
+# Canonical Workspace Policy Seed Specification
+# Version: 1.0.0
+# Description: Workspace domain access boundaries, sensitive resources, and permission modes.
+
+schema_version: "1.0.0"
+version: 1
+
+default_permission: NO_ACCESS
+
+valid_modes:
+  - READ_ONLY
+  - READ_WRITE
+  - APPROVAL_REQUIRED
+  - NO_ACCESS
+
+resources:
+  # Google Drive Folders
+  - resource_id: drive:products
+    resource_type: folder
+    description: Digital product master files and specifications.
+    permissions:
+      business: READ_WRITE
+      marketing: READ_ONLY
+      cs: READ_ONLY
+
+  - resource_id: drive:marketing
+    resource_type: folder
+    description: Marketing creative assets, banners, and campaign collateral.
+    permissions:
+      marketing: READ_WRITE
+      business: READ_ONLY
+
+  - resource_id: drive:agent_status
+    resource_type: folder
+    description: Operational agent health logs and diagnostic dumps.
+    permissions:
+      it-support: READ_WRITE
+      lead: READ_ONLY
+
+  - resource_id: drive:reminders
+    resource_type: folder
+    description: Executive personal schedules, reminders, and notes.
+    permissions:
+      personal: READ_WRITE
+
+  - resource_id: drive:lab
+    resource_type: folder
+    description: Research papers, experimental notebooks, and architectural spikes.
+    permissions:
+      sagara-lab: READ_WRITE
+
+  # Google Sheets (Sensitive Data Governance)
+  - resource_id: sheet:serial_number
+    resource_type: spreadsheet
+    description: Customer software license serial numbers (IMMUTABLE SENSITIVE RECORD).
+    is_sensitive_read_only: true
+    permissions:
+      business: READ_ONLY
+      cs: READ_ONLY
+      # Explicitly NO_ACCESS for all other profiles
+
+  - resource_id: sheet:katalog_produk
+    resource_type: spreadsheet
+    description: Master digital product catalog and pricing matrix.
+    permissions:
+      business: READ_WRITE
+      marketing: READ_ONLY
+      cs: READ_ONLY
+
+  - resource_id: sheet:database_pembeli
+    resource_type: spreadsheet
+    description: Historical customer transaction and buyer registry.
+    permissions:
+      business: READ_WRITE
+      cs: READ_ONLY
+      lead: READ_ONLY
+
+  - resource_id: sheet:marketing_plan
+    resource_type: spreadsheet
+    description: Campaign calendar and weekly marketing roadmaps.
+    permissions:
+      marketing: READ_WRITE
+      business: READ_ONLY
+
+  - resource_id: sheet:fb_group_queue
+    resource_type: spreadsheet
+    description: Staged community postings and promotion queue.
+    permissions:
+      marketing: READ_WRITE
+
+  - resource_id: sheet:template_pesan
+    resource_type: spreadsheet
+    description: Standard customer communication and promotional messaging templates.
+    permissions:
+      marketing: READ_WRITE
+      cs: READ_ONLY
+
+  - resource_id: sheet:target_pembeli
+    resource_type: spreadsheet
+    description: Customer audience personas and targeting parameters.
+    permissions:
+      marketing: READ_WRITE
+      business: READ_ONLY
+
+  - resource_id: sheet:variabel_master
+    resource_type: spreadsheet
+    description: Fleet configuration master variables and environment parameters.
+    permissions:
+      lead: READ_WRITE
+      business: READ_ONLY
+
+  # Knowledge Repositories (Obsidian)
+  - resource_id: obsidian:wiki
+    resource_type: vault_directory
+    description: Fleet-wide SOPs, documentation, and shared architectural knowledge.
+    permissions:
+      lead: READ_WRITE
+      sagara-lab: READ_WRITE
+      it-coding: READ_ONLY
+      it-support: READ_ONLY
+      business: READ_ONLY
+      marketing: READ_ONLY
+      cs: READ_ONLY
+      personal: READ_ONLY
+
+  - resource_id: obsidian:memories
+    resource_type: vault_directory
+    description: Profile-isolated episodic and working memory stores.
+    permissions:
+      # Each profile has read/write strictly to its own namespace
+      lead: READ_WRITE
+      personal: READ_WRITE
+      business: READ_WRITE
+      marketing: READ_WRITE
+      cs: READ_WRITE
+      it-support: READ_WRITE
+      it-coding: READ_WRITE
+      sagara-lab: READ_WRITE
+
+  # Source Codebase Repositories
+  - resource_id: repo:sagara-agent
+    resource_type: git_repository
+    description: Core Sagara AI fleet codebase and agent services.
+    permissions:
+      it-coding: APPROVAL_REQUIRED
+      it-support: READ_ONLY
+      lead: READ_ONLY

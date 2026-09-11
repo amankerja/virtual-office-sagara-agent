@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "name": "sustained healthy FPS does not trigger fallback",
+      "passed": true
+    },
+    {
+      "name": "sustained slow frames automatically downgrade; no oscillation",
+      "passed": true
+    },
+    {
+      "name": "reduced-motion preset snaps without interpolation",
+      "passed": true
+    },
+    {
+      "name": "delegation worker callback remains connected after layout update",
+      "passed": true
+    },
+    {
+      "name": "no runtime errors",
+      "passed": true
+    }
+  ],
+  "errors": []
+}

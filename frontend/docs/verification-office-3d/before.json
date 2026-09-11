@@ -1,0 +1,34 @@
+{
+  "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x000046A3) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "fps": 33.841792117557794,
+  "p95Ms": 34.70000000000073,
+  "drawCalls": 2009,
+  "triangles": 46184,
+  "geometries": 959,
+  "textures": 5,
+  "desks": 9,
+  "effectiveTier": "BALANCED",
+  "light": {
+    "renderer": "ANGLE (Intel, Intel(R) UHD Graphics (0x000046A3) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+    "fps": 32.031133063910204,
+    "p95Ms": 48.20000000000073,
+    "drawCalls": 2009,
+    "triangles": 46184,
+    "geometries": 959,
+    "textures": 5,
+    "desks": 9,
+    "effectiveTier": "BALANCED"
+  },
+  "quality": "balanced",
+  "errors": [],
+  "externalRequests": [
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/codepoint-index/plane0/0-ff.json",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/font-meta/latin.json",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/font-files/latin/sans-serif.normal.100.woff",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/font-files/latin/sans-serif.normal.400.woff",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/codepoint-index/plane0/2500-25ff.json",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/codepoint-index/plane0/2000-20ff.json",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/font-meta/symbols-2.json",
+    "https://cdn.jsdelivr.net/gh/lojjic/unicode-font-resolver@v1.0.1/packages/data/font-files/symbols-2/sans-serif.normal.400.woff"
+  ]
+}

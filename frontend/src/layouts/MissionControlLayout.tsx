@@ -4,9 +4,11 @@ import { AppSidebar } from '@/components/shell/AppSidebar'
 import { GlobalHeader } from '@/components/shell/GlobalHeader'
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet'
 import { useUIStore } from '@/stores/ui-store'
+import { useRealtime } from '@/features/realtime'
 
 export const MissionControlLayout: React.FC = () => {
   const { isMobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
+  useRealtime()
 
   return (
     <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground transition-colors">

@@ -33,11 +33,9 @@ export class ApiClient {
   private defaultCredentials?: RequestCredentials;
 
   constructor(config?: ApiClientConfig) {
-    this.baseUrl = (
-      config?.baseUrl ||
-      (import.meta.env.VITE_MISSION_CONTROL_API_URL as string) ||
-      'http://localhost:8000'
-    ).replace(/\/+$/, '');
+    const envUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_MISSION_CONTROL_API_URL) ||
+      (typeof process !== 'undefined' && process.env?.VITE_MISSION_CONTROL_API_URL);
+    this.baseUrl = (config?.baseUrl || envUrl || 'http://localhost:8000').replace(/\/+$/, '');
     this.defaultCredentials = config?.credentials;
   }
 

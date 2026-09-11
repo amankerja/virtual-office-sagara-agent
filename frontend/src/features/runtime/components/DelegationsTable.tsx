@@ -259,7 +259,7 @@ export const DelegationsTable: React.FC<DelegationsTableProps> = ({
                         <td className="py-3 px-3 font-semibold text-text-primary whitespace-nowrap">
                           {del.id}
                         </td>
-                        <td className="py-3 px-3 text-text-primary font-sans font-medium max-w-[200px] truncate">
+                        <td className="py-3 px-3 text-text-primary font-sans font-medium max-w-50 truncate">
                           {del.taskTitle}
                         </td>
                         <td className="py-3 px-3 text-text-secondary whitespace-nowrap font-sans">

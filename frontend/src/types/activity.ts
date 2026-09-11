@@ -8,28 +8,13 @@ export type ActivityCategory =
   | 'GATEWAY'
   | 'SYSTEM'
 
+import type { EntityReference, RelatedEntities } from './common';
+
 export type ActivitySeverity = 'INFO' | 'WARNING' | 'ERROR' | 'CRITICAL'
 
-export interface ActivityActor {
-  type?: string
-  id?: string
-  label?: string
-}
-
-export interface ActivityEntity {
-  type?: string
-  id?: string
-  label?: string
-}
-
-export interface ActivityRelatedEntities {
-  taskId?: string
-  agentId?: string
-  sessionId?: string
-  delegationId?: string
-  approvalId?: string
-  skillId?: string
-}
+export type ActivityActor = EntityReference
+export type ActivityEntity = EntityReference
+export type ActivityRelatedEntities = RelatedEntities
 
 export interface ActivityProjection {
   id: string

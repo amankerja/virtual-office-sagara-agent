@@ -218,7 +218,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
                   key={key}
                   className="p-2.5 rounded-md bg-surface-subtle border border-border-subtle flex flex-col justify-between"
                 >
-                  <span className="text-[10px] text-text-muted uppercase capitalize truncate">
+                  <span className="text-[10px] text-text-muted uppercase truncate">
                     {key.replace(/([A-Z])/g, ' $1')}
                   </span>
                   <div className="flex items-center gap-1.5 mt-2">

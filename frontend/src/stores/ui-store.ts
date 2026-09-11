@@ -2,6 +2,8 @@ import { create } from 'zustand'
 
 const SIDEBAR_STORAGE_KEY = 'sagara-sidebar-collapsed'
 const VIEW_MODE_STORAGE_KEY = 'sagara-agent-view-mode'
+const OFFICE_VIEW_MODE_STORAGE_KEY = 'sagara-office-view-mode'
+const OFFICE_ZOOM_STORAGE_KEY = 'sagara-office-zoom'
 
 interface UIState {
   isSidebarCollapsed: boolean;
@@ -19,6 +21,12 @@ interface UIState {
 
   agentViewMode: 'grid' | 'list';
   setAgentViewMode: (mode: 'grid' | 'list') => void;
+
+  officeViewMode: 'office' | 'list';
+  setOfficeViewMode: (mode: 'office' | 'list') => void;
+
+  officeZoom: number;
+  setOfficeZoom: (zoom: number) => void;
 }
 
 const getInitialSidebarState = (): boolean => {
@@ -39,6 +47,31 @@ const getInitialViewModeState = (): 'grid' | 'list' => {
     // ignore
   }
   return 'grid'
+}
+
+const getInitialOfficeViewModeState = (): 'office' | 'list' => {
+  if (typeof window === 'undefined') return 'office'
+  try {
+    const stored = localStorage.getItem(OFFICE_VIEW_MODE_STORAGE_KEY)
+    if (stored === 'office' || stored === 'list') return stored
+  } catch {
+    // ignore
+  }
+  return 'office'
+}
+
+const getInitialOfficeZoom = (): number => {
+  if (typeof window === 'undefined') return 1
+  try {
+    const stored = localStorage.getItem(OFFICE_ZOOM_STORAGE_KEY)
+    if (stored) {
+      const parsed = parseFloat(stored)
+      if (!isNaN(parsed) && parsed >= 0.5 && parsed <= 2) return parsed
+    }
+  } catch {
+    // ignore
+  }
+  return 1
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -79,5 +112,25 @@ export const useUIStore = create<UIState>((set) => ({
       // ignore
     }
     set({ agentViewMode: mode })
+  },
+
+  officeViewMode: getInitialOfficeViewModeState(),
+  setOfficeViewMode: (mode) => {
+    try {
+      localStorage.setItem(OFFICE_VIEW_MODE_STORAGE_KEY, mode)
+    } catch {
+      // ignore
+    }
+    set({ officeViewMode: mode })
+  },
+
+  officeZoom: getInitialOfficeZoom(),
+  setOfficeZoom: (zoom) => {
+    try {
+      localStorage.setItem(OFFICE_ZOOM_STORAGE_KEY, String(zoom))
+    } catch {
+      // ignore
+    }
+    set({ officeZoom: zoom })
   },
 }))

@@ -13,10 +13,10 @@ export const SkillHealthDistribution: React.FC<SkillHealthDistributionProps> = (
   className,
 }) => {
   const total = skills.length || 1
-  const healthy = skills.filter((s) => s.health === 'healthy').length
-  const degraded = skills.filter((s) => s.health === 'degraded').length
-  const missing = skills.filter((s) => s.health === 'missing').length
-  const unknown = skills.filter((s) => s.health === 'unknown').length
+  const healthy = skills.filter((s) => s.health?.toLowerCase() === 'healthy').length
+  const degraded = skills.filter((s) => s.health?.toLowerCase() === 'degraded').length
+  const missing = skills.filter((s) => s.health?.toLowerCase() === 'missing').length
+  const unknown = skills.filter((s) => s.health?.toLowerCase() === 'unknown').length
 
   const rows = [
     {

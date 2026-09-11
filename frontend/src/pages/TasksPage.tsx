@@ -10,7 +10,7 @@ import { TaskKanbanBoard } from '@/features/tasks/components/TaskKanbanBoard'
 import { TaskListView } from '@/features/tasks/components/TaskListView'
 import { CreateTaskDrawer } from '@/features/tasks/components/CreateTaskDrawer'
 import { DispatchReviewDialog } from '@/features/tasks/components/DispatchReviewDialog'
-import { TaskDetailDrawer } from '@/features/tasks/components/TaskDetailDrawer'
+import { TaskDetailModal } from '@/components/modal/TaskDetailModal'
 import {
   useTasks,
   useAgents,
@@ -317,8 +317,8 @@ export const TasksPage: React.FC = () => {
         onConfirmDispatch={handleConfirmDispatch}
       />
 
-      {/* Task Detail Drawer */}
-      <TaskDetailDrawer
+      {/* Task Detail Modal */}
+      <TaskDetailModal
         task={selectedTask}
         agent={assignedAgentForSelectedTask}
         skills={skills}
@@ -327,6 +327,7 @@ export const TasksPage: React.FC = () => {
         onClose={handleCloseDetailDrawer}
         onPrepareDispatch={handlePrepareDispatch}
         onReviewApproval={handleReviewApproval}
+        onSelectAgent={(agId) => navigate(`/agents?agent=${agId}`)}
       />
     </div>
   )

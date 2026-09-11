@@ -1,0 +1,88 @@
+# Canonical Schedule Policy Seed Specification
+# Version: 1.0.0
+# Description: Allowed recurring schedule types and policy constraints per profile (NO LIVE CRON JOBS).
+
+schema_version: "1.0.0"
+version: 1
+
+supported_schedule_types:
+  - SYSTEM_MAINTENANCE
+  - FLEET_HEARTBEAT
+  - REPORTING
+  - REMINDER
+  - TASK
+  - CALENDAR_SYNC
+  - METRIC_DIGEST
+  - CONTENT
+  - RECURRING_JOB
+  - SOCIAL_QUEUE
+  - ORDER_TRIAGE
+  - INBOX_CHECK
+  - HEALTH_CHECK
+  - GATEWAY_PROBE
+  - ALERT_SWEEP
+  - CI_SWEEP
+  - TEST_SUITE
+  - RESEARCH_SWEEP
+  - ARCHIVE_HARVEST
+
+policies:
+  lead:
+    allowed_schedule_types:
+      - SYSTEM_MAINTENANCE
+      - FLEET_HEARTBEAT
+      - REPORTING
+    max_concurrent_schedules: 5
+    default_timezone: Asia/Jakarta
+
+  personal:
+    allowed_schedule_types:
+      - REMINDER
+      - TASK
+      - CALENDAR_SYNC
+    max_concurrent_schedules: 10
+    default_timezone: Asia/Jakarta
+
+  business:
+    allowed_schedule_types:
+      - REPORTING
+      - METRIC_DIGEST
+    max_concurrent_schedules: 5
+    default_timezone: Asia/Jakarta
+
+  marketing:
+    allowed_schedule_types:
+      - CONTENT
+      - RECURRING_JOB
+      - SOCIAL_QUEUE
+    max_concurrent_schedules: 10
+    default_timezone: Asia/Jakarta
+
+  cs:
+    allowed_schedule_types:
+      - ORDER_TRIAGE
+      - INBOX_CHECK
+    max_concurrent_schedules: 5
+    default_timezone: Asia/Jakarta
+
+  it-support:
+    allowed_schedule_types:
+      - HEALTH_CHECK
+      - GATEWAY_PROBE
+      - ALERT_SWEEP
+    max_concurrent_schedules: 10
+    default_timezone: Asia/Jakarta
+
+  it-coding:
+    allowed_schedule_types:
+      - CI_SWEEP
+      - TEST_SUITE
+    max_concurrent_schedules: 5
+    default_timezone: Asia/Jakarta
+
+  sagara-lab:
+    allowed_schedule_types:
+      - RESEARCH_SWEEP
+      - ARCHIVE_HARVEST
+    max_concurrent_schedules: 5
+    default_timezone: Asia/Jakarta

@@ -1,0 +1,145 @@
+# Canonical Channel Routes Seed Specification
+# Version: 1.0.0
+# Description: Channel context routing topology for Discord and Telegram ingress.
+
+schema_version: "1.0.0"
+version: 1
+
+telegram:
+  central_ingress: true
+  default_route_target: lead
+  per_profile_bots_enabled: false
+
+routes:
+  - channel_name: sagara-command
+    target_profile: lead
+    domain: operations
+    mention_required: false
+    interaction_mode: interactive
+    description: Primary operations and mission command dispatch.
+
+  - channel_name: cron
+    target_profile: lead
+    domain: operations
+    mention_required: false
+    interaction_mode: event_stream
+    description: Scheduled fleet job coordination and heartbeat triggers.
+
+  - channel_name: assistant
+    target_profile: personal
+    domain: personal
+    mention_required: false
+    interaction_mode: interactive
+    description: Personal assistant dialogue, task planning, and notes.
+
+  - channel_name: reminders
+    target_profile: personal
+    domain: personal
+    mention_required: false
+    interaction_mode: interactive
+    description: Personal reminders and calendar synchronization.
+
+  - channel_name: career
+    target_profile: personal
+    domain: personal
+    mention_required: false
+    interaction_mode: interactive
+    description: Personal career development and administrative support.
+
+  - channel_name: personal-finance
+    target_profile: personal
+    domain: personal
+    mention_required: false
+    interaction_mode: interactive
+    description: Personal finance reminders and tracking notes.
+
+  - channel_name: products
+    target_profile: business
+    domain: business
+    mention_required: false
+    interaction_mode: interactive
+    description: Product catalog management, sales insights, and pricing review.
+
+  - channel_name: marketing
+    target_profile: marketing
+    domain: marketing
+    mention_required: false
+    interaction_mode: interactive
+    description: Marketing strategy, campaign discussions, and promotional plans.
+
+  - channel_name: content
+    target_profile: marketing
+    domain: marketing
+    mention_required: false
+    interaction_mode: interactive
+    description: Content creation drafts, visual assets, and copywriting.
+
+  - channel_name: posting
+    target_profile: marketing
+    domain: marketing
+    mention_required: false
+    interaction_mode: interactive
+    description: Staged multiplatform posting queues and scheduled output reviews.
+
+  - channel_name: orders
+    target_profile: cs
+    domain: customer-service
+    mention_required: false
+    interaction_mode: event_stream
+    description: Store order events and fulfillment status updates.
+
+  - channel_name: customer-service
+    target_profile: cs
+    domain: customer-service
+    mention_required: false
+    interaction_mode: interactive
+    description: Customer support ticket triage and inquiry drafting.
+
+  - channel_name: agent-status
+    target_profile: it-support
+    domain: infrastructure
+    mention_required: false
+    interaction_mode: event_stream
+    description: Agent lifecycle and availability status announcements.
+
+  - channel_name: alerts
+    target_profile: it-support
+    domain: infrastructure
+    mention_required: false
+    interaction_mode: alert_sink
+    description: High-priority operational alerts and incident logs.
+
+  - channel_name: gateway-status
+    target_profile: it-support
+    domain: infrastructure
+    mention_required: false
+    interaction_mode: event_stream
+    description: Gateway connection telemetry and heartbeat monitoring.
+
+  - channel_name: system-alerts
+    target_profile: it-support
+    domain: infrastructure
+    mention_required: false
+    interaction_mode: alert_sink
+    description: Low-level system metric thresholds and memory alarms.
+
+  - channel_name: agent-coding-1
+    target_profile: it-coding
+    domain: software-development
+    mention_required: false
+    interaction_mode: interactive
+    description: Technical software development, debugging, and review tasks.
+
+  - channel_name: sagara-lab
+    target_profile: sagara-lab
+    domain: research
+    mention_required: false
+    interaction_mode: interactive
+    description: Exploratory research discussions, paper analysis, and prototypes.
+
+  - channel_name: deep-search-engine
+    target_profile: sagara-lab
+    domain: research
+    mention_required: false
+    interaction_mode: interactive
+    description: Automated academic literature search and knowledge retrieval.

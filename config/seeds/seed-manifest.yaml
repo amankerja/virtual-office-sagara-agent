@@ -1,0 +1,22 @@
+# Canonical Sagara Seed Manifest
+# Version: 1.0.0
+# Description: Root manifest linking all modular seed specifications for the Sagara AI fleet.
+
+schema_version: "1.0.0"
+seed_version: "1.0.0"
+seed_id: sagara-default-profile-blueprint
+
+metadata:
+  blueprint_name: Sagara Default 8-Agent Profile Architecture
+  description: Canonical profile, skill, model, channel, workspace, and schedule policies.
+  author: Sagara AI Architecture Governance
+  target_fleet: SAGARA_AI_V1
+
+components:
+  profiles: profiles.seed.yaml
+  profile_skills: profile-skills.seed.yaml
+  model_policy: model-policy.seed.yaml
+  channel_routes: channel-routes.seed.yaml
+  workspace_policy: workspace-policy.seed.yaml
+  schedule_policy: schedule-policy.seed.yaml
+  presentation: presentation.seed.yaml

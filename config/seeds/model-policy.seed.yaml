@@ -1,0 +1,71 @@
+# Canonical Model Policy Seed Specification
+# Version: 1.0.0
+# Description: Abstract model tier allocations and fallback policies for Sagara AI fleet.
+
+schema_version: "1.0.0"
+version: 1
+
+supported_tiers:
+  - flagship
+  - balanced
+  - fast
+  - creative
+  - coding
+  - research
+
+profiles:
+  lead:
+    primary_tier: flagship
+    fallback_tier: balanced
+    reasoning_profile: deep_orchestration
+    min_context_tokens: 64000
+    temperature: 0.2
+
+  personal:
+    primary_tier: balanced
+    fallback_tier: fast
+    reasoning_profile: conversational_secretary
+    min_context_tokens: 32000
+    temperature: 0.5
+
+  business:
+    primary_tier: flagship
+    fallback_tier: balanced
+    reasoning_profile: analytical_rigor
+    min_context_tokens: 64000
+    temperature: 0.2
+
+  marketing:
+    primary_tier: balanced
+    fallback_tier: fast
+    reasoning_profile: creative_copywriting
+    min_context_tokens: 32000
+    temperature: 0.7
+
+  cs:
+    primary_tier: fast
+    fallback_tier: balanced
+    reasoning_profile: low_latency_support
+    min_context_tokens: 16000
+    temperature: 0.3
+
+  it-support:
+    primary_tier: balanced
+    fallback_tier: fast
+    reasoning_profile: structured_diagnostics
+    min_context_tokens: 32000
+    temperature: 0.1
+
+  it-coding:
+    primary_tier: coding
+    fallback_tier: balanced
+    reasoning_profile: precise_code_generation
+    min_context_tokens: 64000
+    temperature: 0.1
+
+  sagara-lab:
+    primary_tier: research
+    fallback_tier: balanced
+    reasoning_profile: academic_synthesis
+    min_context_tokens: 64000
+    temperature: 0.3

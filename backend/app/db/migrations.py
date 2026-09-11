@@ -1,0 +1,412 @@
+import hashlib
+import sqlite3
+from datetime import datetime, timezone
+
+GENESIS_PREVIOUS_HASH = "0000000000000000000000000000000000000000000000000000000000000000"
+GENESIS_EVENT_ID = "aud-000000000000-genesis"
+
+
+def compute_audit_hash(
+    sequence: int,
+    event_id: str,
+    timestamp: str,
+    actor_id: str,
+    action: str,
+    resource_id: str,
+    outcome: str,
+    reason: str | None,
+    intent_id: str | None,
+    payload_hash: str | None,
+    previous_hash: str,
+) -> str:
+    """Deterministic SHA-256 hash chaining for tamper-evident audit ledger."""
+    canonical = (
+        f"{sequence}|{event_id}|{timestamp}|{actor_id}|{action}|"
+        f"{resource_id}|{outcome}|{reason or ''}|{intent_id or ''}|"
+        f"{payload_hash or ''}|{previous_hash}"
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def run_migrations(conn: sqlite3.Connection) -> None:
+    """Execute versioned schema migrations on the Mission Control database."""
+    conn.execute("BEGIN IMMEDIATE;")
+    try:
+        # Schema migration tracking
+        conn.execute(
+            """
+            CREATE TABLE IF NOT EXISTS schema_migrations (
+                version INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                applied_at TEXT NOT NULL
+            );
+            """
+        )
+
+        cursor = conn.cursor()
+        cursor.execute("SELECT version FROM schema_migrations ORDER BY version DESC LIMIT 1;")
+        row = cursor.fetchone()
+        current_version = (row["version"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
+
+        if current_version < 1:
+            _apply_v1_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (1, "v1_initial_action_safety", now),
+            )
+
+        if current_version < 2:
+            _apply_v2_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (2, "v2_controlled_execution_gate", now),
+            )
+
+        conn.execute("COMMIT;")
+    except Exception:
+        conn.execute("ROLLBACK;")
+        raise
+
+
+def _apply_v1_migration(conn: sqlite3.Connection) -> None:
+    """V1 Schema: Action intents, approvals, persistent idempotency, tamper-evident audit ledger, and change sets."""
+    
+    # 1. Action Intents Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS action_intents (
+            id TEXT PRIMARY KEY,
+            action_type TEXT NOT NULL,
+            target_type TEXT NOT NULL,
+            target_id TEXT NOT NULL,
+            requested_by TEXT NOT NULL,
+            requested_at TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            payload_hash TEXT NOT NULL,
+            risk TEXT NOT NULL,
+            status TEXT NOT NULL,
+            requires_approval INTEGER NOT NULL DEFAULT 1,
+            preflight_revision INTEGER DEFAULT 1,
+            resource_revision INTEGER,
+            preflight_result TEXT,
+            nonce TEXT NOT NULL,
+            signature TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            correlation_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            execution_authorization_id TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_action_intents_status ON action_intents(status);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_action_intents_target ON action_intents(target_type, target_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_action_intents_correlation ON action_intents(correlation_id);")
+
+    # 2. Approvals Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS approvals (
+            id TEXT PRIMARY KEY,
+            intent_id TEXT,
+            state TEXT NOT NULL,
+            risk TEXT NOT NULL,
+            action_type TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            reason_required INTEGER DEFAULT 0,
+            task_id TEXT,
+            agent_id TEXT,
+            requested_by TEXT NOT NULL,
+            requested_at TEXT NOT NULL,
+            decided_at TEXT,
+            decision_maker TEXT,
+            decision TEXT,
+            reason TEXT,
+            payload_hash TEXT,
+            revision INTEGER NOT NULL DEFAULT 1,
+            confirmation_phrase TEXT,
+            preview TEXT,
+            audit_trail TEXT,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            FOREIGN KEY(intent_id) REFERENCES action_intents(id) ON DELETE SET NULL
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_approvals_state ON approvals(state);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_approvals_intent ON approvals(intent_id);")
+
+    # 3. Persistent Idempotency Store Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS idempotency_records (
+            idempotency_key TEXT NOT NULL,
+            scope TEXT NOT NULL,
+            principal_id TEXT NOT NULL,
+            method TEXT NOT NULL,
+            route TEXT NOT NULL,
+            payload_hash TEXT NOT NULL,
+            response_code INTEGER NOT NULL,
+            response_body TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            PRIMARY KEY (idempotency_key, scope, principal_id)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_idempotency_expires ON idempotency_records(expires_at);")
+
+    # 4. Tamper-Evident Audit Ledger Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS audit_ledger (
+            event_id TEXT PRIMARY KEY,
+            sequence INTEGER NOT NULL UNIQUE,
+            timestamp TEXT NOT NULL,
+            actor_type TEXT NOT NULL,
+            actor_id TEXT NOT NULL,
+            actor_label TEXT NOT NULL,
+            action TEXT NOT NULL,
+            resource_type TEXT NOT NULL,
+            resource_id TEXT NOT NULL,
+            resource_label TEXT NOT NULL,
+            outcome TEXT NOT NULL,
+            reason TEXT,
+            correlation_id TEXT NOT NULL,
+            intent_id TEXT,
+            payload_hash TEXT,
+            revision INTEGER,
+            previous_hash TEXT NOT NULL,
+            record_hash TEXT NOT NULL
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_sequence ON audit_ledger(sequence);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_correlation ON audit_ledger(correlation_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_audit_intent ON audit_ledger(intent_id);")
+
+    # 5. Configuration Change Sets
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS configuration_change_sets (
+            id TEXT PRIMARY KEY,
+            profile_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT,
+            changes TEXT NOT NULL,
+            base_revision INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            created_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        """
+    )
+
+    # 6. Schedule Change Sets
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS schedule_change_sets (
+            id TEXT PRIMARY KEY,
+            schedule_id TEXT,
+            action_type TEXT NOT NULL,
+            payload TEXT NOT NULL,
+            base_revision INTEGER NOT NULL DEFAULT 1,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            created_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        """
+    )
+
+    # 7. Seed Genesis Block in Audit Ledger if table is empty
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) AS cnt FROM audit_ledger;")
+    row = cursor.fetchone()
+    count = (row["cnt"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
+    if count == 0:
+        genesis_timestamp = "2026-01-01T00:00:00Z"
+        genesis_actor = "system:genesis"
+        genesis_action = "AUDIT_CHAIN_GENESIS"
+        genesis_resource = "sagara:mission-control"
+        genesis_outcome = "INITIALIZED"
+        genesis_reason = "Genesis marker for tamper-evident audit chain"
+        genesis_hash = compute_audit_hash(
+            sequence=0,
+            event_id=GENESIS_EVENT_ID,
+            timestamp=genesis_timestamp,
+            actor_id=genesis_actor,
+            action=genesis_action,
+            resource_id=genesis_resource,
+            outcome=genesis_outcome,
+            reason=genesis_reason,
+            intent_id=None,
+            payload_hash=None,
+            previous_hash=GENESIS_PREVIOUS_HASH,
+        )
+        conn.execute(
+            """
+            INSERT INTO audit_ledger (
+                event_id, sequence, timestamp, actor_type, actor_id, actor_label,
+                action, resource_type, resource_id, resource_label, outcome, reason,
+                correlation_id, intent_id, payload_hash, revision, previous_hash, record_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """,
+            (
+                GENESIS_EVENT_ID,
+                0,
+                genesis_timestamp,
+                "SYSTEM",
+                genesis_actor,
+                "Mission Control Genesis",
+                genesis_action,
+                "SYSTEM",
+                genesis_resource,
+                "Sagara Mission Control",
+                genesis_outcome,
+                "Genesis marker for tamper-evident audit chain",
+                "corr-genesis-00000000",
+                None,
+                None,
+                1,
+                GENESIS_PREVIOUS_HASH,
+                genesis_hash,
+            ),
+        )
+
+
+def _apply_v2_migration(conn: sqlite3.Connection) -> None:
+    """V2 Schema: Controlled Execution Gate tables.
+    
+    Tables:
+    - execution_authorizations: Single-use, short-TTL authorization tokens bound to exact intent & payload hash.
+    - execution_attempts: Track at-most-once submission state machine.
+    - execution_receipts: Immutable execution receipts with deterministic SHA-256 fingerprint.
+    - task_execution_correlations: Direct (non-heuristic) Task <-> Hermes Session mapping.
+    - execution_locks: Persistent control DB execution lock (default: LOCKED).
+    """
+    # 1. Execution Authorizations Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_authorizations (
+            id TEXT PRIMARY KEY,
+            intent_id TEXT NOT NULL,
+            payload_hash TEXT NOT NULL,
+            profile_id TEXT NOT NULL,
+            task_id TEXT NOT NULL,
+            task_revision INTEGER NOT NULL,
+            issued_to TEXT NOT NULL,
+            issued_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            nonce TEXT NOT NULL,
+            state TEXT NOT NULL DEFAULT 'ISSUED',
+            consumed_at TEXT,
+            execution_attempt_id TEXT,
+            FOREIGN KEY (intent_id) REFERENCES action_intents(id)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_auth_intent ON execution_authorizations(intent_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_auth_state ON execution_authorizations(state);")
+
+    # 2. Execution Attempts Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_attempts (
+            id TEXT PRIMARY KEY,
+            intent_id TEXT NOT NULL,
+            authorization_id TEXT NOT NULL,
+            task_id TEXT NOT NULL,
+            profile_id TEXT NOT NULL,
+            correlation_id TEXT NOT NULL,
+            state TEXT NOT NULL DEFAULT 'PREPARED',
+            created_at TEXT NOT NULL,
+            claimed_at TEXT,
+            submitted_at TEXT,
+            acknowledged_at TEXT,
+            completed_at TEXT,
+            session_id TEXT,
+            error_code TEXT,
+            FOREIGN KEY (intent_id) REFERENCES action_intents(id),
+            FOREIGN KEY (authorization_id) REFERENCES execution_authorizations(id)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_attempts_intent ON execution_attempts(intent_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_attempts_task ON execution_attempts(task_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_attempts_state ON execution_attempts(state);")
+
+    # 3. Execution Receipts Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_receipts (
+            receipt_id TEXT PRIMARY KEY,
+            attempt_id TEXT NOT NULL UNIQUE,
+            intent_id TEXT NOT NULL,
+            task_id TEXT NOT NULL,
+            profile_id TEXT NOT NULL,
+            hermes_session_id TEXT NOT NULL,
+            submitted_at TEXT NOT NULL,
+            acknowledged_at TEXT NOT NULL,
+            executor_type TEXT NOT NULL,
+            executor_version TEXT NOT NULL,
+            correlation_id TEXT NOT NULL,
+            result TEXT NOT NULL,
+            receipt_hash TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (attempt_id) REFERENCES execution_attempts(id),
+            FOREIGN KEY (intent_id) REFERENCES action_intents(id)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_receipts_session ON execution_receipts(hermes_session_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_receipts_task ON execution_receipts(task_id);")
+
+    # 4. Direct Task <-> Session Correlations Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS task_execution_correlations (
+            task_id TEXT NOT NULL,
+            intent_id TEXT NOT NULL,
+            execution_attempt_id TEXT NOT NULL,
+            hermes_session_id TEXT NOT NULL,
+            correlation_id TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            PRIMARY KEY (task_id, hermes_session_id)
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_task_corr_session ON task_execution_correlations(hermes_session_id);")
+
+    # 5. Persistent Execution Locks Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_locks (
+            lock_name TEXT PRIMARY KEY,
+            status TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            updated_by TEXT NOT NULL,
+            reason TEXT
+        );
+        """
+    )
+
+    # 6. Seed Global Execution Lock as LOCKED by default (Prompt 14 Section 28)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(*) AS cnt FROM execution_locks WHERE lock_name = 'global_dispatch';")
+    row = cursor.fetchone()
+    count = (row["cnt"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
+    if count == 0:
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        conn.execute(
+            """
+            INSERT INTO execution_locks (lock_name, status, updated_at, updated_by, reason)
+            VALUES (?, ?, ?, ?, ?);
+            """,
+            ("global_dispatch", "LOCKED", now, "system:init", "Default fail-closed execution lock"),
+        )
+

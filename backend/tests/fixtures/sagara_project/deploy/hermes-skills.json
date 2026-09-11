@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "skills": [
+    "skill-hermes-agent",
+    "skill-systematic-debugging",
+    "skill-google-workspace",
+    "skill-baoyu-infographic",
+    "skill-unreferenced-tool"
+  ]
+}

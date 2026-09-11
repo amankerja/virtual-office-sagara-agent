@@ -11,6 +11,7 @@ export interface GatewayTelemetry {
   host: string;
   startedAt?: string;
   lastHeartbeat?: string;
+  lastHeartbeatAt?: string;
   heartbeatAgeSeconds?: number;
   restartCount?: number;
   statusMessage?: string;
@@ -52,6 +53,7 @@ export interface SessionUsage {
 
 export interface SessionProjection {
   id: string;
+  profileId?: string;
   agentId: string;
   agentName: string;
   source: string;
@@ -61,7 +63,9 @@ export interface SessionProjection {
   lastActivityAt: string;
   state: SessionState;
   messagesCount: number;
+  messageCount?: number;
   toolsCount: number;
+  toolCallCount?: number;
   parentSessionId?: string;
   childSessionIds?: string[];
   delegationIds?: string[];
@@ -150,6 +154,13 @@ export interface RuntimeEvent {
   correlationId?: string;
 }
 
+export interface SystemLoadMetrics {
+  cpuPercent?: number;
+  memoryUsedMb?: number;
+  memoryTotalMb?: number;
+  memoryPercent?: number;
+}
+
 export interface RuntimeOverview {
   health: {
     gateway: GatewayState;
@@ -163,6 +174,7 @@ export interface RuntimeOverview {
   runningDelegationsCount?: number;
   totalCostEstimateUsd?: number;
   recentEvents: RuntimeEvent[];
+  systemLoad?: SystemLoadMetrics;
 }
 
 export interface ActivityEvent {

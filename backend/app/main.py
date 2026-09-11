@@ -1,0 +1,139 @@
+import logging
+import time
+import uuid
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
+
+from contextlib import asynccontextmanager
+from app.api.errors import (
+    AppError,
+    app_error_handler,
+    http_exception_handler,
+    unhandled_exception_handler,
+    validation_error_handler,
+)
+from app.api.v1.router import api_v1_router
+from app.config import settings
+
+# Structured logging setup
+class CorrelationIdFilter(logging.Filter):
+    def filter(self, record: logging.LogRecord) -> bool:
+        if not hasattr(record, "correlation_id"):
+            record.correlation_id = "-"
+        return True
+
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] [corr=%(correlation_id)s] %(message)s",
+)
+for h in logging.root.handlers:
+    h.addFilter(CorrelationIdFilter())
+logger = logging.getLogger("mission_control")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    from app.api.dependencies import get_realtime_manager, get_realtime_sampler
+
+    sampler = get_realtime_sampler()
+    manager = get_realtime_manager()
+
+    if settings.realtime_enabled:
+        sampler.start()
+        logger.info("Realtime layer enabled: sampler started")
+
+    yield
+
+    if settings.realtime_enabled:
+        await sampler.stop()
+    await manager.close_all()
+    logger.info("Realtime layer shutdown complete")
+
+
+def create_app() -> FastAPI:
+    app = FastAPI(
+        title="Sagara Mission Control API",
+        version="1.0.0",
+        description="Canonical API Foundation for Sagara Mission Control.",
+        docs_url="/docs",
+        redoc_url="/redoc",
+        openapi_url="/openapi.json",
+        lifespan=lifespan,
+    )
+
+    # CORS configuration
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=settings.cors_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+        expose_headers=["ETag", "X-Correlation-ID", "Idempotency-Key"],
+    )
+
+    # Correlation ID and Request Timing Middleware
+    @app.middleware("http")
+    async def correlation_and_logging_middleware(request: Request, call_next):
+        corr_id = request.headers.get("X-Correlation-ID")
+        if not corr_id or len(corr_id) < 4 or len(corr_id) > 64:
+            corr_id = f"corr-{uuid.uuid4().hex[:12]}"
+
+        request.state.correlation_id = corr_id
+        start_time = time.perf_counter()
+
+        response = await call_next(request)
+
+        duration_ms = (time.perf_counter() - start_time) * 1000.0
+        response.headers["X-Correlation-ID"] = corr_id
+
+        # Sane local security headers
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+
+        logger.info(
+            f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms:.2f}ms)",
+            extra={"correlation_id": corr_id},
+        )
+        return response
+
+    # Exception Handlers
+    app.add_exception_handler(AppError, app_error_handler)
+    app.add_exception_handler(RequestValidationError, validation_error_handler)
+    app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+    app.add_exception_handler(Exception, unhandled_exception_handler)
+
+    # Root Health & Readiness Endpoints
+    @app.get("/health", tags=["Operational"])
+    async def health_check():
+        return {"status": "ok"}
+
+    @app.get("/ready", tags=["Operational"])
+    async def readiness_check():
+        # Validate configured Sagara sources if active (Section 33)
+        if settings.profile_source == "sagara" or settings.skill_source == "sagara":
+            from app.adapters.sagara_profiles import validate_sagara_project_root
+            validate_sagara_project_root(settings.sagara_project_root)
+
+        return {
+            "status": "ok",
+            "data_mode": settings.data_mode,
+            "environment": settings.environment,
+            "sources": {
+                "profile": settings.profile_source,
+                "skill": settings.skill_source,
+                "runtime": settings.runtime_source,
+            },
+        }
+
+
+    # Mount API V1
+    app.include_router(api_v1_router)
+
+    return app
+
+
+app = create_app()

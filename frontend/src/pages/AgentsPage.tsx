@@ -27,7 +27,7 @@ import {
 import { AgentCard } from '@/features/agents/components/AgentCard'
 import { AgentListRow } from '@/features/agents/components/AgentListRow'
 import { AgentSummaryBar } from '@/features/agents/components/AgentSummaryBar'
-import { AgentDetailDrawer } from '@/features/agents/components/AgentDetailDrawer'
+import { AgentDetailModal } from '@/components/modal/AgentDetailModal'
 import { useAgents, useAgent } from '@/api/hooks'
 import { useUIStore } from '@/stores/ui-store'
 import { cn } from '@/lib/utils'
@@ -521,8 +521,8 @@ export const AgentsPage: React.FC = () => {
         )}
       </div>
 
-      {/* Deep-Linked Reusable Agent Detail Drawer */}
-      <AgentDetailDrawer
+      {/* Deep-Linked Reusable Agent Detail Modal */}
+      <AgentDetailModal
         agent={activeAgent}
         isOpen={Boolean(selectedAgentId && activeAgent)}
         onClose={handleCloseDrawer}

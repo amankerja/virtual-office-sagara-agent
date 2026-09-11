@@ -1,0 +1,35 @@
+skills:
+  - id: skill-hermes-agent
+    name: Hermes Agent
+    category: autonomous-ai-agents
+    description: Core agent orchestration and multi-agent coordination.
+    version: 1.0.0
+    registration: REGISTERED
+
+  - id: skill-systematic-debugging
+    name: Systematic Debugging
+    category: software-development
+    description: Structured problem breakdown and root cause analysis.
+    version: 1.2.0
+    registration: REGISTERED
+
+  - id: skill-google-workspace
+    name: Google Workspace
+    category: productivity
+    description: Integration with Gmail, Calendar, and Google Drive.
+    version: 2.0.0
+    registration: REGISTERED
+
+  - id: skill-baoyu-infographic
+    name: Baoyu Infographic
+    category: creative
+    description: Automated visual content and infographic generation.
+    version: 1.1.0
+    registration: REGISTERED
+
+  - id: skill-unreferenced-tool
+    name: Standalone DevOps Tool
+    category: devops
+    description: Skill registered in canonical registry but unreferenced by any profile.
+    version: 0.9.5
+    registration: REGISTERED
