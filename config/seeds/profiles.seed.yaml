@@ -1,18 +1,42 @@
 # Canonical Profiles Seed Specification
-# Version: 1.0.0
-# Description: Canonical 8-agent profile blueprint for Sagara AI fleet.
+# Version: 1.1.0
+# Description: Canonical 8-agent profile blueprint for Sagara AI fleet reconciled against production registry.
 
 schema_version: "1.0.0"
 version: 1
 
+source_validation:
+  production_registry_verified: true
+  production_commit: "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5"
+  production_host: "VM-17-49-ubuntu"
+  production_user: "ubuntu"
+  source_mode: "production-readonly"
+  verified_at: "2026-09-11T05:30:00Z"
+  fixture_contamination: 0
+
 profiles:
   - id: lead
-    name: Lead Coordinator
-    role: Lead Agent / AI Team Manager
-    description: Sagara Agent fleet coordinator, task triage director, and multi-agent workflow manager.
+    name: Lead Manager Agent
+    role: lead
+    description: Primary cross-domain command coordinator, task triage director, and multi-agent workflow manager.
     enabled: true
     memory_namespace: profile:lead
+    permissions_policy: commander-default
     soul_template: lead.md
+    allowed_domains:
+      - general
+      - system
+      - development
+      - career
+      - autonomous-ai-agents
+      - research
+      - productivity
+      - software-development
+      - google-workspace
+      - discord
+      - obsidian
+      - telegram
+      - github
     delegation:
       can_delegate: true
       allowed_targets:
@@ -29,12 +53,23 @@ profiles:
       configuration_state: COMPLETE
 
   - id: personal
-    name: Personal Assistant
-    role: Personal Assistant / Secretary
-    description: Executive assistant for personal scheduling, calendar management, reminders, and email triage.
+    name: Personal Assistant Agent
+    role: personal
+    description: Dedicated private personal-assistance context, executive scheduling, reminders, and career workflows.
     enabled: true
     memory_namespace: profile:personal
+    permissions_policy: personal-default
     soul_template: personal.md
+    allowed_domains:
+      - personal
+      - career
+      - productivity
+      - email-management
+      - text-processing
+      - google-workspace
+      - discord
+      - obsidian
+      - telegram
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -44,12 +79,21 @@ profiles:
       configuration_state: COMPLETE
 
   - id: business
-    name: Business Analyst
-    role: Business & Product Management
+    name: Business Strategy Agent
+    role: business
     description: Commercial strategy, product catalog analytics, sales metrics, and market intelligence.
     enabled: true
     memory_namespace: profile:business
+    permissions_policy: business-default
     soul_template: business.md
+    allowed_domains:
+      - business
+      - productivity
+      - research
+      - data-analysis
+      - google-workspace
+      - discord
+      - obsidian
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -59,12 +103,21 @@ profiles:
       configuration_state: COMPLETE
 
   - id: marketing
-    name: Marketing Specialist
-    role: Marketing / Content / Posting
-    description: Campaign planning, copywriting, visual infographic creation, and social media posting queues.
+    name: Marketing & Content Agent
+    role: marketing
+    description: Marketing strategy, campaigns, content planning, visual infographics, and staged multiplatform publishing queues.
     enabled: true
     memory_namespace: profile:marketing
+    permissions_policy: business-default
     soul_template: marketing.md
+    allowed_domains:
+      - creative
+      - media
+      - social-media
+      - marketing
+      - google-workspace
+      - discord
+      - obsidian
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -74,12 +127,22 @@ profiles:
       configuration_state: COMPLETE
 
   - id: cs
-    name: Customer Service Specialist
-    role: Customer Service & Order Operations
-    description: Customer inquiries, order intake, support response drafting, and license delivery assistance.
+    name: Customer Service Agent
+    role: cs
+    description: Customer support ticket triage, order inquiry responses, fulfillment status, and license delivery assistance.
     enabled: true
     memory_namespace: profile:cs
+    permissions_policy: business-default
     soul_template: cs.md
+    allowed_domains:
+      - business
+      - career
+      - email
+      - productivity
+      - customer-service
+      - google-workspace
+      - discord
+      - obsidian
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -89,12 +152,22 @@ profiles:
       configuration_state: COMPLETE
 
   - id: it-support
-    name: IT Support Specialist
-    role: Systems / Infrastructure / Monitoring
-    description: Continuous gateway monitoring, system telemetry inspection, diagnostic triage, and error alerting.
+    name: IT Support Sentinel Agent
+    role: it-support
+    description: IT operations, continuous system monitoring, telemetry inspection, self-healing sentinel, and error alerting.
     enabled: true
     memory_namespace: profile:it-support
+    permissions_policy: developer-default
     soul_template: it-support.md
+    allowed_domains:
+      - software-development
+      - research
+      - devops
+      - ops
+      - google-workspace
+      - discord
+      - obsidian
+      - github
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -104,12 +177,23 @@ profiles:
       configuration_state: COMPLETE
 
   - id: it-coding
-    name: IT Coding Specialist
-    role: Software Development / Debugging / Code Review
-    description: Feature implementation, structured debugging, test execution, code review, and repository maintenance.
+    name: IT Coding Agent
+    role: it-coding
+    description: Software engineering, structured debugging, test-driven development, code review, and repository maintenance.
     enabled: true
     memory_namespace: profile:it-coding
+    permissions_policy: developer-default
     soul_template: it-coding.md
+    allowed_domains:
+      - development
+      - repository
+      - infrastructure
+      - software-development
+      - devops
+      - google-workspace
+      - discord
+      - obsidian
+      - github
     delegation:
       can_delegate: false
       allowed_targets: []
@@ -119,12 +203,21 @@ profiles:
       configuration_state: COMPLETE
 
   - id: sagara-lab
-    name: Sagara Lab Researcher
-    role: Research / Experimentation / Prototyping
+    name: Sagara Lab R&D Agent
+    role: sagara-lab
     description: Exploratory AI research, academic paper analysis, architectural spikes, and prototype benchmarking.
     enabled: true
     memory_namespace: profile:sagara-lab
+    permissions_policy: developer-default
     soul_template: sagara-lab.md
+    allowed_domains:
+      - research
+      - creative
+      - lab
+      - software-development
+      - google-workspace
+      - discord
+      - obsidian
     delegation:
       can_delegate: false
       allowed_targets: []

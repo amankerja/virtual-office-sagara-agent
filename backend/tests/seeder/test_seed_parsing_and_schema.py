@@ -16,7 +16,7 @@ def test_canonical_seeds_parse_and_validate_successfully():
 
     assert report.is_valid is True, f"Validation errors: {report.errors}"
     assert report.total_profiles == 8
-    assert report.total_routes == 19
+    assert report.total_routes == 17
     assert report.total_resources == 16
     assert report.total_soul_templates == 8
     assert len(report.errors) == 0

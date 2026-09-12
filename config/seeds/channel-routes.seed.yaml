@@ -1,9 +1,23 @@
 # Canonical Channel Routes Seed Specification
-# Version: 1.0.0
-# Description: Channel context routing topology for Discord and Telegram ingress.
+# Version: 1.1.0
+# Description: Channel context routing topology reconciled against production DISCORD_CHANNEL_ROUTE_SPECS.
 
 schema_version: "1.0.0"
 version: 1
+
+source_validation:
+  production_registry_verified: true
+  production_commit: "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5"
+  consolidation_commit: "197a1ec"
+  canonical_route_count: 17
+  previous_route_count: 19
+  historical_doc_count: 20
+  discrepancy_status: EXPLAINED
+  explanation: >
+    Commit 197a1ec ('consolidate: 19→17 channels, add it-support ops channel')
+    merged #content and #posting into #marketing, merged #deep-search-engine into #sagara-lab,
+    and added #it-support-self-healing for it-support profile. Historical 20-channel doc
+    referred to an unrouted guild general channel or pre-consolidation separate search channel.
 
 telegram:
   central_ingress: true
@@ -11,135 +25,149 @@ telegram:
   per_profile_bots_enabled: false
 
 routes:
+  # ── COMMAND CENTER & SYSTEM TELEMETRY (lead) ─────────────────────
   - channel_name: sagara-command
     target_profile: lead
-    domain: operations
+    domain: general
     mention_required: false
     interaction_mode: interactive
-    description: Primary operations and mission command dispatch.
+    description: Primary cross-domain command and mission orchestration dispatch.
+
+  - channel_name: agent-status
+    target_profile: lead
+    domain: system
+    mention_required: false
+    interaction_mode: monitor
+    description: Agent lifecycle, job, approval, and worker status announcements.
+
+  - channel_name: alerts
+    target_profile: lead
+    domain: system
+    mention_required: false
+    interaction_mode: alert
+    description: High-priority operational alerts and incident notifications.
 
   - channel_name: cron
     target_profile: lead
-    domain: operations
+    domain: system
     mention_required: false
-    interaction_mode: event_stream
-    description: Scheduled fleet job coordination and heartbeat triggers.
+    interaction_mode: monitor
+    description: Scheduled-job status and controlled cron heartbeat triggers.
 
+  - channel_name: gateway-status
+    target_profile: lead
+    domain: system
+    mention_required: false
+    interaction_mode: monitor
+    description: Hermes and Sagara gateway transport-health context.
+
+  - channel_name: system-alerts
+    target_profile: lead
+    domain: system
+    mention_required: false
+    interaction_mode: alert
+    description: Infrastructure, configuration, and runtime system alarms.
+
+  # ── BUSINESS OPERATIONS (business) ───────────────────────────────
+  - channel_name: products
+    target_profile: business
+    domain: business
+    mention_required: false
+    interaction_mode: interactive
+    description: Product catalog management, sales insights, and pricing reviews.
+
+  - channel_name: orders
+    target_profile: business
+    domain: business
+    mention_required: false
+    interaction_mode: interactive
+    description: Order and commercial transaction operations context.
+
+  # ── MARKETING & COMMUNITY (marketing) ────────────────────────────
+  - channel_name: marketing
+    target_profile: marketing
+    domain: marketing
+    mention_required: false
+    interaction_mode: interactive
+    description: Marketing strategy, campaigns, content planning, visual infographics, and staged posting.
+
+  # ── CUSTOMER SERVICE (cs) ────────────────────────────────────────
+  - channel_name: customer-service
+    target_profile: cs
+    domain: customer-service
+    mention_required: false
+    interaction_mode: interactive
+    description: Customer support ticket triage, customer communication, and order inquiries.
+
+  # ── PERSONAL WORKSPACE (personal) ────────────────────────────────
   - channel_name: assistant
     target_profile: personal
     domain: personal
     mention_required: false
     interaction_mode: interactive
-    description: Personal assistant dialogue, task planning, and notes.
+    description: Dedicated private personal-assistance dialogue and task planning.
 
   - channel_name: reminders
     target_profile: personal
     domain: personal
     mention_required: false
     interaction_mode: interactive
-    description: Personal reminders and calendar synchronization.
+    description: Personal reminders, calendar synchronization, and time management.
 
   - channel_name: career
     target_profile: personal
-    domain: personal
+    domain: career
     mention_required: false
     interaction_mode: interactive
-    description: Personal career development and administrative support.
+    description: Recruitment, applications, CV matching, and career administrative workflows.
 
   - channel_name: personal-finance
     target_profile: personal
     domain: personal
     mention_required: false
     interaction_mode: interactive
-    description: Personal finance reminders and tracking notes.
+    description: Personal finance analysis, transaction parsing, and budget tracking.
 
-  - channel_name: products
-    target_profile: business
-    domain: business
-    mention_required: false
-    interaction_mode: interactive
-    description: Product catalog management, sales insights, and pricing review.
-
-  - channel_name: marketing
-    target_profile: marketing
-    domain: marketing
-    mention_required: false
-    interaction_mode: interactive
-    description: Marketing strategy, campaign discussions, and promotional plans.
-
-  - channel_name: content
-    target_profile: marketing
-    domain: marketing
-    mention_required: false
-    interaction_mode: interactive
-    description: Content creation drafts, visual assets, and copywriting.
-
-  - channel_name: posting
-    target_profile: marketing
-    domain: marketing
-    mention_required: false
-    interaction_mode: interactive
-    description: Staged multiplatform posting queues and scheduled output reviews.
-
-  - channel_name: orders
-    target_profile: cs
-    domain: customer-service
-    mention_required: false
-    interaction_mode: event_stream
-    description: Store order events and fulfillment status updates.
-
-  - channel_name: customer-service
-    target_profile: cs
-    domain: customer-service
-    mention_required: false
-    interaction_mode: interactive
-    description: Customer support ticket triage and inquiry drafting.
-
-  - channel_name: agent-status
-    target_profile: it-support
-    domain: infrastructure
-    mention_required: false
-    interaction_mode: event_stream
-    description: Agent lifecycle and availability status announcements.
-
-  - channel_name: alerts
-    target_profile: it-support
-    domain: infrastructure
-    mention_required: false
-    interaction_mode: alert_sink
-    description: High-priority operational alerts and incident logs.
-
-  - channel_name: gateway-status
-    target_profile: it-support
-    domain: infrastructure
-    mention_required: false
-    interaction_mode: event_stream
-    description: Gateway connection telemetry and heartbeat monitoring.
-
-  - channel_name: system-alerts
-    target_profile: it-support
-    domain: infrastructure
-    mention_required: false
-    interaction_mode: alert_sink
-    description: Low-level system metric thresholds and memory alarms.
-
+  # ── SOFTWARE DEVELOPMENT (it-coding) ─────────────────────────────
   - channel_name: agent-coding-1
     target_profile: it-coding
-    domain: software-development
+    domain: development
     mention_required: false
     interaction_mode: interactive
-    description: Technical software development, debugging, and review tasks.
+    description: Technical software development, systematic debugging, test runs, and code review.
 
+  # ── R&D / EXPERIMENTATION (sagara-lab) ───────────────────────────
   - channel_name: sagara-lab
     target_profile: sagara-lab
-    domain: research
+    domain: lab
     mention_required: false
     interaction_mode: interactive
-    description: Exploratory research discussions, paper analysis, and prototypes.
+    description: Research, experimentation, arXiv papers, deep search, and architectural spikes.
 
-  - channel_name: deep-search-engine
-    target_profile: sagara-lab
-    domain: research
+  # ── IT OPERATIONS & SELF-HEALING (it-support) ────────────────────
+  - channel_name: it-support-self-healing
+    target_profile: it-support
+    domain: ops
     mention_required: false
     interaction_mode: interactive
-    description: Automated academic literature search and knowledge retrieval.
+    description: IT operations, system monitoring, self-healing sentinel, and automated incident response.
+
+# Documented Consolidated Channels (commit 197a1ec)
+consolidated_routes:
+  - original_channel: content
+    consolidated_into: marketing
+    target_profile: marketing
+    status: CONSOLIDATED
+    reason: Merged into single marketing channel per commit 197a1ec
+
+  - original_channel: posting
+    consolidated_into: marketing
+    target_profile: marketing
+    status: CONSOLIDATED
+    reason: Merged into single marketing channel per commit 197a1ec
+
+  - original_channel: deep-search-engine
+    consolidated_into: sagara-lab
+    target_profile: sagara-lab
+    status: CONSOLIDATED
+    reason: Merged into single sagara-lab research channel per commit 197a1ec

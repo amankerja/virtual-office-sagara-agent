@@ -33,6 +33,8 @@ class ProfileSeedItem(BaseModel):
     enabled: bool = True
     memory_namespace: str
     soul_template: str
+    allowed_domains: list[str] = Field(default_factory=list)
+    permissions_policy: str = "business-default"
     delegation: DelegationConfig = Field(default_factory=DelegationConfig)
     configuration: ProfileConfiguration = Field(default_factory=ProfileConfiguration)
 
@@ -40,6 +42,7 @@ class ProfileSeedItem(BaseModel):
 class ProfilesSeedFile(BaseModel):
     schema_version: str = "1.0.0"
     version: int = 1
+    source_validation: Optional[dict[str, Any]] = None
     profiles: list[ProfileSeedItem]
 
 
@@ -50,10 +53,13 @@ class ProfilesSeedFile(BaseModel):
 class ProfileSkillsSeedFile(BaseModel):
     schema_version: str = "1.0.0"
     version: int = 1
+    source_validation: Optional[dict[str, Any]] = None
     profile_domains: dict[str, list[str]] = Field(default_factory=dict)
     base_skills: list[str] = Field(default_factory=list)
     assignments: dict[str, list[str]] = Field(default_factory=dict)
+    proposed_capabilities: dict[str, list[Any]] = Field(default_factory=dict)
     proposed_extensions: dict[str, list[str]] = Field(default_factory=dict)
+    skill_policies: Optional[dict[str, list[str]]] = None
 
 
 # ---------------------------------------------------------------------------
@@ -71,6 +77,7 @@ class ModelProfilePolicy(BaseModel):
 class ModelPolicySeedFile(BaseModel):
     schema_version: str = "1.0.0"
     version: int = 1
+    source_validation: Optional[dict[str, Any]] = None
     supported_tiers: list[str] = Field(default_factory=list)
     profiles: dict[str, ModelProfilePolicy] = Field(default_factory=dict)
 
@@ -97,8 +104,10 @@ class ChannelRouteItem(BaseModel):
 class ChannelRoutesSeedFile(BaseModel):
     schema_version: str = "1.0.0"
     version: int = 1
+    source_validation: Optional[dict[str, Any]] = None
     telegram: TelegramConfig = Field(default_factory=TelegramConfig)
     routes: list[ChannelRouteItem] = Field(default_factory=list)
+    consolidated_routes: list[dict[str, Any]] = Field(default_factory=list)
 
 
 # ---------------------------------------------------------------------------
@@ -166,6 +175,8 @@ class SeedManifestFile(BaseModel):
     schema_version: str = "1.0.0"
     seed_version: str = "1.0.0"
     seed_id: str = "sagara-default-profile-blueprint"
+    status: Optional[str] = None
+    source_validation: Optional[dict[str, Any]] = None
     metadata: Optional[dict[str, Any]] = None
     components: dict[str, str] = Field(default_factory=dict)
 
@@ -199,6 +210,8 @@ class ValidationReport(BaseModel):
     schema_version: str = "1.0.0"
     seed_version: str = "1.0.0"
     seed_hash: str = ""
+    source_mode: str = "production-readonly"
+    production_commit: Optional[str] = None
     profile_ids: list[str] = Field(default_factory=list)
     skill_summaries: dict[str, ProfileSkillSummary] = Field(default_factory=dict)
     errors: list[str] = Field(default_factory=list)
@@ -207,6 +220,8 @@ class ValidationReport(BaseModel):
     total_routes: int = 0
     total_resources: int = 0
     total_soul_templates: int = 0
+    effective_skill_count: int = 0
+    capability_gaps_count: int = 0
 
 
 class ProfilePreviewItem(BaseModel):
@@ -231,6 +246,8 @@ class PreviewReport(BaseModel):
     seed_id: str
     seed_version: str
     seed_hash: str
+    source_mode: str = "production-readonly"
+    production_commit: Optional[str] = None
     profiles: list[ProfilePreviewItem] = Field(default_factory=list)
     total_would_create: int = 0
     total_would_update: int = 0

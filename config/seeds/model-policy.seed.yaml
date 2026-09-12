@@ -1,9 +1,22 @@
 # Canonical Model Policy Seed Specification
-# Version: 1.0.0
+# Version: 1.1.0
 # Description: Abstract model tier allocations and fallback policies for Sagara AI fleet.
 
 schema_version: "1.0.0"
 version: 1
+
+source_validation:
+  production_registry_verified: true
+  production_commit: "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5"
+  policy_status: MODEL_TIER_POLICY_DEFINED
+  runtime_resolver_status: MODEL_TIER_RUNTIME_RESOLVER_PENDING
+  production_runtime_configuration:
+    active_default_model: "gratisan_and_googlepro"
+    provider: "custom:9router"
+    api_endpoint: "http://localhost:20128/v1"
+    key_env: "NINEROUTER_API_KEY"
+    transport: "chat_completions"
+    routing_mode: "multiplex_profiles"
 
 supported_tiers:
   - flagship

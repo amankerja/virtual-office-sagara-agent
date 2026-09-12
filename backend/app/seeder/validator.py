@@ -1,6 +1,6 @@
 """
 Seed Validation Pipeline.
-Implements complete validation across all 8 dimensions:
+Implements complete validation across all dimensions:
 1. Parse & Schema Validate
 2. Profile Uniqueness & Slugs
 3. Skill Resolution against effective SkillRegistry (RESOLVED, UNRESOLVED, DUPLICATE, DOMAIN_WARNING)
@@ -10,6 +10,7 @@ Implements complete validation across all 8 dimensions:
 7. Workspace Governance & Sensitive Read-Only Enforcement
 8. SOUL Template Mandatory Section & Secret Checks
 9. Semantic Hash Generation (SHA-256)
+10. Strict Source Mode & Fixture Contamination Guard (Prompt 14.1B Sections 50-55)
 """
 import hashlib
 import json
@@ -58,6 +59,22 @@ SECRET_PATTERNS = [
     re.compile(r"password[=:]\s*[\"']?[a-zA-Z0-9_\-]{8,}", re.IGNORECASE),
 ]
 
+FORBIDDEN_FIXTURE_PROFILES = {
+    "dyn-custom-98765",
+    "incomplete-agent",
+    "retired-bot",
+}
+
+FORBIDDEN_FIXTURE_SKILLS = {
+    "skill-hermes-agent",
+    "skill-systematic-debugging",
+    "skill-google-workspace",
+    "skill-baoyu-infographic",
+    "skill-unreferenced-tool",
+}
+
+PRODUCTION_COMMIT = "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5"
+
 
 def compute_semantic_hash(data: Any) -> str:
     """Compute deterministic SHA-256 hash over normalized JSON representation."""
@@ -74,7 +91,10 @@ class SeedValidator:
         soul_dir: Optional[Path | str] = None,
         project_root: Optional[Path | str] = None,
         skill_registry: Any = None,
+        source_mode: str = "production-readonly",
     ) -> None:
+        self.source_mode = source_mode
+
         # Resolve seed_dir across candidate locations
         target_seed = Path(seed_dir) if seed_dir else Path("config/seeds")
         seed_candidates = [
@@ -113,7 +133,7 @@ class SeedValidator:
 
     def _resolve_skill_registry(self) -> dict[str, Any]:
         """
-        Load registered skills from active canonical SkillRegistry.
+        Load registered skills according to source_mode.
         Returns mapping of skill_id -> skill metadata dictionary.
         """
         if self._external_skill_registry is not None:
@@ -122,19 +142,63 @@ class SeedValidator:
                 res = {}
                 for s in items:
                     sid = getattr(s, "id", None) or s.get("id")
-                    cat = getattr(s, "category", None) or s.get("category", "general")
+                    cat = getattr(s, "category", None) or getattr(s, "domain", None) or s.get("category") or s.get("domain", "general")
                     res[str(sid)] = {"id": str(sid), "category": str(cat)}
                 return res
             elif isinstance(self._external_skill_registry, dict):
                 return self._external_skill_registry
 
-        # Attempt to load from project root core.registry.skill
-        if self.project_root:
-            registry_file = self.project_root / "core" / "registry" / "skill.py"
-            skills_yaml = self.project_root / "config" / "skills.yaml"
-            if skills_yaml.is_file():
+        if self.source_mode == "production-readonly":
+            # 1. Check local production snapshot file
+            snapshot_path = Path(__file__).parent / "production_snapshot.json"
+            if snapshot_path.is_file():
                 try:
-                    with open(skills_yaml, "r", encoding="utf-8") as f:
+                    with open(snapshot_path, "r", encoding="utf-8") as f:
+                        snap_data = json.load(f)
+                    skills_dict = snap_data.get("skills", {})
+                    res = {}
+                    for sid, sinfo in skills_dict.items():
+                        res[str(sid)] = {
+                            "id": str(sid),
+                            "category": str(sinfo.get("domain", "general")),
+                            "side_effect_level": str(sinfo.get("side_effect_level", "read")),
+                        }
+                    return res
+                except Exception as e:
+                    logger.warning(f"Failed to read production snapshot: {e}")
+
+            # 2. Check project root if provided and production-structured
+            if self.project_root:
+                skills_yaml = self.project_root / "config" / "skills.yaml"
+                if skills_yaml.is_file():
+                    try:
+                        with open(skills_yaml, "r", encoding="utf-8") as f:
+                            data = yaml.safe_load(f) or {}
+                        skills_raw = data.get("skills", {})
+                        if isinstance(skills_raw, dict) and len(skills_raw) > 10:
+                            res = {}
+                            for sid, item in skills_raw.items():
+                                res[str(sid)] = {
+                                    "id": str(sid),
+                                    "category": str(item.get("domain") or item.get("category") or "general"),
+                                    "side_effect_level": str(item.get("side_effect_level", "read")),
+                                }
+                            return res
+                    except Exception as e:
+                        logger.warning(f"Failed to read skills from project root skills.yaml: {e}")
+
+            # FAIL CLOSED: Do not fall back to fixture in production-readonly mode!
+            raise RuntimeError(
+                "PRODUCTION_REGISTRY_UNAVAILABLE: Canonical production SkillRegistry could not be loaded "
+                "in production-readonly mode. Silent fallback to fixtures is prohibited."
+            )
+
+        elif self.source_mode == "fixture":
+            # Check standard fixture locations
+            fixture_skills = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "sagara_project" / "config" / "skills.yaml"
+            if fixture_skills.is_file():
+                try:
+                    with open(fixture_skills, "r", encoding="utf-8") as f:
                         data = yaml.safe_load(f) or {}
                     skills_list = data.get("skills", [])
                     res = {}
@@ -147,26 +211,7 @@ class SeedValidator:
                             }
                     return res
                 except Exception as e:
-                    logger.warning(f"Failed to read skills from project root skills.yaml: {e}")
-
-        # Fallback check standard fixture locations
-        fixture_skills = Path(__file__).parent.parent.parent / "tests" / "fixtures" / "sagara_project" / "config" / "skills.yaml"
-        if fixture_skills.is_file():
-            try:
-                with open(fixture_skills, "r", encoding="utf-8") as f:
-                    data = yaml.safe_load(f) or {}
-                skills_list = data.get("skills", [])
-                res = {}
-                for item in skills_list:
-                    sid = item.get("id")
-                    if sid:
-                        res[str(sid)] = {
-                            "id": str(sid),
-                            "category": str(item.get("category") or item.get("domain") or "general"),
-                        }
-                return res
-            except Exception as e:
-                logger.warning(f"Failed to read fallback fixture skills: {e}")
+                    logger.warning(f"Failed to read fallback fixture skills: {e}")
 
         return {}
 
@@ -186,6 +231,7 @@ class SeedValidator:
                 is_valid=False,
                 errors=errors,
                 warnings=warnings,
+                source_mode=self.source_mode,
             )
 
         # 2. Profiles Seed
@@ -200,6 +246,13 @@ class SeedValidator:
                 if p.id in seen_ids:
                     errors.append(f"Duplicate profile ID found in profiles seed: '{p.id}'")
                 seen_ids.add(p.id)
+
+                # Fixture Contamination Guard (Prompt 14.1B Section 50)
+                if self.source_mode == "production-readonly" and p.id in FORBIDDEN_FIXTURE_PROFILES:
+                    errors.append(
+                        f"FIXTURE CONTAMINATION: Profile ID '{p.id}' is a known fixture/test entity "
+                        "and must not exist in production blueprint."
+                    )
 
                 if not re.match(r"^[a-z0-9][a-z0-9_\-]*$", p.id):
                     errors.append(f"Invalid slug format for profile ID: '{p.id}'")
@@ -217,10 +270,15 @@ class SeedValidator:
         # 3. Profile Skills Seed & Registry Cross-Reference
         skill_catalog = self._resolve_skill_registry()
         skill_summaries: dict[str, ProfileSkillSummary] = {}
+        capability_gaps_count = 0
+
         try:
             raw_skills = self._load_yaml(manifest.components.get("profile_skills", "profile-skills.seed.yaml"))
             skills_seed = ProfileSkillsSeedFile(**raw_skills)
             normalized_contents["profile_skills"] = skills_seed.model_dump()
+
+            for pid, caps in skills_seed.proposed_capabilities.items():
+                capability_gaps_count += len(caps)
 
             for pid in profile_map.keys():
                 assigned = skills_seed.assignments.get(pid, [])
@@ -231,6 +289,12 @@ class SeedValidator:
                 to_add = []
 
                 for sid in assigned:
+                    # Fixture Skill Guard (Prompt 14.1B Section 51)
+                    if self.source_mode == "production-readonly" and sid in FORBIDDEN_FIXTURE_SKILLS:
+                        errors.append(
+                            f"FIXTURE SKILL CONTAMINATION: Skill ID '{sid}' on profile '{pid}' is a synthetic fixture entity."
+                        )
+
                     if sid in seen_skills:
                         warnings.append(f"Duplicate skill assignment '{sid}' on profile '{pid}' (DUPLICATE).")
                     seen_skills.add(sid)
@@ -238,25 +302,25 @@ class SeedValidator:
                     if skill_catalog:
                         if sid not in skill_catalog:
                             unresolved.append(sid)
-                            warnings.append(f"Skill '{sid}' assigned to '{pid}' is UNRESOLVED in SkillRegistry.")
+                            errors.append(f"Active skill assignment '{sid}' on profile '{pid}' is UNRESOLVED in canonical SkillRegistry.")
                         else:
                             sk_cat = skill_catalog[sid]["category"]
                             if allowed_domains and sk_cat not in allowed_domains and "general" not in allowed_domains:
                                 domain_warns.append(sid)
                                 warnings.append(
-                                    f"Domain mismatch for skill '{sid}' (category '{sk_cat}') on profile '{pid}' (DOMAIN_WARNING)."
+                                    f"Domain mismatch for skill '{sid}' (domain '{sk_cat}') on profile '{pid}' (DOMAIN_WARNING)."
                                 )
                     to_add.append(sid)
 
                 summary = ProfileSkillSummary(
                     profile_id=pid,
-                    current_count=0,
+                    current_count=len(assigned),
                     recommended_count=len(assigned),
-                    add_count=len(to_add),
+                    add_count=0,
                     remove_count=0,
                     unresolved_count=len(unresolved),
                     domain_warning_count=len(domain_warns),
-                    skills_to_add=to_add,
+                    skills_to_add=[],
                     skills_to_remove=[],
                     warnings=[f"UNRESOLVED: {s}" for s in unresolved] + [f"DOMAIN_MISMATCH: {s}" for s in domain_warns],
                 )
@@ -361,6 +425,7 @@ class SeedValidator:
 
         # 9. SOUL Template Validation
         valid_soul_count = 0
+        legacy_names = {"sagara-dev", "sagara-scout"}
         for pid, p in profile_map.items():
             template_name = p.soul_template
             template_path = self.soul_dir / template_name
@@ -383,11 +448,11 @@ class SeedValidator:
                     if match:
                         errors.append(f"CRITICAL: Potential secret credential detected in SOUL template '{template_name}': '{match.group(0)[:8]}...'")
 
-                # Skills dump check: should state "Use only capabilities explicitly assigned"
-                if "allowed_skills:" in content or "skills:" in content and len(re.findall(r"-\s+skill-", content)) > 5:
-                    warnings.append(
-                        f"SOUL template '{template_name}' contains raw skill dumps; should refer to canonical registry assignments."
-                    )
+                # Legacy profile references check (Prompt 14.1B Section 27)
+                for leg in legacy_names:
+                    if leg in content:
+                        errors.append(f"Legacy profile name '{leg}' referenced in SOUL template '{template_name}'.")
+
             except Exception as e:
                 errors.append(f"Error reading SOUL template '{template_name}': {e}")
 
@@ -399,6 +464,8 @@ class SeedValidator:
             schema_version=manifest.schema_version,
             seed_version=manifest.seed_version,
             seed_hash=seed_hash,
+            source_mode=self.source_mode,
+            production_commit=PRODUCTION_COMMIT if self.source_mode == "production-readonly" else "FIXTURE",
             profile_ids=sorted(list(profile_map.keys())),
             skill_summaries=skill_summaries,
             errors=errors,
@@ -407,4 +474,6 @@ class SeedValidator:
             total_routes=channel_routes_count,
             total_resources=workspace_resources_count,
             total_soul_templates=valid_soul_count,
+            effective_skill_count=len(skill_catalog),
+            capability_gaps_count=capability_gaps_count,
         )

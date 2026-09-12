@@ -1,114 +1,296 @@
 # Canonical Profile Skills Seed Specification
-# Version: 1.0.0
-# Description: Skill allocations and role domain policies for Sagara AI fleet.
+# Version: 1.1.0
+# Description: Skill allocations and role domain policies for Sagara AI fleet reconciled against production SkillRegistry.
 
 schema_version: "1.0.0"
 version: 1
 
+source_validation:
+  production_registry_verified: true
+  production_commit: "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5"
+  effective_production_skill_count: 73
+  active_assignments_count: 47
+  unresolved_active_assignments: 0
+  fixture_contamination: 0
+
 profile_domains:
   lead:
+    - general
+    - system
+    - development
+    - career
     - autonomous-ai-agents
-    - software-development
-    - productivity
-    - general
-  personal:
-    - productivity
-    - communication
-    - note-taking
-    - general
-  business:
-    - devops
-    - productivity
-    - business
     - research
-    - general
+    - productivity
+    - software-development
+    - google-workspace
+    - discord
+    - obsidian
+    - telegram
+    - github
+  personal:
+    - personal
+    - career
+    - productivity
+    - email-management
+    - text-processing
+    - google-workspace
+    - discord
+    - obsidian
+    - telegram
+  business:
+    - business
+    - productivity
+    - research
+    - data-analysis
+    - google-workspace
+    - discord
+    - obsidian
   marketing:
     - creative
     - media
     - social-media
     - marketing
-    - general
+    - google-workspace
+    - discord
+    - obsidian
   cs:
+    - business
+    - career
+    - email
     - productivity
     - customer-service
-    - communication
-    - email
-    - general
+    - google-workspace
+    - discord
+    - obsidian
   it-support:
     - software-development
+    - research
     - devops
-    - infrastructure
-    - systems
-    - general
+    - ops
+    - google-workspace
+    - discord
+    - obsidian
+    - github
   it-coding:
+    - development
+    - repository
+    - infrastructure
     - software-development
     - devops
-    - autonomous-ai-agents
-    - general
+    - google-workspace
+    - discord
+    - obsidian
+    - github
   sagara-lab:
-    - autonomous-ai-agents
     - research
     - creative
-    - experimental
-    - general
+    - lab
+    - software-development
+    - google-workspace
+    - discord
+    - obsidian
 
 base_skills: []
 
+# Active assignments strictly reconciled with production ProfileRegistry & SkillRegistry (100% resolved)
 assignments:
   lead:
-    - skill-hermes-agent
-    - skill-systematic-debugging
+    - hermes-agent
+    - grounded-citations
+    - weekly-review-planning
+    - systematic-debugging
   personal:
-    - skill-google-workspace
+    - google-workspace
+    - weekly-review-planning
+    - cek-email-penting
+    - lamaran-kerja
+    - follow-up
+    - self-motivation
+    - parse-transaksi
+    - sagara-obsidian-vault
+    - himalaya
   business:
-    - skill-unreferenced-tool
+    - google-workspace
+    - grounded-citations
+    - xlsx
+    - weekly-review-planning
+    - online-business-management
+    - digital-product-inventory-management
+    - competitor-analysis-shopee
+    - dual-pipeline-identity-architecture
   marketing:
-    - skill-baoyu-infographic
+    - baoyu-infographic
+    - claude-design
+    - gif-search
+    - youtube-content
+    - content-calendar-mingguan
+    - posting-multiplatform
   cs:
-    - skill-google-workspace
+    - email-inbox-triage
+    - google-workspace
+    - docx
+    - customer-service-reply
+    - order-notification-draft
+    - parse-transaksi
+    - himalaya
   it-support:
-    - skill-systematic-debugging
-    - skill-unreferenced-tool
+    - codebase-inspection
+    - requesting-code-review
+    - sdlc-review
   it-coding:
-    - skill-systematic-debugging
+    - systematic-debugging
+    - requesting-code-review
+    - sdlc-review
+    - github
+    - test-driven-development
   sagara-lab:
-    - skill-hermes-agent
+    - arxiv
+    - llm-wiki
+    - architecture-diagram
+    - spike
+    - grounded-citations
 
-# Reference: Desired future capabilities from architecture blueprint (to be registered in future prompts)
+# Desired future capabilities separated from active assignments (Prompt 14.1B Section 15-18)
+proposed_capabilities:
+  lead:
+    - capability: fleet-topology-orchestration
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - hermes-agent
+      recommendation: Develop dedicated topology orchestration skill with two-man rule
+  personal:
+    - capability: product-price-monitor
+      status: CAPABILITY_GAP
+      current_matching_skills: []
+      recommendation: Implement price scraping with rate-limiting and notification triggers
+  business:
+    - capability: airtable-sync
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - sheets-read
+        - sheets-update
+      recommendation: Connect Airtable API with read-only view tokens
+    - capability: notion-workspace-sync
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - sagara-obsidian-vault
+      recommendation: Implement Notion integration adapter
+  marketing:
+    - capability: direct-social-publishing
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - posting-multiplatform
+        - posting-multiplatform-publish
+      recommendation: Implement OAuth 2.0 publisher workers for Instagram, TikTok, and X
+  cs:
+    - capability: omnichannel-whatsapp-auto-reply
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - customer-service-reply
+      recommendation: Implement approval-gated WhatsApp career and customer service adapter
+  it-support:
+    - capability: autonomous-gateway-restart
+      status: PROHIBITED_BY_POLICY
+      current_matching_skills:
+        - infrastructure
+      recommendation: Gateway lifecycle changes must remain strictly manual operator actions
+  it-coding:
+    - capability: interactive-debugger
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - systematic-debugging
+      recommendation: Integrate debugpy or node-inspect session runner in sandbox
+    - capability: claude-code-subagent
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - software-development
+      recommendation: Provision claude-code CLI wrapper with workspace scoping
+  sagara-lab:
+    - capability: multimodal-academic-synthesis
+      status: CAPABILITY_GAP
+      current_matching_skills:
+        - arxiv
+        - llm-wiki
+      recommendation: Expand arXiv pipeline with figure extraction and vector embeddings
+
+# Backward-compatible extension mapping
 proposed_extensions:
   lead:
-    - research/grounded-citations
-    - productivity/weekly-review-planning
+    - fleet-topology-orchestration
   personal:
-    - note-taking/obsidian
-    - email/himalaya
-    - productivity/product-price-monitor
+    - product-price-monitor
   business:
-    - productivity/airtable
-    - productivity/notion
-    - research/competitor-news-monitor
-    - productivity/xlsx
+    - airtable-sync
+    - notion-workspace-sync
   marketing:
-    - media/gif-search
-    - creative/claude-design
-    - social-media/xurl
-    - media/youtube-content
+    - direct-social-publishing
   cs:
-    - email/email-inbox-triage
-    - career/follow-up
-    - productivity/docx
+    - omnichannel-whatsapp-auto-reply
   it-support:
-    - software-development/codebase-inspection
-    - software-development/requesting-code-review
-    - devops/sdlc-review
+    - autonomous-gateway-restart
   it-coding:
-    - software-development/github
-    - software-development/python-debugpy
-    - software-development/node-inspect-debugger
-    - software-development/test-driven-development
-    - autonomous-ai-agents/claude-code
+    - interactive-debugger
+    - claude-code-subagent
   sagara-lab:
-    - research/arxiv
-    - research/llm-wiki
-    - creative/architecture-diagram
-    - software-development/spike
+    - multimodal-academic-synthesis
+
+# Policy and Risk Classification (Prompt 14.1B Section 43-44)
+skill_policies:
+  safe_read_skills:
+    - application-tracking
+    - architecture-diagram
+    - arxiv
+    - baoyu-infographic
+    - business-lead-generation
+    - cek-email-penting
+    - claude-design
+    - codebase-inspection
+    - competitor-analysis-shopee
+    - competitor-news-monitor
+    - content-calendar-mingguan
+    - customer-service-reply
+    - docx
+    - email-inbox-triage
+    - gif-search
+    - google-workspace
+    - grounded-citations
+    - hermes-agent
+    - himalaya
+    - llm-wiki
+    - online-business-management
+    - posting-multiplatform
+    - requesting-code-review
+    - sdlc-review
+    - spike
+    - systematic-debugging
+    - test-driven-development
+    - weekly-review-planning
+    - xlsx
+    - youtube-content
+  draft_only_skills:
+    - order-notification-draft
+    - drafting
+  low_risk_write_skills:
+    - application-preparation
+    - delegation
+    - follow-up
+    - github
+    - parse-transaksi
+    - personal-memory-write
+    - personal-reminder-cancel
+    - personal-reminder-reschedule
+    - sagara-obsidian-vault
+    - self-motivation
+  high_risk_write_skills:
+    - gmail-reply
+    - gmail-send
+    - lamaran-kerja
+    - order-notification-send
+    - posting-multiplatform-publish
+    - sheets-append
+    - sheets-update
+  infra_mutation_skills:
+    - devops
+    - digital-product-inventory-management
+    - infrastructure

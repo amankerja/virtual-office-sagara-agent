@@ -30,11 +30,13 @@ class SeedMaterializer:
         seed_dir: Optional[Path | str] = None,
         soul_dir: Optional[Path | str] = None,
         project_root: Optional[Path | str] = None,
+        source_mode: str = "production-readonly",
     ) -> None:
         self.validator = validator or SeedValidator(
             seed_dir=seed_dir,
             soul_dir=soul_dir,
             project_root=project_root,
+            source_mode=source_mode,
         )
 
     def materialize(
@@ -85,7 +87,6 @@ class SeedMaterializer:
         seed_assignments = skills_seed.get("assignments", {})
 
         materialized_profiles: list[str] = []
-        file_hashes: dict[str, str] = {}
 
         # Materialize each profile deterministically (sorted by ID)
         for p_data in sorted(profiles_raw, key=lambda x: x["id"]):
@@ -96,15 +97,18 @@ class SeedMaterializer:
             # Canonical profile YAML fields consumed by ProfileRegistry.load()
             model_policy = models_seed.get(pid, {})
             allowed_skills = sorted(seed_assignments.get(pid, []))
+            allowed_domains = p_data.get("allowed_domains", [])
 
             canonical_data = {
                 "id": pid,
                 "name": p_data["name"],
                 "role": p_data.get("role"),
-                "description": p_data.get("description"),
+                "description": p_data.get("description", ""),
                 "enabled": p_data.get("enabled", True),
                 "memory_namespace": p_data.get("memory_namespace"),
+                "allowed_domains": allowed_domains,
                 "allowed_skills": allowed_skills,
+                "permissions_policy": p_data.get("permissions_policy", "business-default"),
                 "configuration_state": p_data.get("configuration", {}).get("configuration_state", "COMPLETE"),
                 "model_tier": model_policy.get("primary_tier", "standard"),
             }
@@ -130,6 +134,8 @@ class SeedMaterializer:
             "schema_version": report.schema_version,
             "seed_version": report.seed_version,
             "seed_hash": report.seed_hash,
+            "source_mode": self.validator.source_mode,
+            "production_commit": report.production_commit,
             "profiles": materialized_profiles,
             "total_materialized": len(materialized_profiles),
         }

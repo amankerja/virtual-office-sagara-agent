@@ -1,0 +1,1714 @@
+{
+  "system": {
+    "host": "VM-17-49-ubuntu",
+    "user": "ubuntu",
+    "sagara_root": "/home/ubuntu/sagara-agent",
+    "commit": "bad9d7d2495685531c5e533d5a2e9f4a2674b6a5",
+    "branch": "main"
+  },
+  "profiles": {
+    "business": {
+      "id": "business",
+      "name": "Business Strategy Agent",
+      "role": "business",
+      "enabled": true,
+      "memory_namespace": "profile:business",
+      "allowed_domains": [
+        "business",
+        "productivity",
+        "research",
+        "data-analysis",
+        "google-workspace",
+        "discord",
+        "obsidian"
+      ],
+      "allowed_skills": [
+        "google-workspace",
+        "grounded-citations",
+        "xlsx",
+        "weekly-review-planning",
+        "online-business-management",
+        "digital-product-inventory-management",
+        "competitor-analysis-shopee",
+        "dual-pipeline-identity-architecture"
+      ],
+      "permissions_policy": "business-default",
+      "description": "",
+      "instructions": ""
+    },
+    "cs": {
+      "id": "cs",
+      "name": "Customer Service Agent",
+      "role": "cs",
+      "enabled": true,
+      "memory_namespace": "profile:cs",
+      "allowed_domains": [
+        "business",
+        "career",
+        "email",
+        "productivity",
+        "customer-service",
+        "google-workspace",
+        "discord",
+        "obsidian"
+      ],
+      "allowed_skills": [
+        "email-inbox-triage",
+        "google-workspace",
+        "docx",
+        "customer-service-reply",
+        "order-notification-draft",
+        "parse-transaksi",
+        "himalaya"
+      ],
+      "permissions_policy": "business-default",
+      "description": "",
+      "instructions": ""
+    },
+    "it-coding": {
+      "id": "it-coding",
+      "name": "IT Coding Agent",
+      "role": "it-coding",
+      "enabled": true,
+      "memory_namespace": "profile:it-coding",
+      "allowed_domains": [
+        "development",
+        "repository",
+        "infrastructure",
+        "software-development",
+        "devops",
+        "google-workspace",
+        "discord",
+        "obsidian",
+        "github"
+      ],
+      "allowed_skills": [
+        "systematic-debugging",
+        "requesting-code-review",
+        "sdlc-review",
+        "github",
+        "test-driven-development"
+      ],
+      "permissions_policy": "developer-default",
+      "description": "",
+      "instructions": ""
+    },
+    "it-support": {
+      "id": "it-support",
+      "name": "IT Support Sentinel Agent",
+      "role": "it-support",
+      "enabled": true,
+      "memory_namespace": "profile:it-support",
+      "allowed_domains": [
+        "software-development",
+        "research",
+        "devops",
+        "ops",
+        "google-workspace",
+        "discord",
+        "obsidian",
+        "github"
+      ],
+      "allowed_skills": [
+        "codebase-inspection",
+        "requesting-code-review",
+        "sdlc-review"
+      ],
+      "permissions_policy": "developer-default",
+      "description": "",
+      "instructions": ""
+    },
+    "lead": {
+      "id": "lead",
+      "name": "Lead Manager Agent",
+      "role": "lead",
+      "enabled": true,
+      "memory_namespace": "profile:lead",
+      "allowed_domains": [
+        "general",
+        "system",
+        "development",
+        "career",
+        "autonomous-ai-agents",
+        "research",
+        "productivity",
+        "software-development",
+        "google-workspace",
+        "discord",
+        "obsidian",
+        "telegram",
+        "github"
+      ],
+      "allowed_skills": [
+        "hermes-agent",
+        "grounded-citations",
+        "weekly-review-planning",
+        "systematic-debugging"
+      ],
+      "permissions_policy": "commander-default",
+      "description": "",
+      "instructions": ""
+    },
+    "marketing": {
+      "id": "marketing",
+      "name": "Marketing & Content Agent",
+      "role": "marketing",
+      "enabled": true,
+      "memory_namespace": "profile:marketing",
+      "allowed_domains": [
+        "creative",
+        "media",
+        "social-media",
+        "marketing",
+        "google-workspace",
+        "discord",
+        "obsidian"
+      ],
+      "allowed_skills": [
+        "baoyu-infographic",
+        "claude-design",
+        "gif-search",
+        "youtube-content",
+        "content-calendar-mingguan",
+        "posting-multiplatform"
+      ],
+      "permissions_policy": "business-default",
+      "description": "",
+      "instructions": ""
+    },
+    "personal": {
+      "id": "personal",
+      "name": "Personal Assistant Agent",
+      "role": "personal",
+      "enabled": true,
+      "memory_namespace": "profile:personal",
+      "allowed_domains": [
+        "personal",
+        "career",
+        "productivity",
+        "email-management",
+        "text-processing",
+        "google-workspace",
+        "discord",
+        "obsidian",
+        "telegram"
+      ],
+      "allowed_skills": [
+        "google-workspace",
+        "weekly-review-planning",
+        "cek-email-penting",
+        "lamaran-kerja",
+        "follow-up",
+        "self-motivation",
+        "parse-transaksi",
+        "sagara-obsidian-vault",
+        "himalaya"
+      ],
+      "permissions_policy": "personal-default",
+      "description": "",
+      "instructions": ""
+    },
+    "sagara-lab": {
+      "id": "sagara-lab",
+      "name": "Sagara Lab R&D Agent",
+      "role": "sagara-lab",
+      "enabled": true,
+      "memory_namespace": "profile:sagara-lab",
+      "allowed_domains": [
+        "research",
+        "creative",
+        "lab",
+        "software-development",
+        "google-workspace",
+        "discord",
+        "obsidian"
+      ],
+      "allowed_skills": [
+        "arxiv",
+        "llm-wiki",
+        "architecture-diagram",
+        "spike",
+        "grounded-citations"
+      ],
+      "permissions_policy": "developer-default",
+      "description": "",
+      "instructions": ""
+    }
+  },
+  "skills": {
+    "orchestration": {
+      "id": "orchestration",
+      "version": 1,
+      "domain": "general",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Commander orchestration capability placeholder for later implementation."
+    },
+    "planning": {
+      "id": "planning",
+      "version": 1,
+      "domain": "general",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Planning capability placeholder."
+    },
+    "delegation": {
+      "id": "delegation",
+      "version": 1,
+      "domain": "general",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Delegation capability placeholder; will bind to Job Manager later."
+    },
+    "project-management": {
+      "id": "project-management",
+      "version": 1,
+      "domain": "general",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Project status and coordination capability placeholder."
+    },
+    "software-development": {
+      "id": "software-development",
+      "version": 1,
+      "domain": "development",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead",
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Software engineering capability placeholder."
+    },
+    "debugging": {
+      "id": "debugging",
+      "version": 1,
+      "domain": "development",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead",
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Debugging capability placeholder."
+    },
+    "github": {
+      "id": "github",
+      "version": 1,
+      "domain": "repository",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding"
+      ],
+      "requires": [
+        "github"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "GitHub capability provided by an external integration adapter."
+    },
+    "devops": {
+      "id": "devops",
+      "version": 1,
+      "domain": "infrastructure",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "admin",
+      "description": "DevOps capability placeholder."
+    },
+    "infrastructure": {
+      "id": "infrastructure",
+      "version": 1,
+      "domain": "infrastructure",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "admin",
+      "description": "Infrastructure operations capability placeholder."
+    },
+    "cek-email-penting": {
+      "id": "cek-email-penting",
+      "version": 2,
+      "domain": "career",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/cek-email-penting",
+      "handler": "core.skills.cek_email_penting:run",
+      "allowed_profiles": [
+        "lead",
+        "personal"
+      ],
+      "requires": [
+        "gmail"
+      ],
+      "side_effect_level": "read",
+      "description": "Deterministic Gmail important-email classifier migrated from legacy Sagara; platform-neutral and read-only."
+    },
+    "application-preparation": {
+      "id": "application-preparation",
+      "version": 1,
+      "domain": "career",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead",
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Candidate-grounded job application preparation capability placeholder."
+    },
+    "lamaran-kerja": {
+      "id": "lamaran-kerja",
+      "version": 2,
+      "domain": "career",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/lamaran-kerja",
+      "handler": "core.skills.career_application:send_application_email",
+      "allowed_profiles": [
+        "lead",
+        "personal"
+      ],
+      "requires": [
+        "himalaya"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Approval-bound Himalaya v2 career email delivery with the required CV and portfolio."
+    },
+    "follow-up": {
+      "id": "follow-up",
+      "version": 1,
+      "domain": "career",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead",
+        "personal",
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Recruitment follow-up drafting capability placeholder."
+    },
+    "application-tracking": {
+      "id": "application-tracking",
+      "version": 1,
+      "domain": "career",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead",
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Job application tracking capability placeholder."
+    },
+    "digital-product-inventory-management": {
+      "id": "digital-product-inventory-management",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "admin",
+      "description": "Manages digital product inventory and order reservations via Supabase (requires approval)."
+    },
+    "posting-multiplatform": {
+      "id": "posting-multiplatform",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.posting_multiplatform:post_content_handler",
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Draft and package builder for multi-platform content. Produces draft payload, assisted/manual package. Never publishes AUTO targets."
+    },
+    "posting-multiplatform-publish": {
+      "id": "posting-multiplatform-publish",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.posting_multiplatform:post_content_handler",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "multiplatform-poster"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Publishes content to AUTO platforms (Facebook Page) after immutable approval proof. Requires poster capability provider."
+    },
+    "competitor-analysis-shopee": {
+      "id": "competitor-analysis-shopee",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Research and evaluate Shopee digital product competitors with deterministic scoring."
+    },
+    "gmail-send": {
+      "id": "gmail-send",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.business_google:gmail_send",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "gmail-capability"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Approval-aware outbound business Gmail send through a job-bound protected capability."
+    },
+    "gmail-reply": {
+      "id": "gmail-reply",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.business_google:gmail_reply",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "gmail-capability"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Approval-aware business Gmail reply through a job-bound protected capability."
+    },
+    "sheets-read": {
+      "id": "sheets-read",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.business_google:sheets_read",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "sheets-capability"
+      ],
+      "side_effect_level": "read",
+      "description": "Policy-enforced business Google Sheets read using named spreadsheet aliases."
+    },
+    "business-lead-generation": {
+      "id": "business-lead-generation",
+      "version": 2,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/business-lead-generation",
+      "handler": "core.skills.business_lead_generation:run",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Cleans and batches scraped business leads for Sheets CRM."
+    },
+    "customer-service-reply": {
+      "id": "customer-service-reply",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/customer-service-reply",
+      "handler": "core.skills.customer_service_reply:run",
+      "allowed_profiles": [
+        "business",
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Generates draft-only customer service replies without sending."
+    },
+    "order-notification-draft": {
+      "id": "order-notification-draft",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/order-notifikasi",
+      "handler": "core.skills.order_notification:run",
+      "allowed_profiles": [
+        "business",
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Generates draft-only order notifications for review."
+    },
+    "order-notification-send": {
+      "id": "order-notification-send",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/order-notifikasi",
+      "handler": "core.skills.order_notification:run",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "notification-provider"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Sends order notifications after approval via a job-bound provider."
+    },
+    "content-calendar-mingguan": {
+      "id": "content-calendar-mingguan",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/content-calendar-mingguan",
+      "handler": "core.skills.content_calendar:run",
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Generates a 7-day content calendar draft for business channels."
+    },
+    "privacy-first-osint-marketing": {
+      "id": "privacy-first-osint-marketing",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "OSINT pipeline filter enforcing UU PDP compliance by blocking private administrative IDs."
+    },
+    "strategic-marketing": {
+      "id": "strategic-marketing",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Strategic marketing positioning and B2B/B2C offer crafting guidance."
+    },
+    "strategic-seller": {
+      "id": "strategic-seller",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Strategic seller framework for marketplace optimization."
+    },
+    "online-business-management": {
+      "id": "online-business-management",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "High-level overview of digital product stores, licenses, and customer support."
+    },
+    "generate-konten-visual": {
+      "id": "generate-konten-visual",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Visual content prompt engineering and generation framework."
+    },
+    "marketing-plan-mingguan": {
+      "id": "marketing-plan-mingguan",
+      "version": 2,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/marketing-plan-mingguan",
+      "handler": "core.skills.marketing_plan:run",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Weekly marketing review and roadmap generation framework."
+    },
+    "master-marketing-template": {
+      "id": "master-marketing-template",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hydrates master marketing templates with dynamic order, license, and customer parameters."
+    },
+    "dual-pipeline-identity-architecture": {
+      "id": "dual-pipeline-identity-architecture",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Dual-pipeline OSINT intelligence and administrative identity separation framework."
+    },
+    "sheets-append": {
+      "id": "sheets-append",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.business_google:sheets_append",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "sheets-capability"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Approval-aware business Google Sheets append constrained by alias and range policy."
+    },
+    "sheets-update": {
+      "id": "sheets-update",
+      "version": 1,
+      "domain": "business",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.business_google:sheets_update",
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [
+        "sheets-capability"
+      ],
+      "side_effect_level": "high-risk-write",
+      "description": "Approval-aware business Google Sheets update constrained by alias and range policy."
+    },
+    "personal-assistant": {
+      "id": "personal-assistant",
+      "version": 2,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_memory:assistant",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "profile-memory"
+      ],
+      "side_effect_level": "read",
+      "description": "Read-only personal assistant backed by Sagara-owned profile-isolated durable memory."
+    },
+    "personal-memory-write": {
+      "id": "personal-memory-write",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_memory:remember",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "profile-memory"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "Approval-aware write into the requesting profile's isolated durable memory namespace."
+    },
+    "personal-reminders": {
+      "id": "personal-reminders",
+      "version": 2,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:create",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "reminder-scheduler"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "Approval-aware durable one-shot reminder creation with exact platform/channel/thread origin."
+    },
+    "self-motivation": {
+      "id": "self-motivation",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:create",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "reminder-scheduler"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "Self-motivation scheduling based on daily atomic habits and HSE/Aman Studio plans."
+    },
+    "personal-reminder-list": {
+      "id": "personal-reminder-list",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:list_reminders",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "reminder-scheduler"
+      ],
+      "side_effect_level": "read",
+      "description": "Read-only listing of the requesting user's active personal reminders."
+    },
+    "personal-reminder-cancel": {
+      "id": "personal-reminder-cancel",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:cancel",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "reminder-scheduler"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "Approval-aware cancellation of an owned scheduled reminder."
+    },
+    "personal-reminder-reschedule": {
+      "id": "personal-reminder-reschedule",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:reschedule",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [
+        "reminder-scheduler"
+      ],
+      "side_effect_level": "low-risk-write",
+      "description": "Approval-aware rescheduling of an owned scheduled reminder."
+    },
+    "personal-reminder-fire": {
+      "id": "personal-reminder-fire",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.personal_reminder:fire",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Internal read-only reminder delivery job executed through the normal durable result outbox."
+    },
+    "personal-finance": {
+      "id": "personal-finance",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "pending",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Read-only personal finance analysis capability placeholder with isolated personal context."
+    },
+    "parse-transaksi": {
+      "id": "parse-transaksi",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "core/skills",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "personal",
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Parses unstructured financial transaction text into deterministic JSON payload for Sheets CRM."
+    },
+    "sagara-obsidian-vault": {
+      "id": "sagara-obsidian-vault",
+      "version": 1,
+      "domain": "personal",
+      "enabled": true,
+      "implementation": "local",
+      "path": "skills/sagara-obsidian-vault",
+      "handler": "core.skills.executor:LocalSkillExecutor",
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "low-risk-write",
+      "description": "Namespaced Sagara filesystem wrapper for deterministic Obsidian-compatible vault operations."
+    },
+    "google-workspace": {
+      "id": "google-workspace",
+      "version": 1,
+      "domain": "productivity",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "business",
+        "cs",
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "grounded-citations": {
+      "id": "grounded-citations",
+      "version": 1,
+      "domain": "research",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "business",
+        "lead",
+        "sagara-lab"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "xlsx": {
+      "id": "xlsx",
+      "version": 1,
+      "domain": "data-analysis",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "business"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "weekly-review-planning": {
+      "id": "weekly-review-planning",
+      "version": 1,
+      "domain": "productivity",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "business",
+        "lead",
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "email-inbox-triage": {
+      "id": "email-inbox-triage",
+      "version": 1,
+      "domain": "email",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "himalaya": {
+      "id": "himalaya",
+      "version": 1,
+      "domain": "email",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "cs",
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "docx": {
+      "id": "docx",
+      "version": 1,
+      "domain": "productivity",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "cs"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "systematic-debugging": {
+      "id": "systematic-debugging",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding",
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "feature-planning-implementation": {
+      "id": "feature-planning-implementation",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "requesting-code-review": {
+      "id": "requesting-code-review",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding",
+        "it-support"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "sdlc-review": {
+      "id": "sdlc-review",
+      "version": 1,
+      "domain": "devops",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding",
+        "it-support"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "codebase-inspection": {
+      "id": "codebase-inspection",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-support",
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "competitor-news-monitor": {
+      "id": "competitor-news-monitor",
+      "version": 1,
+      "domain": "research",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-support"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "hermes-agent": {
+      "id": "hermes-agent",
+      "version": 1,
+      "domain": "autonomous-ai-agents",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "lead"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "baoyu-infographic": {
+      "id": "baoyu-infographic",
+      "version": 1,
+      "domain": "creative",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "claude-design": {
+      "id": "claude-design",
+      "version": 1,
+      "domain": "creative",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "gif-search": {
+      "id": "gif-search",
+      "version": 1,
+      "domain": "media",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "xurl": {
+      "id": "xurl",
+      "version": 1,
+      "domain": "social-media",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "youtube-content": {
+      "id": "youtube-content",
+      "version": 1,
+      "domain": "media",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "marketing"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "drafting": {
+      "id": "drafting",
+      "version": 1,
+      "domain": "email-management",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "summarizer": {
+      "id": "summarizer",
+      "version": 1,
+      "domain": "text-processing",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "personal"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "arxiv": {
+      "id": "arxiv",
+      "version": 1,
+      "domain": "research",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "sagara-lab"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "llm-wiki": {
+      "id": "llm-wiki",
+      "version": 1,
+      "domain": "research",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "sagara-lab"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "architecture-diagram": {
+      "id": "architecture-diagram",
+      "version": 1,
+      "domain": "creative",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "sagara-lab"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "spike": {
+      "id": "spike",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "sagara-lab"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "Hermes profile skill exposed through the Sagara gateway registry."
+    },
+    "test-driven-development": {
+      "id": "test-driven-development",
+      "version": 1,
+      "domain": "software-development",
+      "enabled": true,
+      "implementation": "external",
+      "path": null,
+      "handler": null,
+      "allowed_profiles": [
+        "it-coding"
+      ],
+      "requires": [],
+      "side_effect_level": "read",
+      "description": "TDD capability - enforce RED-GREEN-REFACTOR cycle, tests before code."
+    }
+  },
+  "discord_channels": [
+    {
+      "env_var": "SAGARA_COMMAND_CHANNEL_ID",
+      "channel_id": "sagara-command",
+      "profile": "lead",
+      "domain": "general",
+      "context": "command",
+      "mode": "interactive",
+      "display_name": "Sagara Command",
+      "description": "Primary cross-domain command and orchestration channel."
+    },
+    {
+      "env_var": "SAGARA_AGENT_STATUS_CHANNEL_ID",
+      "channel_id": "agent-status",
+      "profile": "lead",
+      "domain": "system",
+      "context": "agent-status",
+      "mode": "monitor",
+      "display_name": "Agent Status",
+      "description": "Agent, job, approval, and worker status monitoring."
+    },
+    {
+      "env_var": "SAGARA_ALERTS_CHANNEL_ID",
+      "channel_id": "alerts",
+      "profile": "lead",
+      "domain": "system",
+      "context": "operational-alerts",
+      "mode": "alert",
+      "display_name": "Alerts",
+      "description": "Operator-facing operational and delivery alerts."
+    },
+    {
+      "env_var": "SAGARA_CRON_CHANNEL_ID",
+      "channel_id": "cron",
+      "profile": "lead",
+      "domain": "system",
+      "context": "cron",
+      "mode": "monitor",
+      "display_name": "Cron",
+      "description": "Scheduled-job status and controlled cron operations."
+    },
+    {
+      "env_var": "SAGARA_GATEWAY_STATUS_CHANNEL_ID",
+      "channel_id": "gateway-status",
+      "profile": "lead",
+      "domain": "system",
+      "context": "gateway-status",
+      "mode": "monitor",
+      "display_name": "Gateway Status",
+      "description": "Hermes and Sagara gateway transport-health context."
+    },
+    {
+      "env_var": "SAGARA_SYSTEM_ALERTS_CHANNEL_ID",
+      "channel_id": "system-alerts",
+      "profile": "lead",
+      "domain": "system",
+      "context": "system-alerts",
+      "mode": "alert",
+      "display_name": "System Alerts",
+      "description": "Infrastructure, configuration, and runtime system alerts."
+    },
+    {
+      "env_var": "SAGARA_PRODUCTS_CHANNEL_ID",
+      "channel_id": "products",
+      "profile": "business",
+      "domain": "business",
+      "context": "products",
+      "mode": "interactive",
+      "display_name": "Products",
+      "description": "Product, catalog, pricing, and license workflows."
+    },
+    {
+      "env_var": "SAGARA_ORDERS_CHANNEL_ID",
+      "channel_id": "orders",
+      "profile": "business",
+      "domain": "business",
+      "context": "orders",
+      "mode": "interactive",
+      "display_name": "Orders",
+      "description": "Order and transaction operations context."
+    },
+    {
+      "env_var": "SAGARA_MARKETING_CHANNEL_ID",
+      "channel_id": "marketing",
+      "profile": "marketing",
+      "domain": "marketing",
+      "context": "marketing",
+      "mode": "interactive",
+      "display_name": "Marketing",
+      "description": "Marketing strategy, campaigns, content planning, and publishing."
+    },
+    {
+      "env_var": "SAGARA_CUSTOMER_SERVICE_CHANNEL_ID",
+      "channel_id": "customer-service",
+      "profile": "cs",
+      "domain": "customer-service",
+      "context": "customer-service",
+      "mode": "interactive",
+      "display_name": "Customer Service",
+      "description": "Customer support, order inquiries, and fulfillment."
+    },
+    {
+      "env_var": "SAGARA_ASSISTANT_CHANNEL_ID",
+      "channel_id": "assistant",
+      "profile": "personal",
+      "domain": "personal",
+      "context": "assistant",
+      "mode": "interactive",
+      "display_name": "Assistant",
+      "description": "Dedicated private personal-assistance context."
+    },
+    {
+      "env_var": "SAGARA_REMINDERS_CHANNEL_ID",
+      "channel_id": "reminders",
+      "profile": "personal",
+      "domain": "personal",
+      "context": "reminders",
+      "mode": "interactive",
+      "display_name": "Reminders",
+      "description": "Personal reminder and scheduling context."
+    },
+    {
+      "env_var": "SAGARA_CAREER_CHANNEL_ID",
+      "channel_id": "career",
+      "profile": "personal",
+      "domain": "career",
+      "context": "recruitment",
+      "mode": "interactive",
+      "display_name": "Career",
+      "description": "Recruitment, applications, and career workflows."
+    },
+    {
+      "env_var": "SAGARA_PERSONAL_FINANCE_CHANNEL_ID",
+      "channel_id": "personal-finance",
+      "profile": "personal",
+      "domain": "personal",
+      "context": "personal-finance",
+      "mode": "interactive",
+      "display_name": "Personal Finance",
+      "description": "Personal-finance analysis context."
+    },
+    {
+      "env_var": "SAGARA_AGENT_CODING_CHANNEL_ID",
+      "channel_id": "agent-coding-1",
+      "profile": "it-coding",
+      "domain": "development",
+      "context": "coding",
+      "mode": "interactive",
+      "display_name": "Agent Coding",
+      "description": "Software engineering, debugging, and code development."
+    },
+    {
+      "env_var": "SAGARA_LAB_CHANNEL_ID",
+      "channel_id": "sagara-lab",
+      "profile": "sagara-lab",
+      "domain": "lab",
+      "context": "lab",
+      "mode": "interactive",
+      "display_name": "Sagara Lab",
+      "description": "Research, experimentation, deep search, and R&D workflows."
+    },
+    {
+      "env_var": "SAGARA_OPS_CHANNEL_ID",
+      "channel_id": "it-support-self-healing",
+      "profile": "it-support",
+      "domain": "ops",
+      "context": "ops",
+      "mode": "interactive",
+      "display_name": "Ops",
+      "description": "IT operations, system monitoring, self-healing, and incident response."
+    }
+  ],
+  "hermes": {
+    "model": {
+      "default": "gratisan_and_googlepro",
+      "provider": "custom:9router"
+    },
+    "providers": {
+      "9router": {
+        "name": "9Router",
+        "api": "http://localhost:20128/v1",
+        "key_env": "NINEROUTER_API_KEY",
+        "transport": "chat_completions",
+        "discover_models": true,
+        "default_model": "gratisan_and_googlepro"
+      }
+    },
+    "profile_routes": [
+      {
+        "name": "command-home",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539822084333641728",
+        "profile": "sagara-lab"
+      },
+      {
+        "name": "command-status",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852766665510953",
+        "profile": "sagara-lab"
+      },
+      {
+        "name": "command-alerts",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852785783414825",
+        "profile": "sagara-lab"
+      },
+      {
+        "name": "business-products",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852817404010506",
+        "profile": "business"
+      },
+      {
+        "name": "business-orders",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852864321495040",
+        "profile": "business"
+      },
+      {
+        "name": "business-marketing",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539822113894961153",
+        "profile": "marketing"
+      },
+      {
+        "name": "business-content",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852833233309736",
+        "profile": "marketing"
+      },
+      {
+        "name": "business-posting",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852849306149006",
+        "profile": "marketing"
+      },
+      {
+        "name": "business-cs",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852884483514459",
+        "profile": "cs"
+      },
+      {
+        "name": "personal-assistant",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539822141359267850",
+        "profile": "personal"
+      },
+      {
+        "name": "personal-reminders",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852910320422912",
+        "profile": "personal"
+      },
+      {
+        "name": "personal-career",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852924442775623",
+        "profile": "personal"
+      },
+      {
+        "name": "personal-finance",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539852939269644398",
+        "profile": "personal"
+      },
+      {
+        "name": "system-cron",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539853039140208714",
+        "profile": "it-support"
+      },
+      {
+        "name": "system-gateway",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539853074359779458",
+        "profile": "it-support"
+      },
+      {
+        "name": "system-alerts",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539853090318975077",
+        "profile": "it-support"
+      },
+      {
+        "name": "lab-sagara",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1539822167473000472",
+        "profile": "sagara-lab"
+      },
+      {
+        "name": "ops-it-support",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1547451995441463320",
+        "profile": "it-support"
+      },
+      {
+        "name": "coding-agent",
+        "platform": "discord",
+        "guild_id": "1539821610549248020",
+        "chat_id": "1540626169265913866",
+        "profile": "it-coding"
+      }
+    ]
+  }
+}
