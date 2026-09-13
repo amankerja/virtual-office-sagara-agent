@@ -9,6 +9,11 @@ import type {
   RuntimeUsageOverview,
   RuntimeEvent,
   RuntimeOverview,
+  VpsHealth,
+  ServiceHealth,
+  NineRouterHealth,
+  SourceDiscoveryStatus,
+  ReleaseMetadata,
 } from '@/types/runtime'
 import type { TaskProjection, CreateTaskInput, UpdateTaskInput, TaskQuery } from '@/types/task'
 import type { ApprovalProjection, ApprovalDecisionInput, ApprovalQuery } from '@/types/approval'
@@ -32,6 +37,11 @@ import type {
   AuditRecordDto,
   GovernanceSnapshotDto,
   ArtifactDto,
+  VpsHealthDto,
+  ServiceHealthDto,
+  NineRouterHealthDto,
+  SourceDiscoveryStatusDto,
+  ReleaseMetadataDto,
 } from './dto'
 import {
   mapMissionControlSnapshotDtoToDomain,
@@ -52,6 +62,11 @@ import {
   mapAuditRecordDtoToDomain,
   mapGovernanceSnapshotDtoToDomain,
   mapArtifactDtoToDomain,
+  mapVpsHealthDtoToDomain,
+  mapServiceHealthDtoToDomain,
+  mapNineRouterHealthDtoToDomain,
+  mapSourceDiscoveryStatusDtoToDomain,
+  mapReleaseMetadataDtoToDomain,
 } from './mappers'
 
 import { MOCK_MISSION_CONTROL_SNAPSHOT } from '@/mocks/mission-control'
@@ -70,8 +85,8 @@ import { apiClient, ApiError } from './client'
 
 // Production Data Mode: Fail closed. API mode by default.
 // Development: Mock ONLY when explicitly requested (e.g. VITE_DATA_MODE === 'mock').
-const isDev = Boolean(import.meta.env.DEV)
-const rawDataMode = import.meta.env.VITE_DATA_MODE
+const isDev = Boolean(import.meta.env?.DEV)
+const rawDataMode = import.meta.env?.VITE_DATA_MODE
 
 export const isMockMode = (): boolean => {
   // In production builds: Fail closed. Mock mode is never active by default.
@@ -237,6 +252,116 @@ export const dataProvider = {
       handleApiError(err)
     }
   },
+
+  // VPS Health (Section 18)
+  getVpsHealth: async (): Promise<VpsHealth> => {
+    if (isMockMode()) {
+      return {
+        hostname: 'localhost',
+        uptimeSeconds: 7200,
+        cpuPercent: 12.5,
+        load1m: 0.45,
+        load5m: 0.38,
+        load15m: 0.35,
+        ramTotalMb: 16384,
+        ramUsedMb: 4096,
+        ramPercent: 25.0,
+        diskTotalGb: 80,
+        diskUsedGb: 20,
+        diskFreeGb: 60,
+        diskPercent: 25.0,
+        observedAt: new Date().toISOString(),
+        health: 'HEALTHY',
+      }
+    }
+    try {
+      const dto = await apiClient.get<VpsHealthDto>('/api/v1/runtime/vps')
+      return mapVpsHealthDtoToDomain(dto)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  // Core Services Health (Section 19)
+  getServicesHealth: async (): Promise<ServiceHealth[]> => {
+    if (isMockMode()) {
+      return [
+        { name: 'sagara-mission-control.service', activeState: 'active', subState: 'running', health: 'HEALTHY', observedAt: new Date().toISOString() },
+        { name: 'hermes-gateway.service', activeState: 'active', subState: 'running', health: 'HEALTHY', observedAt: new Date().toISOString() },
+        { name: '9router.service', activeState: 'active', subState: 'running', health: 'HEALTHY', observedAt: new Date().toISOString() },
+      ]
+    }
+    try {
+      const dtos = await apiClient.get<ServiceHealthDto[]>('/api/v1/runtime/services')
+      return dtos.map(mapServiceHealthDtoToDomain)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  // 9Router Inference Proxy (Section 20)
+  getNineRouterHealth: async (): Promise<NineRouterHealth> => {
+    if (isMockMode()) {
+      return {
+        available: true,
+        endpoint: 'http://127.0.0.1:20128',
+        statusCode: 200,
+        modelsCount: 156,
+        activeState: 'active',
+        observedAt: new Date().toISOString(),
+        health: 'HEALTHY',
+      }
+    }
+    try {
+      const dto = await apiClient.get<NineRouterHealthDto>('/api/v1/runtime/9router')
+      return mapNineRouterHealthDtoToDomain(dto)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  // PnP Source Discovery Status (Section 35)
+  getSourceDiscoveryStatus: async (): Promise<SourceDiscoveryStatus> => {
+    if (isMockMode()) {
+      return {
+        sagara: { configured: true, discovered: true, freezeCommit: 'babbd61618f6eb3db99109ba24e0d49b2c9b97d7', profilesLoaded: 8, skillsLoaded: 77, channelsLoaded: 5, observedAt: new Date().toISOString(), health: 'HEALTHY' },
+        hermes: { configured: true, discovered: true, version: '0.20.6', profileStores: 10, observedAt: new Date().toISOString(), health: 'HEALTHY' },
+        runtimeContract: 'SAGARA_HERMES_RUNTIME_CONTRACT_V1',
+        observedAt: new Date().toISOString(),
+      }
+    }
+    try {
+      const dto = await apiClient.get<SourceDiscoveryStatusDto>('/api/v1/runtime/sources')
+      return mapSourceDiscoveryStatusDtoToDomain(dto)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
+  // Release Metadata (Section 28, 29, 65)
+  getReleaseMetadata: async (): Promise<ReleaseMetadata> => {
+    if (isMockMode()) {
+      return {
+        platform: 'Sagara Mission Control',
+        missionControlVersion: '1.0.0',
+        missionControlCommit: '46bd0288',
+        sagaraDeployedCommit: '78cb52c6',
+        sagaraFreezeCommit: 'babbd61618f6eb3db99109ba24e0d49b2c9b97d7',
+        hermesVersion: '0.20.6',
+        runtimeContract: 'SAGARA_HERMES_RUNTIME_CONTRACT_V1',
+        productionPolicy: 'PRODUCTION_EXECUTION_POLICY_V3',
+        policyHash: '13ef245630dc448208a408db190924119df9bcf1f602f71e0814b62226fbe95e',
+        observedAt: new Date().toISOString(),
+      }
+    }
+    try {
+      const dto = await apiClient.get<ReleaseMetadataDto>('/api/v1/runtime/release')
+      return mapReleaseMetadataDtoToDomain(dto)
+    } catch (err) {
+      handleApiError(err)
+    }
+  },
+
 
   // Sessions
   getSessions: async (): Promise<SessionProjection[]> => {

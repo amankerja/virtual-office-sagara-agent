@@ -185,6 +185,98 @@ export function mapRuntimeEventDtoToDomain(dto: RuntimeEventDto): RuntimeEvent {
   };
 }
 
+export function mapVpsHealthDtoToDomain(dto: import('../dto/runtime.dto').VpsHealthDto): import('@/types/runtime').VpsHealth {
+  return {
+    hostname: dto.hostname,
+    uptimeSeconds: dto.uptime_seconds,
+    cpuPercent: preserveNumber(dto.cpu_percent),
+    load1m: preserveNumber(dto.load_1m),
+    load5m: preserveNumber(dto.load_5m),
+    load15m: preserveNumber(dto.load_15m),
+    ramTotalMb: preserveNumber(dto.ram_total_mb),
+    ramUsedMb: preserveNumber(dto.ram_used_mb),
+    ramPercent: preserveNumber(dto.ram_percent),
+    swapTotalMb: preserveNumber(dto.swap_total_mb),
+    swapUsedMb: preserveNumber(dto.swap_used_mb),
+    diskTotalGb: preserveNumber(dto.disk_total_gb),
+    diskUsedGb: preserveNumber(dto.disk_used_gb),
+    diskFreeGb: preserveNumber(dto.disk_free_gb),
+    diskPercent: preserveNumber(dto.disk_percent),
+    observedAt: dto.observed_at,
+    health: mapUnknownEnum(dto.health, ['HEALTHY', 'DEGRADED', 'UNAVAILABLE', 'UNKNOWN'] as const, 'UNKNOWN'),
+  };
+}
+
+export function mapServiceHealthDtoToDomain(dto: import('../dto/runtime.dto').ServiceHealthDto): import('@/types/runtime').ServiceHealth {
+  return {
+    name: dto.name,
+    activeState: dto.active_state,
+    subState: dto.sub_state,
+    mainPid: preserveNumber(dto.main_pid),
+    restartCount: preserveNumber(dto.restart_count),
+    activeSince: dto.active_since ?? undefined,
+    observedAt: dto.observed_at,
+    health: mapUnknownEnum(dto.health, ['HEALTHY', 'DEGRADED', 'UNAVAILABLE', 'UNKNOWN'] as const, 'UNKNOWN'),
+  };
+}
+
+export function mapNineRouterHealthDtoToDomain(dto: import('../dto/runtime.dto').NineRouterHealthDto): import('@/types/runtime').NineRouterHealth {
+  return {
+    available: dto.available,
+    endpoint: dto.endpoint,
+    statusCode: preserveNumber(dto.status_code),
+    modelsCount: preserveNumber(dto.models_count),
+    activeState: dto.active_state ?? undefined,
+    mainPid: preserveNumber(dto.main_pid),
+    observedAt: dto.observed_at,
+    health: mapUnknownEnum(dto.health, ['HEALTHY', 'DEGRADED', 'UNAVAILABLE', 'UNKNOWN'] as const, 'UNKNOWN'),
+  };
+}
+
+export function mapSourceDiscoveryStatusDtoToDomain(dto: import('../dto/runtime.dto').SourceDiscoveryStatusDto): import('@/types/runtime').SourceDiscoveryStatus {
+  return {
+    sagara: {
+      configured: dto.sagara.configured,
+      discovered: dto.sagara.discovered,
+      sourceVersion: dto.sagara.source_version ?? undefined,
+      commit: dto.sagara.commit ?? undefined,
+      freezeCommit: dto.sagara.freeze_commit,
+      profilesLoaded: dto.sagara.profiles_loaded,
+      skillsLoaded: dto.sagara.skills_loaded,
+      channelsLoaded: dto.sagara.channels_loaded,
+      observedAt: dto.sagara.observed_at,
+      health: mapUnknownEnum(dto.sagara.health, ['HEALTHY', 'DEGRADED', 'UNAVAILABLE', 'UNKNOWN'] as const, 'UNKNOWN'),
+    },
+    hermes: {
+      configured: dto.hermes.configured,
+      discovered: dto.hermes.discovered,
+      version: dto.hermes.version ?? undefined,
+      gateway: dto.hermes.gateway ?? undefined,
+      stateStore: dto.hermes.state_store ?? undefined,
+      profileStores: dto.hermes.profile_stores,
+      observedAt: dto.hermes.observed_at,
+      health: mapUnknownEnum(dto.hermes.health, ['HEALTHY', 'DEGRADED', 'UNAVAILABLE', 'UNKNOWN'] as const, 'UNKNOWN'),
+    },
+    runtimeContract: dto.runtime_contract,
+    observedAt: dto.observed_at,
+  };
+}
+
+export function mapReleaseMetadataDtoToDomain(dto: import('../dto/runtime.dto').ReleaseMetadataDto): import('@/types/runtime').ReleaseMetadata {
+  return {
+    platform: dto.platform,
+    missionControlVersion: dto.mission_control_version,
+    missionControlCommit: dto.mission_control_commit ?? undefined,
+    sagaraDeployedCommit: dto.sagara_deployed_commit ?? undefined,
+    sagaraFreezeCommit: dto.sagara_freeze_commit,
+    hermesVersion: dto.hermes_version ?? undefined,
+    runtimeContract: dto.runtime_contract,
+    productionPolicy: dto.production_policy,
+    policyHash: dto.policy_hash,
+    observedAt: dto.observed_at,
+  };
+}
+
 export function mapRuntimeOverviewDtoToDomain(dto: RuntimeOverviewDto): RuntimeOverview {
   const cpu = preserveNumber(dto.system_load?.cpu_percent);
   const memUsed = preserveNumber(dto.system_load?.memory_used_mb);
@@ -199,6 +291,16 @@ export function mapRuntimeOverviewDtoToDomain(dto: RuntimeOverviewDto): RuntimeO
         memoryUsedMb: memUsed,
         memoryTotalMb: memTotal,
         memoryPercent: memPercent,
+        swapUsedMb: preserveNumber(dto.system_load.swap_used_mb),
+        swapTotalMb: preserveNumber(dto.system_load.swap_total_mb),
+        diskUsedGb: preserveNumber(dto.system_load.disk_used_gb),
+        diskTotalGb: preserveNumber(dto.system_load.disk_total_gb),
+        diskFreeGb: preserveNumber(dto.system_load.disk_free_gb),
+        diskPercent: preserveNumber(dto.system_load.disk_percent),
+        load1m: preserveNumber(dto.system_load.load_1m),
+        load5m: preserveNumber(dto.system_load.load_5m),
+        load15m: preserveNumber(dto.system_load.load_15m),
+        hostname: dto.system_load.hostname ?? undefined,
       }
     : undefined;
 
@@ -216,5 +318,15 @@ export function mapRuntimeOverviewDtoToDomain(dto: RuntimeOverviewDto): RuntimeO
     totalCostEstimateUsd: preserveNumber(dto.total_cost_estimate_usd),
     recentEvents: (dto.recent_events || []).map(mapRuntimeEventDtoToDomain),
     systemLoad,
+    centralStoreSessions: preserveNumber(dto.central_store_sessions),
+    profileLocalSessions: preserveNumber(dto.profile_local_sessions),
+    aggregateDistinctSessions: preserveNumber(dto.aggregate_distinct_sessions),
+    currentModel: dto.current_model ?? undefined,
+    currentProvider: dto.current_provider ?? undefined,
+    platforms: dto.platforms ?? undefined,
+    vpsHealth: dto.vps_health ? mapVpsHealthDtoToDomain(dto.vps_health) : undefined,
+    servicesHealth: dto.services_health ? dto.services_health.map(mapServiceHealthDtoToDomain) : undefined,
+    routerHealth: dto.router_health ? mapNineRouterHealthDtoToDomain(dto.router_health) : undefined,
   };
 }
+

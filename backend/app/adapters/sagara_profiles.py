@@ -185,6 +185,12 @@ class SagaraProfileCatalogAdapter:
                     config_state = getattr(raw, "configuration_state", None)
                     model_tier = getattr(raw, "model_tier", None)
 
+                # Strict Privacy Boundary (Section 38 & 39):
+                # profiles/private_profile.yaml is private user data/configuration, NEVER an operational profile.
+                if pid in ("private_profile", "private", "private_profile.yaml"):
+                    logger.debug(f"Excluding private configuration profile '{pid}' from operational catalog.")
+                    continue
+
 
                 # Collect non-fatal diagnostics for optional missing fields
                 if role is None:

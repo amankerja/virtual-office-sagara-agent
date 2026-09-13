@@ -177,7 +177,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
           <div className="flex items-center justify-between pb-1 text-[11px] font-semibold text-[#64748b] uppercase tracking-wider">
             <span>Limited Profile Capabilities & Approved Tool Eligibility</span>
             <span className="font-mono text-[10px] text-[#2563eb]">
-              Max {policy?.max_tool_invocations_per_execution ?? 1} Tool Call / Execution
+              Max {policy?.max_tool_invocations_per_execution !== undefined ? policy.max_tool_invocations_per_execution : '—'} Tool Call / Execution
             </span>
           </div>
 
@@ -444,17 +444,17 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
                         <div className="flex items-center gap-1 bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-lg border border-[#bbf7d0]">
                           <CheckCircle2 className="h-3 w-3" />
                           <span>
-                            {rule?.allowed_task_classes?.join(' / ') || 'REASONING_ONLY / DRAFT_GENERATION / READ_ONLY_INSPECTION'}
+                            {rule?.allowed_task_classes?.join(' / ') || '—'}
                           </span>
                         </div>
                         <div className="bg-[#e0f2fe] text-[#0369a1] px-2 py-0.5 rounded-lg border border-[#bae6fd]">
-                          Modes: {rule?.allowed_execution_modes?.join(' + ') || 'SAFE_NO_TOOLS + SAFE_READ_ONLY'}
+                          Modes: {rule?.allowed_execution_modes?.join(' + ') || '—'}
                         </div>
                         <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-lg border border-[#e2e8f0] text-[#64748b]">
-                          Concurrency: {rule?.max_concurrency ?? 1}
+                          Concurrency: {rule?.max_concurrency !== undefined ? rule.max_concurrency : '—'}
                         </div>
                         <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-lg border border-[#e2e8f0] text-[#64748b]">
-                          Rate: {rule?.max_executions_per_hour ?? 3}/hr
+                          Rate: {rule?.max_executions_per_hour !== undefined ? `${rule.max_executions_per_hour}/hr` : '—'}
                         </div>
                         <div className="bg-[#fef9c3] text-[#854d0e] px-2 py-0.5 rounded-lg border border-[#fef08a]">
                           Approval: {rule?.require_independent_approval !== false ? 'REQUIRED' : 'OPTIONAL'}
@@ -508,7 +508,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
               <span>Strict Execution Boundaries</span>
             </div>
             <ul className="text-[11px] text-[#64748b] space-y-1 list-disc pl-4 font-sans">
-              <li>Single-Tool Budget: Maximum {policy?.max_tool_invocations_per_execution ?? 1} read-only tool invocation per execution window.</li>
+              <li>Single-Tool Budget: Maximum {policy?.max_tool_invocations_per_execution !== undefined ? policy.max_tool_invocations_per_execution : '—'} read-only tool invocation per execution window.</li>
               <li>Channels Denied: Network (DENY), MCP (DENY), Generic Shell (DENY).</li>
               <li>Untrusted Tool Data: Read-only results cannot alter permissions or scopes.</li>
               <li>Production Locked: Mission Control execution remains locked by default.</li>

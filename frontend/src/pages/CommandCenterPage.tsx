@@ -27,15 +27,12 @@ import {
   useTasks,
   useRuntimeOverview,
   useGatewayTelemetry,
+  useNineRouterHealth,
+  useExecutionLock,
 } from '@/api/hooks'
 import { ErrorState } from '@/components/shared/ErrorState'
+import { formatUptimeHours, formatUptimeSeconds } from '@/lib/formatters'
 import type { AttentionItem } from '@/types/mission-control'
-
-function computeSimpleUptime(startedAt?: string): string {
-  if (!startedAt) return '48h'
-  const hours = Math.max(1, Math.floor((Date.now() - new Date(startedAt).getTime()) / (1000 * 60 * 60)))
-  return `${hours}h`
-}
 
 export const CommandCenterPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -58,6 +55,8 @@ export const CommandCenterPage: React.FC = () => {
   const { data: tasks = [] } = useTasks()
   const { data: runtimeOverview } = useRuntimeOverview()
   const { data: gateway } = useGatewayTelemetry()
+  const { data: nineRouter } = useNineRouterHealth()
+  const { data: lockInfo } = useExecutionLock()
 
   const handleSelectAgent = (id: string) => {
     setSearchParams((prev) => {
@@ -102,13 +101,18 @@ export const CommandCenterPage: React.FC = () => {
 
   // System load & uptime metrics
   const systemLoad = runtimeOverview?.systemLoad
-  const cpuPercent = systemLoad?.cpuPercent ?? 14.2
-  const memUsedMb = systemLoad?.memoryUsedMb ?? 420
-  const memTotalMb = systemLoad?.memoryTotalMb ?? 16384
-  const memPercent = systemLoad?.memoryPercent ?? ((memUsedMb / memTotalMb) * 100).toFixed(1)
+  const cpuPercent = systemLoad?.cpuPercent
+  const memUsedMb = systemLoad?.memoryUsedMb
+  const memTotalMb = systemLoad?.memoryTotalMb
+  const memPercent = systemLoad?.memoryPercent ?? (memUsedMb !== undefined && memTotalMb ? ((memUsedMb / memTotalMb) * 100).toFixed(1) : undefined)
+  const diskUsedGb = systemLoad?.diskUsedGb
+  const diskTotalGb = systemLoad?.diskTotalGb
+  const diskPercent = systemLoad?.diskPercent
 
-  // Calculate approximate uptime
-  const uptimeStr = computeSimpleUptime(gateway?.startedAt)
+  // Calculate approximate uptime from VPS or gateway
+  const uptimeStr = systemLoad?.uptimeSeconds !== undefined
+    ? formatUptimeSeconds(systemLoad.uptimeSeconds)
+    : formatUptimeHours(gateway?.startedAt)
 
   if (snapshotError) {
     return (
@@ -162,34 +166,92 @@ export const CommandCenterPage: React.FC = () => {
         <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-border bg-surface-subtle/60 px-4 py-2.5 gap-2.5 text-xs">
           <div className="flex items-center gap-2">
             <span className="text-text-muted">Mission Control:</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Healthy
-            </span>
+            {snapshotError ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Unavailable
+              </span>
+            ) : snapshotLoading ? (
+              <span className="inline-flex items-center gap-1 font-medium text-text-muted">
+                <span className="h-2 w-2 rounded-full bg-slate-400 animate-pulse" />
+                Connecting
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Connected
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
             <span className="text-text-muted">Hermes:</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Healthy
-            </span>
+            {gateway?.state === 'HEALTHY' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Healthy
+              </span>
+            ) : gateway?.state === 'STALE' || gateway?.state === 'DEGRADED' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                {gateway.state === 'STALE' ? 'Stale' : 'Degraded'}
+              </span>
+            ) : gateway?.state === 'OFFLINE' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Offline
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-semibold text-text-muted">
+                <span className="h-2 w-2 rounded-full bg-slate-400" />
+                {gateway?.state || 'UNKNOWN'}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2">
             <span className="text-text-muted">9Router:</span>
-            <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" />
-              Healthy
-            </span>
+            {nineRouter?.health === 'HEALTHY' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-emerald-600 dark:text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                Healthy
+              </span>
+            ) : nineRouter?.health === 'DEGRADED' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-amber-600 dark:text-amber-400">
+                <span className="h-2 w-2 rounded-full bg-amber-500" />
+                Degraded
+              </span>
+            ) : nineRouter?.health === 'UNAVAILABLE' ? (
+              <span className="inline-flex items-center gap-1 font-semibold text-rose-600 dark:text-rose-400">
+                <span className="h-2 w-2 rounded-full bg-rose-500" />
+                Unavailable
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 font-semibold text-text-muted">
+                <span className="h-2 w-2 rounded-full bg-slate-400" />
+                {nineRouter?.health || 'UNKNOWN'}
+              </span>
+            )}
           </div>
 
           <div className="flex items-center gap-2 sm:justify-end">
             <span className="text-text-muted">Execution:</span>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-semibold uppercase">
-              <Lock className="h-3 w-3" />
-              LOCKED
-            </span>
+            {lockInfo?.is_locked || lockInfo?.status === 'LOCKED' ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 text-[10px] font-semibold uppercase">
+                <Lock className="h-3 w-3" />
+                LOCKED
+              </span>
+            ) : lockInfo?.status === 'UNLOCKED' ? (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-semibold uppercase">
+                <Lock className="h-3 w-3" />
+                UNLOCKED
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-subtle text-text-muted border border-border text-[10px] font-medium uppercase" title="Authoritative lock status not observed">
+                <Lock className="h-3 w-3" />
+                Execution state unavailable
+              </span>
+            )}
           </div>
         </div>
 
@@ -200,7 +262,9 @@ export const CommandCenterPage: React.FC = () => {
               <Cpu className="h-3.5 w-3.5 text-text-muted" />
               CPU:
             </span>
-            <span className="font-mono-tech text-xs font-semibold text-text-primary">{cpuPercent}%</span>
+            <span className="font-mono-tech text-xs font-semibold text-text-primary">
+              {cpuPercent !== undefined ? `${cpuPercent}%` : '—'}
+            </span>
           </div>
 
           <div className="flex items-center justify-between sm:justify-start gap-3">
@@ -209,7 +273,15 @@ export const CommandCenterPage: React.FC = () => {
               RAM:
             </span>
             <span className="font-mono-tech text-xs text-text-primary">
-              <span className="font-semibold">{memUsedMb} MB</span> / {(memTotalMb / 1024).toFixed(1)} GB <span className="text-text-muted text-[11px]">({memPercent}%)</span>
+              {memUsedMb !== undefined ? (
+                <>
+                  <span className="font-semibold">{memUsedMb} MB</span>
+                  {memTotalMb ? ` / ${(memTotalMb / 1024).toFixed(1)} GB` : ''}
+                  {memPercent !== undefined ? <span className="text-text-muted text-[11px]"> ({memPercent}%)</span> : null}
+                </>
+              ) : (
+                <span className="font-semibold">—</span>
+              )}
             </span>
           </div>
 
@@ -219,7 +291,15 @@ export const CommandCenterPage: React.FC = () => {
               Disk:
             </span>
             <span className="font-mono-tech text-xs text-text-primary">
-              <span className="font-semibold">23.0%</span> <span className="text-text-muted text-[11px]">(18.4 / 80 GB)</span>
+              {diskUsedGb !== undefined && diskTotalGb !== undefined ? (
+                <>
+                  <span className="font-semibold">{diskUsedGb} GB</span>
+                  <span className="text-text-muted text-[11px]"> / {diskTotalGb} GB</span>
+                  {diskPercent !== undefined ? <span className="text-text-muted text-[11px]"> ({diskPercent}%)</span> : null}
+                </>
+              ) : (
+                <span className="font-semibold">—</span>
+              )}
             </span>
           </div>
 

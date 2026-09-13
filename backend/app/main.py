@@ -108,6 +108,7 @@ def create_app() -> FastAPI:
 
     # Root Health & Readiness Endpoints
     @app.get("/health", tags=["Operational"])
+    @app.get("/api/v1/health", tags=["Operational"])
     async def health_check():
         return {"status": "ok"}
 

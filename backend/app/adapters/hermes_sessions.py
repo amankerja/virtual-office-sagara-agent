@@ -1,6 +1,7 @@
 import base64
 from datetime import datetime, timezone
 import json
+import os
 import sqlite3
 import time
 from typing import Any, Optional
@@ -243,3 +244,52 @@ class SessionReader:
             )
 
         return await self._db.execute_read(_read)
+
+    async def get_session_accounting(self) -> dict[str, int]:
+        """
+        Produce authoritative session accounting across central and profile stores.
+        Enforces deduplication: aggregate_distinct_sessions != naïve arithmetic sum (Section 16).
+        """
+        def _read_accounting(conn: sqlite3.Connection) -> dict[str, int]:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';")
+            if not cur.fetchone():
+                return {
+                    "central_store_sessions": 0,
+                    "profile_local_sessions": 0,
+                    "aggregate_distinct_sessions": 0,
+                }
+
+            cur.execute("SELECT id FROM sessions;")
+            central_ids = {row[0] for row in cur.fetchall()}
+
+            # Profile-local discovery
+            profile_ids: set[str] = set()
+            hermes_dir = os.path.dirname(self._db.db_path) if self._db.db_path else None
+            if hermes_dir:
+                profiles_dir = os.path.join(hermes_dir, "profiles")
+                if os.path.isdir(profiles_dir):
+                    for entry in os.listdir(profiles_dir):
+                        pdb_path = os.path.join(profiles_dir, entry, "state.db")
+                        if os.path.isfile(pdb_path):
+                            try:
+                                pconn = sqlite3.connect(f"file:{pdb_path}?mode=ro", uri=True)
+                                pcur = pconn.cursor()
+                                pcur.execute("PRAGMA query_only=ON;")
+                                pcur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';")
+                                if pcur.fetchone():
+                                    for prow in pcur.execute("SELECT id FROM sessions;"):
+                                        profile_ids.add(prow[0])
+                                pconn.close()
+                            except Exception:
+                                pass
+
+            distinct_ids = central_ids.union(profile_ids)
+            return {
+                "central_store_sessions": len(central_ids),
+                "profile_local_sessions": len(profile_ids),
+                "aggregate_distinct_sessions": len(distinct_ids),
+            }
+
+        return await self._db.execute_read(_read_accounting)
+

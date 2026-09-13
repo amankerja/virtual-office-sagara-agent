@@ -188,7 +188,7 @@ export const ActionSafetyCard: React.FC = () => {
               </Badge>
               {activeWindow && (
                 <span className="text-[10px] text-slate-500">
-                  [{activeWindow.executions_consumed ?? 0}/{activeWindow.max_executions ?? 1}]
+                  [{activeWindow.executions_consumed ?? 0}/{activeWindow.max_executions !== undefined ? activeWindow.max_executions : '—'}]
                 </span>
               )}
             </div>

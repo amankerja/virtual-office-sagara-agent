@@ -112,6 +112,102 @@ export interface SystemLoadDto {
   memory_used_mb?: number | null;
   memory_total_mb?: number | null;
   memory_percent?: number | null;
+  swap_used_mb?: number | null;
+  swap_total_mb?: number | null;
+  disk_used_gb?: number | null;
+  disk_total_gb?: number | null;
+  disk_free_gb?: number | null;
+  disk_percent?: number | null;
+  load_1m?: number | null;
+  load_5m?: number | null;
+  load_15m?: number | null;
+  hostname?: string | null;
+}
+
+export interface VpsHealthDto {
+  hostname: string;
+  uptime_seconds: number;
+  cpu_percent?: number | null;
+  load_1m?: number | null;
+  load_5m?: number | null;
+  load_15m?: number | null;
+  ram_total_mb?: number | null;
+  ram_used_mb?: number | null;
+  ram_percent?: number | null;
+  swap_total_mb?: number | null;
+  swap_used_mb?: number | null;
+  disk_total_gb?: number | null;
+  disk_used_gb?: number | null;
+  disk_free_gb?: number | null;
+  disk_percent?: number | null;
+  observed_at: string;
+  health: string;
+}
+
+export interface ServiceHealthDto {
+  name: string;
+  active_state: string;
+  sub_state: string;
+  main_pid?: number | null;
+  restart_count?: number | null;
+  active_since?: string | null;
+  observed_at: string;
+  health: string;
+}
+
+export interface NineRouterHealthDto {
+  available: boolean;
+  endpoint: string;
+  status_code?: number | null;
+  models_count?: number | null;
+  active_state?: string | null;
+  main_pid?: number | null;
+  observed_at: string;
+  health: string;
+}
+
+export interface SagaraSourceDto {
+  configured: boolean;
+  discovered: boolean;
+  source_version?: string | null;
+  commit?: string | null;
+  freeze_commit: string;
+  profiles_loaded: number;
+  skills_loaded: number;
+  channels_loaded: number;
+  observed_at: string;
+  health: string;
+}
+
+export interface HermesSourceDto {
+  configured: boolean;
+  discovered: boolean;
+  version?: string | null;
+  gateway?: string | null;
+  state_store?: string | null;
+  profile_stores: number;
+  observed_at: string;
+  health: string;
+}
+
+export interface SourceDiscoveryStatusDto {
+  sagara: SagaraSourceDto;
+  hermes: HermesSourceDto;
+  runtime_contract: string;
+  observed_at: string;
+}
+
+export interface ReleaseMetadataDto {
+  platform: string;
+  mission_control_version: string;
+  mission_control_commit?: string | null;
+  sagara_deployed_commit?: string | null;
+  sagara_freeze_commit: string;
+  hermes_version?: string | null;
+  runtime_contract: string;
+  production_policy: string;
+  policy_hash: string;
+  observed_at: string;
 }
 
 export interface RuntimeOverviewDto {
@@ -128,4 +224,14 @@ export interface RuntimeOverviewDto {
   total_cost_estimate_usd?: number | null;
   recent_events?: RuntimeEventDto[] | null;
   system_load?: SystemLoadDto | null;
+  central_store_sessions?: number | null;
+  profile_local_sessions?: number | null;
+  aggregate_distinct_sessions?: number | null;
+  current_model?: string | null;
+  current_provider?: string | null;
+  platforms?: Record<string, string> | null;
+  vps_health?: VpsHealthDto | null;
+  services_health?: ServiceHealthDto[] | null;
+  router_health?: NineRouterHealthDto | null;
 }
+

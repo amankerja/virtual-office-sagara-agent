@@ -87,6 +87,46 @@ export function useGatewayTelemetry() {
   })
 }
 
+export function useVpsHealth() {
+  return useQuery({
+    queryKey: queryKeys.runtime.vps(),
+    queryFn: () => dataProvider.getVpsHealth(),
+    staleTime: 1000 * 10,
+  })
+}
+
+export function useServicesHealth() {
+  return useQuery({
+    queryKey: queryKeys.runtime.services(),
+    queryFn: () => dataProvider.getServicesHealth(),
+    staleTime: 1000 * 10,
+  })
+}
+
+export function useNineRouterHealth() {
+  return useQuery({
+    queryKey: queryKeys.runtime.nineRouter(),
+    queryFn: () => dataProvider.getNineRouterHealth(),
+    staleTime: 1000 * 10,
+  })
+}
+
+export function useRuntimeSources() {
+  return useQuery({
+    queryKey: queryKeys.runtime.sources(),
+    queryFn: () => dataProvider.getSourceDiscoveryStatus(),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useReleaseMetadata() {
+  return useQuery({
+    queryKey: queryKeys.runtime.release(),
+    queryFn: () => dataProvider.getReleaseMetadata(),
+    staleTime: 1000 * 60,
+  })
+}
+
 export function useSessions() {
   return useQuery({
     queryKey: queryKeys.sessions.all,

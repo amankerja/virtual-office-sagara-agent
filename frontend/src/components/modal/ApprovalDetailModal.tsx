@@ -211,7 +211,7 @@ export const ApprovalDetailModal: React.FC<ApprovalDetailModalProps> = ({
                   { label: 'Risk Assessment', value: approval.risk, hint: `${approval.actionType} category` },
                   { label: 'Requested At', value: new Date(approval.requestedAt).toLocaleString() },
                   { label: 'Expiration', value: approval.expiresAt ? new Date(approval.expiresAt).toLocaleString() : 'Never' },
-                  { label: 'Version / Rev', value: `${approval.version ?? 1} (rev ${approval.revision ?? 1})` },
+                  { label: 'Version / Rev', value: `v${approval.version ?? '—'} (rev ${approval.revision ?? '—'})` },
                 ]}
               />
 

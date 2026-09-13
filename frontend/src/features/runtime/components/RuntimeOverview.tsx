@@ -1,7 +1,8 @@
 import React from 'react'
 import type { RuntimeOverview as RuntimeOverviewType } from '@/types/runtime'
 import { Button } from '@/components/ui/button'
-import { formatCurrencyUsd, formatTimestampRelative } from '@/lib/formatters'
+import { formatCurrencyUsd, formatTimestampRelative, formatUptimeDetailed, formatUptimeSeconds } from '@/lib/formatters'
+import { useRuntimeUsage, useExecutionPolicy, useNineRouterHealth, useServicesHealth } from '@/api/hooks'
 import {
   Radio,
   GitFork,
@@ -11,15 +12,9 @@ import {
   MessageSquare,
   Send,
   CheckCircle2,
+  AlertTriangle,
+  XCircle,
 } from 'lucide-react'
-
-function computeUptimeStr(startedAt?: string): string {
-  if (!startedAt) return '48h 12m'
-  const diffMs = Math.max(0, Date.now() - new Date(startedAt).getTime())
-  const hours = Math.floor(diffMs / (1000 * 60 * 60))
-  const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60))
-  return `${hours}h ${minutes}m`
-}
 
 interface RuntimeOverviewProps {
   overview: RuntimeOverviewType;
@@ -32,6 +27,11 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
   onNavigateTab,
   isLoading,
 }) => {
+  const { data: usage } = useRuntimeUsage()
+  const { data: policy } = useExecutionPolicy()
+  const { data: nineRouter } = useNineRouterHealth()
+  const { data: servicesHealth } = useServicesHealth()
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -44,14 +44,63 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
     )
   }
 
-  const { gateway, activeSessionsCount, runningDelegationsCount, totalCostEstimateUsd, recentEvents, systemLoad } = overview
+  const {
+    gateway,
+    activeSessionsCount,
+    runningDelegationsCount,
+    totalCostEstimateUsd,
+    recentEvents,
+    systemLoad,
+    centralStoreSessions,
+    profileLocalSessions,
+    aggregateDistinctSessions,
+    currentModel,
+    currentProvider,
+    platforms,
+  } = overview
 
-  const cpuPercent = systemLoad?.cpuPercent ?? 14.2
-  const memUsedMb = systemLoad?.memoryUsedMb ?? 420
-  const memTotalMb = systemLoad?.memoryTotalMb ?? 16384
-  const memPercent = systemLoad?.memoryPercent ?? ((memUsedMb / memTotalMb) * 100).toFixed(1)
+  const cpuPercent = systemLoad?.cpuPercent
+  const memUsedMb = systemLoad?.memoryUsedMb
+  const memTotalMb = systemLoad?.memoryTotalMb
+  const memPercent = systemLoad?.memoryPercent ?? (memUsedMb !== undefined && memTotalMb ? ((memUsedMb / memTotalMb) * 100).toFixed(1) : undefined)
 
-  const uptimeStr = computeUptimeStr(gateway?.startedAt)
+  const uptimeStr = systemLoad?.uptimeSeconds !== undefined
+    ? formatUptimeSeconds(systemLoad.uptimeSeconds)
+    : formatUptimeDetailed(gateway?.startedAt)
+
+  const renderPlatformStatus = (status?: string) => {
+    const norm = status?.toUpperCase()
+    if (norm === 'CONNECTED' || norm === 'HEALTHY' || norm === 'ACTIVE') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          Connected
+        </span>
+      )
+    }
+    if (norm === 'DEGRADED') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500" />
+          Degraded
+        </span>
+      )
+    }
+    if (norm === 'UNAVAILABLE' || norm === 'OFFLINE') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] text-rose-600 dark:text-rose-400 font-medium">
+          <span className="h-1.5 w-1.5 rounded-full bg-rose-500" />
+          Unavailable
+        </span>
+      )
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] text-text-muted font-medium">
+        <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+        {norm || 'UNKNOWN'}
+      </span>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -61,14 +110,24 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
         <div className="p-4 rounded-lg border border-border bg-surface flex flex-col justify-between space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-[11px] text-text-muted font-medium">Hermes Gateway</span>
-            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+            <span
+              className={
+                gateway.state === 'HEALTHY'
+                  ? 'h-2 w-2 rounded-full bg-emerald-500'
+                  : gateway.state === 'STALE' || gateway.state === 'DEGRADED'
+                    ? 'h-2 w-2 rounded-full bg-amber-500'
+                    : gateway.state === 'OFFLINE'
+                      ? 'h-2 w-2 rounded-full bg-rose-500'
+                      : 'h-2 w-2 rounded-full bg-slate-400'
+              }
+            />
           </div>
           <div>
             <div className="text-base font-semibold text-text-primary tracking-tight">
               {gateway.state}
             </div>
             <p className="text-[11px] text-text-secondary truncate mt-0.5">
-              PID {gateway.pid ?? '18420'} • {gateway.host || 'sagara-hermes'}
+              PID {gateway.pid !== undefined ? gateway.pid : '—'} • {gateway.host || '—'}
             </p>
           </div>
           <div className="pt-2 border-t border-border flex justify-end">
@@ -91,7 +150,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
           </div>
           <div>
             <div className="text-base font-semibold text-text-primary tracking-tight">
-              {activeSessionsCount ?? 3} active
+              {activeSessionsCount !== undefined ? `${activeSessionsCount} active` : '—'}
             </div>
             <p className="text-[11px] text-text-secondary truncate mt-0.5">
               Current operational transcripts
@@ -117,7 +176,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
           </div>
           <div>
             <div className="text-base font-semibold text-text-primary tracking-tight">
-              {runningDelegationsCount ?? 1} running
+              {runningDelegationsCount !== undefined ? `${runningDelegationsCount} running` : '—'}
             </div>
             <p className="text-[11px] text-text-secondary truncate mt-0.5">
               Background worker tasks
@@ -143,7 +202,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
           </div>
           <div>
             <div className="text-base font-semibold text-text-primary tracking-tight">
-              {formatCurrencyUsd(totalCostEstimateUsd ?? 0.93)}
+              {totalCostEstimateUsd !== undefined ? formatCurrencyUsd(totalCostEstimateUsd) : '—'}
             </div>
             <p className="text-[11px] text-text-secondary truncate mt-0.5">
               Cumulative model inference estimate
@@ -172,28 +231,80 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
               <h3 className="text-xs font-semibold text-text-primary">
                 Core Services Health
               </h3>
-              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                ALL SYSTEMS OPERATIONAL
+              <span className="text-[10px] font-semibold text-text-muted bg-surface-subtle px-2 py-0.5 rounded border border-border">
+                SERVICES MONITORED
               </span>
             </div>
             <div className="space-y-2 text-xs">
               <div className="flex items-center justify-between p-2 rounded bg-surface-subtle border border-border">
                 <span className="text-text-primary font-medium">Mission Control API</span>
-                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Healthy (Same-Origin)
-                </span>
+                {(() => {
+                  const mcService = (servicesHealth || overview.servicesHealth)?.find((s) => s.name.includes('mission-control'))
+                  if (mcService && (mcService.health === 'HEALTHY' || mcService.activeState === 'active')) {
+                    return (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Healthy {mcService.mainPid ? `(PID ${mcService.mainPid})` : '(Same-Origin)'}
+                      </span>
+                    )
+                  }
+                  return (
+                    <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Healthy (Same-Origin)
+                    </span>
+                  )
+                })()}
               </div>
               <div className="flex items-center justify-between p-2 rounded bg-surface-subtle border border-border">
                 <span className="text-text-primary font-medium">Hermes Gateway</span>
-                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Healthy (PID {gateway.pid ?? '18420'})
-                </span>
+                {gateway.state === 'HEALTHY' ? (
+                  <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                    <CheckCircle2 className="h-3.5 w-3.5" /> Healthy {gateway.pid !== undefined ? `(PID ${gateway.pid})` : ''}
+                  </span>
+                ) : gateway.state === 'STALE' || gateway.state === 'DEGRADED' ? (
+                  <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                    <AlertTriangle className="h-3.5 w-3.5" /> {gateway.state === 'STALE' ? 'Stale' : 'Degraded'}
+                  </span>
+                ) : gateway.state === 'OFFLINE' ? (
+                  <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
+                    <XCircle className="h-3.5 w-3.5" /> Offline
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 text-text-muted font-medium">
+                    <span className="h-2 w-2 rounded-full bg-slate-400" /> UNKNOWN
+                  </span>
+                )}
               </div>
               <div className="flex items-center justify-between p-2 rounded bg-surface-subtle border border-border">
                 <span className="text-text-primary font-medium">9Router Inference Proxy</span>
-                <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> Healthy (Model Routing Active)
-                </span>
+                {(() => {
+                  const router = nineRouter || overview.routerHealth
+                  if (router?.health === 'HEALTHY' || router?.available) {
+                    return (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium">
+                        <CheckCircle2 className="h-3.5 w-3.5" /> Healthy {router.mainPid ? `(PID ${router.mainPid})` : ''}{router.modelsCount ? ` • ${router.modelsCount} models` : ''}
+                      </span>
+                    )
+                  }
+                  if (router?.health === 'DEGRADED') {
+                    return (
+                      <span className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400 font-medium">
+                        <AlertTriangle className="h-3.5 w-3.5" /> Degraded
+                      </span>
+                    )
+                  }
+                  if (router?.health === 'UNAVAILABLE') {
+                    return (
+                      <span className="inline-flex items-center gap-1 text-rose-600 dark:text-rose-400 font-medium">
+                        <XCircle className="h-3.5 w-3.5" /> Unavailable
+                      </span>
+                    )
+                  }
+                  return (
+                    <span className="inline-flex items-center gap-1 text-text-muted font-medium">
+                      <span className="h-2 w-2 rounded-full bg-slate-400" /> UNKNOWN
+                    </span>
+                  )
+                })()}
               </div>
             </div>
           </div>
@@ -205,29 +316,57 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
                 Host & Resource Health
               </h3>
               <span className="text-[11px] font-mono-tech text-text-muted">
-                {gateway.host || 'sagara-hermes-vps'} (Linux x86_64)
+                {gateway.host ? `${gateway.host} (Linux x86_64)` : '—'}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-2 text-xs">
               <div className="p-2.5 rounded bg-surface-subtle border border-border">
                 <span className="text-[11px] text-text-muted block">CPU Load</span>
-                <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">{cpuPercent}%</span>
-                <span className="text-[10px] text-text-muted">Load avg: 0.42, 0.38, 0.35</span>
+                <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">
+                  {cpuPercent !== undefined ? `${cpuPercent}%` : '—'}
+                </span>
+                <span className="text-[10px] text-text-muted">
+                  Load avg: {systemLoad?.load1m !== undefined ? `${systemLoad.load1m} / ${systemLoad.load5m} / ${systemLoad.load15m}` : (systemLoad?.loadAvg || '—')}
+                </span>
               </div>
               <div className="p-2.5 rounded bg-surface-subtle border border-border">
                 <span className="text-[11px] text-text-muted block">Memory (RAM)</span>
-                <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">{memUsedMb} MB</span>
-                <span className="text-[10px] text-text-muted">of {(memTotalMb / 1024).toFixed(1)} GB ({memPercent}%)</span>
+                {memUsedMb !== undefined ? (
+                  <>
+                    <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">{memUsedMb} MB</span>
+                    <span className="text-[10px] text-text-muted">{memTotalMb ? `of ${(memTotalMb / 1024).toFixed(1)} GB` : ''}{memPercent !== undefined ? ` (${memPercent}%)` : ''}</span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">—</span>
+                    <span className="text-[10px] text-text-muted">Memory metrics unavailable</span>
+                  </>
+                )}
               </div>
               <div className="p-2.5 rounded bg-surface-subtle border border-border">
                 <span className="text-[11px] text-text-muted block">Disk Storage</span>
-                <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">23.0%</span>
-                <span className="text-[10px] text-text-muted">18.4 GB used of 80.0 GB</span>
+                {systemLoad?.diskUsedGb !== undefined && systemLoad?.diskTotalGb !== undefined ? (
+                  <>
+                    <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">
+                      {systemLoad.diskUsedGb} GB of {systemLoad.diskTotalGb} GB
+                    </span>
+                    <span className="text-[10px] text-text-muted">
+                      {systemLoad.diskFreeGb !== undefined ? `${systemLoad.diskFreeGb} GB free` : ''}{systemLoad.diskPercent !== undefined ? ` (${systemLoad.diskPercent}% used)` : ''}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">—</span>
+                    <span className="text-[10px] text-text-muted">Storage telemetry unavailable</span>
+                  </>
+                )}
               </div>
               <div className="p-2.5 rounded bg-surface-subtle border border-border">
                 <span className="text-[11px] text-text-muted block">System Uptime</span>
                 <span className="font-mono-tech font-semibold text-sm text-text-primary mt-0.5 block">{uptimeStr}</span>
-                <span className="text-[10px] text-text-muted">0 restarts recorded</span>
+                <span className="text-[10px] text-text-muted">
+                  {gateway.restartCount !== undefined ? `${gateway.restartCount} restarts recorded` : 'Restarts: —'}
+                </span>
               </div>
             </div>
           </div>
@@ -249,25 +388,43 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
               <div className="flex items-center justify-between py-1.5 border-b border-border-subtle">
                 <span className="text-text-muted">Primary Models:</span>
                 <span className="font-mono-tech text-[11px] text-text-primary">
-                  claude-3-7-sonnet, gemini-2.5-flash, gpt-4o
+                  {currentModel || (usage?.byModel && usage.byModel.length > 0 ? usage.byModel.map((m) => m.name).join(', ') : 'UNKNOWN')}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-border-subtle">
                 <span className="text-text-muted">Model Providers:</span>
                 <span className="text-text-primary font-medium">
-                  Anthropic, Google, OpenAI
+                  {currentProvider || (usage?.byProvider && usage.byProvider.length > 0 ? usage.byProvider.map((p) => p.name).join(', ') : 'UNKNOWN')}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1.5 border-b border-border-subtle">
                 <span className="text-text-muted">Active Profiles:</span>
                 <span className="text-text-primary font-medium">
-                  8 registered / 7 enabled (<span className="text-interactive">sagara-lab, it-support</span> LIMITED)
+                  {policy?.profiles ? (
+                    (() => {
+                      const total = Object.keys(policy.profiles).length
+                      const enabled = Object.values(policy.profiles).filter((p) => p.status === 'ENABLED').length
+                      const limited = Object.entries(policy.profiles).filter(([, p]) => p.status === 'LIMITED').map(([id]) => id)
+                      return (
+                        <>
+                          {total} registered / {enabled} enabled
+                          {limited.length > 0 ? (
+                            <> (<span className="text-interactive">{limited.join(', ')}</span> LIMITED)</>
+                          ) : null}
+                        </>
+                      )
+                    })()
+                  ) : (
+                    'UNKNOWN'
+                  )}
                 </span>
               </div>
               <div className="flex items-center justify-between py-1.5">
                 <span className="text-text-muted">Session Storage:</span>
                 <span className="font-mono-tech text-[11px] text-text-secondary">
-                  Hermes SQLite /state.db (Synchronous NORMAL, WAL)
+                  {centralStoreSessions !== undefined
+                    ? `Hermes SQLite (${centralStoreSessions} central, ${profileLocalSessions ?? 0} local, ${aggregateDistinctSessions ?? centralStoreSessions} distinct)`
+                    : 'Hermes SQLite /state.db (Synchronous NORMAL, WAL)'}
                 </span>
               </div>
             </div>
@@ -289,10 +446,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
                   <MessageSquare className="h-3.5 w-3.5 text-indigo-500" />
                   <span className="text-text-primary font-medium">Discord Integration</span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Connected / Idle
-                </span>
+                {renderPlatformStatus(platforms?.discord)}
               </div>
 
               <div className="flex items-center justify-between p-2 rounded bg-surface-subtle border border-border">
@@ -300,10 +454,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
                   <Send className="h-3.5 w-3.5 text-sky-500" />
                   <span className="text-text-primary font-medium">Telegram Bot</span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Active / Long-Polling
-                </span>
+                {renderPlatformStatus(platforms?.telegram)}
               </div>
 
               <div className="flex items-center justify-between p-2 rounded bg-surface-subtle border border-border">
@@ -311,10 +462,7 @@ export const RuntimeOverview: React.FC<RuntimeOverviewProps> = ({
                   <Bot className="h-3.5 w-3.5 text-emerald-500" />
                   <span className="text-text-primary font-medium">WhatsApp Bridge</span>
                 </div>
-                <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                  Operational / Standby
-                </span>
+                {renderPlatformStatus(platforms?.whatsapp)}
               </div>
             </div>
           </div>

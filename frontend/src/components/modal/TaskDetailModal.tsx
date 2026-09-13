@@ -316,7 +316,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
                 items={[
                   { label: 'State', value: task.state },
                   { label: 'Progress', value: task.progress?.label || `${task.progress?.completed ?? 0} / ${task.progress?.total ?? 0}` },
-                  { label: 'Revision', value: `rev ${task.revision ?? 1} (v${task.version ?? 1})` },
+                  { label: 'Revision', value: `rev ${task.revision ?? '—'} (v${task.version ?? '—'})` },
                   { label: 'Updated At', value: task.updatedAt ? new Date(task.updatedAt).toLocaleString() : '—' },
                 ]}
               />

@@ -3,16 +3,38 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
 import { useTheme } from '@/app/theme-provider'
 import { Button } from '@/components/ui/button'
-import { Monitor, Moon, Sun, Lock, CheckCircle2, Radio, GitBranch } from 'lucide-react'
+import {
+  Monitor,
+  Moon,
+  Sun,
+  Lock,
+  CheckCircle2,
+  Radio,
+  GitBranch,
+  AlertTriangle,
+  XCircle,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ActionSafetyCard } from '@/features/action-safety/components/ActionSafetyCard'
 import { useRealtimeStore } from '@/features/realtime'
-import { useGatewayTelemetry } from '@/api/hooks'
+import {
+  useGatewayTelemetry,
+  useExecutionLock,
+  useExecutionPolicy,
+  useExecutionReadiness,
+  useMyPrincipal,
+  useReleaseMetadata,
+} from '@/api/hooks'
 
 export const SettingsPage: React.FC = () => {
   const { preference, resolvedTheme, setTheme } = useTheme()
   const realtimeStatus = useRealtimeStore((s) => s.status)
   const { data: gateway } = useGatewayTelemetry()
+  const { data: lockInfo } = useExecutionLock()
+  const { data: policy } = useExecutionPolicy()
+  const { data: readiness, error: readinessError } = useExecutionReadiness()
+  const { data: principal } = useMyPrincipal()
+  const { data: release } = useReleaseMetadata()
 
   return (
     <div className="space-y-6">
@@ -67,32 +89,62 @@ export const SettingsPage: React.FC = () => {
         {/* 2. Execution Safety Section */}
         <SectionCard
           title="Execution Safety"
-          description="Enforced guardrails from ProductionExecutionPolicy V3 and tool isolation contracts."
+          description="Enforced guardrails from ProductionExecutionPolicy and tool isolation contracts."
         >
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Policy Version:</span>
+              <span className="text-text-muted">Policy Name:</span>
               <span className="font-mono-tech text-[11px] font-semibold text-text-primary">
-                Policy V3
+                {release?.productionPolicy || policy?.version || 'UNKNOWN'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Policy Hash:</span>
+              <span className="font-mono-tech text-[11px] text-text-secondary" title={release?.policyHash || policy?.policy_hash}>
+                {release?.policyHash ? `${release.policyHash.slice(0, 16)}...` : policy?.policy_hash ? `${policy.policy_hash.slice(0, 16)}...` : '—'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Execution Gate:</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px]">
-                <Lock className="h-3 w-3" />
-                LOCKED
-              </span>
+              {lockInfo?.is_locked || lockInfo?.status === 'LOCKED' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px]">
+                  <Lock className="h-3 w-3" />
+                  LOCKED
+                </span>
+              ) : lockInfo?.status === 'UNLOCKED' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30 font-semibold text-[10px]">
+                  <Lock className="h-3 w-3" />
+                  UNLOCKED
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-subtle text-text-muted border border-border font-medium text-[10px]">
+                  UNKNOWN
+                </span>
+              )}
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Active Windows:</span>
               <span className="font-mono-tech text-[11px] text-text-primary">
-                0 (Budget Exhausted / Closed)
+                {lockInfo ? (lockInfo.active_window ? `1 (Active: ${lockInfo.active_window.id})` : '0 (Closed)') : '—'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Profile Allowlist:</span>
               <span className="text-[11px] text-text-secondary">
-                <span className="text-interactive font-medium">sagara-lab, it-support</span> (LIMITED)
+                {policy?.profiles ? (
+                  (() => {
+                    const limited = Object.entries(policy.profiles).filter(([, p]) => p.status === 'LIMITED').map(([id]) => id)
+                    return limited.length > 0 ? (
+                      <>
+                        <span className="text-interactive font-medium">{limited.join(', ')}</span> (LIMITED)
+                      </>
+                    ) : (
+                      'None (LIMITED)'
+                    )
+                  })()
+                ) : (
+                  'UNKNOWN'
+                )}
               </span>
             </div>
           </div>
@@ -166,28 +218,42 @@ export const SettingsPage: React.FC = () => {
         >
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Platform:</span>
+              <span className="text-text-muted">Mission Control Release:</span>
               <span className="font-semibold text-text-primary">
-                Mission Control V1
+                {release?.platform || 'Mission Control'}{release?.missionControlVersion ? ` v${release.missionControlVersion}` : ' V1'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Mission Control Commit:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary flex items-center gap-1">
+                <GitBranch className="h-3 w-3 text-text-muted" />
+                {release?.missionControlCommit ? release.missionControlCommit.slice(0, 8) : '—'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Runtime Contract:</span>
               <span className="font-mono-tech text-[11px] text-text-primary">
-                SAGARA_HERMES_V1
+                {release?.runtimeContract || 'SAGARA_HERMES_RUNTIME_CONTRACT_V1'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Sagara Commit:</span>
-              <span className="font-mono-tech text-[11px] text-interactive flex items-center gap-1">
+              <span className="text-text-muted">Sagara Deployed Commit:</span>
+              <span className="font-mono-tech text-[11px] text-interactive flex items-center gap-1" title={release?.sagaraDeployedCommit}>
                 <GitBranch className="h-3 w-3" />
-                8f3b2a1 (Freeze)
+                {release?.sagaraDeployedCommit ? `${release.sagaraDeployedCommit.slice(0, 8)} (Deployed)` : '—'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Sagara Freeze Baseline:</span>
+              <span className="font-mono-tech text-[11px] text-text-secondary flex items-center gap-1" title={release?.sagaraFreezeCommit || 'babbd61618f6eb3db99109ba24e0d49b2c9b97d7'}>
+                <GitBranch className="h-3 w-3" />
+                {release?.sagaraFreezeCommit ? `${release.sagaraFreezeCommit.slice(0, 8)} (Historical Baseline)` : 'babbd616 (Historical Baseline)'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-text-muted">Hermes Gateway:</span>
+              <span className="text-text-muted">Hermes Version:</span>
               <span className="font-mono-tech text-[11px] text-text-secondary">
-                {gateway?.backendId || 'hermes-core-01'} (PID {gateway?.pid ?? '18420'})
+                {release?.hermesVersion ? `v${release.hermesVersion}` : ''} {gateway?.backendId ? `(${gateway.backendId}${gateway.pid !== undefined ? `, PID ${gateway.pid}` : ''})` : 'UNAVAILABLE'}
               </span>
             </div>
           </div>
@@ -207,10 +273,26 @@ export const SettingsPage: React.FC = () => {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Backend Health:</span>
-              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                <CheckCircle2 className="h-3.5 w-3.5" />
-                HEALTHY
-              </span>
+              {readinessError ? (
+                <span className="text-rose-600 dark:text-rose-400 font-medium flex items-center gap-1">
+                  <XCircle className="h-3.5 w-3.5" />
+                  UNAVAILABLE
+                </span>
+              ) : readiness?.infrastructureReady ? (
+                <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  HEALTHY
+                </span>
+              ) : readiness ? (
+                <span className="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                  DEGRADED
+                </span>
+              ) : (
+                <span className="text-text-muted font-medium flex items-center gap-1">
+                  CHECKING...
+                </span>
+              )}
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Direct Hermes Access:</span>
@@ -221,7 +303,7 @@ export const SettingsPage: React.FC = () => {
             <div className="flex justify-between items-center py-2">
               <span className="text-text-muted">Operator Principal:</span>
               <span className="font-medium text-text-primary">
-                Authorized Operator
+                {principal?.displayName || principal?.id || 'Authorized Operator'}
               </span>
             </div>
           </div>

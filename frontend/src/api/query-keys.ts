@@ -31,6 +31,11 @@ export const queryKeys = {
   runtime: {
     overview: () => ['runtime', 'overview'] as const,
     gateway: () => ['runtime', 'gateway'] as const,
+    vps: () => ['runtime', 'vps'] as const,
+    services: () => ['runtime', 'services'] as const,
+    nineRouter: () => ['runtime', 'nineRouter'] as const,
+    sources: () => ['runtime', 'sources'] as const,
+    release: () => ['runtime', 'release'] as const,
     usage: () => ['runtime', 'usage'] as const,
     events: (filters?: Record<string, unknown>) => ['runtime', 'events', filters] as const,
   },

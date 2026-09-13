@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ThemeSwitcher } from '@/components/shell/ThemeSwitcher'
 import { cn } from '@/lib/utils'
+import { useGatewayTelemetry } from '@/api/hooks'
 
 interface NavItem {
   label: string;
@@ -75,9 +76,22 @@ interface AppSidebarProps {
 
 export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
   const { isSidebarCollapsed, toggleSidebar, setMobileSidebarOpen } = useUIStore()
+  const { data: gateway } = useGatewayTelemetry()
 
   // On mobile drawer, always show expanded view with labels
   const collapsed = isMobile ? false : isSidebarCollapsed
+
+  const isHealthy = gateway?.state === 'HEALTHY'
+  const isDegraded = gateway?.state === 'DEGRADED' || gateway?.state === 'STALE'
+  const isOffline = gateway?.state === 'OFFLINE'
+  const dotColor = isHealthy
+    ? 'bg-emerald-500'
+    : isDegraded
+      ? 'bg-amber-500'
+      : isOffline
+        ? 'bg-rose-500'
+        : 'bg-text-muted/60'
+  const statusTitle = `${gateway?.state || 'Environment'} • Mission Control V1 (PRIVATE)`
 
   return (
     <aside
@@ -204,7 +218,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
         {!collapsed ? (
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-surface border border-border text-[11px] text-text-secondary">
             <span className="flex items-center gap-1.5 font-medium">
-              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span className={cn('h-1.5 w-1.5 rounded-full', dotColor)} />
               <span>Mission Control V1</span>
             </span>
             <span className="text-[10px] font-semibold text-text-muted px-1.5 py-0.5 rounded bg-surface-raised border border-border">
@@ -213,7 +227,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
           </div>
         ) : (
           <div className="flex justify-center py-1">
-            <span className="h-2 w-2 rounded-full bg-emerald-500" title="Healthy • Mission Control V1 (PRIVATE)" />
+            <span className={cn('h-2 w-2 rounded-full', dotColor)} title={statusTitle} />
           </div>
         )}
       </div>

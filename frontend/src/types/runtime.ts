@@ -159,6 +159,104 @@ export interface SystemLoadMetrics {
   memoryUsedMb?: number;
   memoryTotalMb?: number;
   memoryPercent?: number;
+  swapUsedMb?: number;
+  swapTotalMb?: number;
+  diskUsedGb?: number;
+  diskTotalGb?: number;
+  diskFreeGb?: number;
+  diskPercent?: number;
+  load1m?: number;
+  load5m?: number;
+  load15m?: number;
+  loadAvg?: string;
+  uptimeSeconds?: number;
+  hostname?: string;
+}
+
+export interface VpsHealth {
+  hostname: string;
+  uptimeSeconds: number;
+  cpuPercent?: number;
+  load1m?: number;
+  load5m?: number;
+  load15m?: number;
+  ramTotalMb?: number;
+  ramUsedMb?: number;
+  ramPercent?: number;
+  swapTotalMb?: number;
+  swapUsedMb?: number;
+  diskTotalGb?: number;
+  diskUsedGb?: number;
+  diskFreeGb?: number;
+  diskPercent?: number;
+  observedAt: string;
+  health: 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE' | 'UNKNOWN';
+}
+
+export interface ServiceHealth {
+  name: string;
+  activeState: string;
+  subState: string;
+  mainPid?: number;
+  restartCount?: number;
+  activeSince?: string;
+  observedAt: string;
+  health: 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE' | 'UNKNOWN';
+}
+
+export interface NineRouterHealth {
+  available: boolean;
+  endpoint: string;
+  statusCode?: number;
+  modelsCount?: number;
+  activeState?: string;
+  mainPid?: number;
+  observedAt: string;
+  health: 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE' | 'UNKNOWN';
+}
+
+export interface SagaraSourceStatus {
+  configured: boolean;
+  discovered: boolean;
+  sourceVersion?: string;
+  commit?: string;
+  freezeCommit: string;
+  profilesLoaded: number;
+  skillsLoaded: number;
+  channelsLoaded: number;
+  observedAt: string;
+  health: 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE' | 'UNKNOWN';
+}
+
+export interface HermesSourceStatus {
+  configured: boolean;
+  discovered: boolean;
+  version?: string;
+  gateway?: string;
+  stateStore?: string;
+  profileStores: number;
+  observedAt: string;
+  health: 'HEALTHY' | 'DEGRADED' | 'UNAVAILABLE' | 'UNKNOWN';
+}
+
+export interface SourceDiscoveryStatus {
+  sagara: SagaraSourceStatus;
+  hermes: HermesSourceStatus;
+  runtimeContract: string;
+  observedAt: string;
+}
+
+export interface ReleaseMetadata {
+  platform: string;
+  missionControlVersion: string;
+  missionControlCommit?: string;
+  sagaraDeployedCommit?: string;
+  sagaraFreezeCommit: string;
+  hermesVersion?: string;
+  runtimeContract: string;
+  productionPolicy: string;
+  policyHash: string;
+  observedAt: string;
 }
 
 export interface RuntimeOverview {
@@ -175,6 +273,15 @@ export interface RuntimeOverview {
   totalCostEstimateUsd?: number;
   recentEvents: RuntimeEvent[];
   systemLoad?: SystemLoadMetrics;
+  centralStoreSessions?: number;
+  profileLocalSessions?: number;
+  aggregateDistinctSessions?: number;
+  currentModel?: string;
+  currentProvider?: string;
+  platforms?: Record<string, string>;
+  vpsHealth?: VpsHealth;
+  servicesHealth?: ServiceHealth[];
+  routerHealth?: NineRouterHealth;
 }
 
 export interface ActivityEvent {
@@ -185,3 +292,4 @@ export interface ActivityEvent {
   message: string;
   metadata?: Record<string, unknown>;
 }
+
