@@ -5,7 +5,7 @@ import * as THREE from 'three'
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib'
 import type { OfficeCameraPreset } from '../types'
 import { DEFAULT_CAMERA_PRESET, calculateFollowCamera, clampZoomDistance } from './camera-presets'
-import { clampCameraTarget } from './camera-navigation'
+import { clampCameraTarget, applyWasdMovement, type WasdKeys } from './camera-navigation'
 
 export type CameraAction = 'zoom-in' | 'zoom-out' | 'left' | 'right' | 'up' | 'down'
 
@@ -14,6 +14,8 @@ interface CameraControllerProps {
   followTarget?: [number, number, number] | null
   onUserInteraction?: () => void
   command?: { action: CameraAction; revision: number } | null
+  keysRef?: React.RefObject<WasdKeys>
+  isNavActive?: boolean
 }
 
 export const CameraController: React.FC<CameraControllerProps> = ({
@@ -21,6 +23,8 @@ export const CameraController: React.FC<CameraControllerProps> = ({
   followTarget,
   onUserInteraction,
   command,
+  keysRef,
+  isNavActive = false,
 }) => {
   const controlsRef = useRef<OrbitControlsImpl>(null)
   const { camera } = useThree()
@@ -32,6 +36,7 @@ export const CameraController: React.FC<CameraControllerProps> = ({
   const transitioning = useRef(true)
   const manuallyExitedFollow = useRef(false)
   const scratch = useRef(new THREE.Vector3())
+  const scratchForward = useRef(new THREE.Vector3())
 
   // Check prefers-reduced-motion
   useEffect(() => {
@@ -105,6 +110,27 @@ export const CameraController: React.FC<CameraControllerProps> = ({
   // Smooth frame loop interpolation (Rule 28)
   useFrame((_, delta) => {
     if (!controlsRef.current) return
+
+    // Continuous WASD navigation (frame-rate independent, camera-relative, zero-allocation)
+    if (isNavActive && keysRef?.current) {
+      const keys = keysRef.current
+      if (keys.w || keys.a || keys.s || keys.d) {
+        if (transitioning.current || followTarget) {
+          beginManual()
+        }
+        camera.getWorldDirection(scratchForward.current)
+        const moved = applyWasdMovement(
+          camera.position,
+          controlsRef.current.target,
+          keys,
+          scratchForward.current,
+          delta
+        )
+        if (moved) {
+          controlsRef.current.update()
+        }
+      }
+    }
 
     // Lerp factor adjusted by delta for frame-rate independence
     if (transitioning.current) {

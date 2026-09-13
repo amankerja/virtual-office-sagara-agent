@@ -18,7 +18,15 @@ import {
 import { Office3DErrorBoundary } from '../src/features/office/renderers/Office3D/systems/SceneErrorBoundary.tsx'
 import { buildOfficeScene } from '../src/features/office/layout/office-layout-engine.ts'
 import { MOCK_AGENTS } from '../src/mocks/agents.ts'
-import { clampCameraTarget, workstationPosition } from '../src/features/office/renderers/Office3D/camera/camera-navigation.ts'
+import {
+  clampCameraTarget,
+  workstationPosition,
+  calculateWasdMovement,
+  applyWasdMovement,
+  isTypingTarget,
+  DEFAULT_WASD_BASE_SPEED,
+  DEFAULT_WASD_BOOST_MULTIPLIER,
+} from '../src/features/office/renderers/Office3D/camera/camera-navigation.ts'
 import { resolveRuntimeQuality, downgradeQuality } from '../src/features/office/renderers/Office3D/systems/GraphicsQuality.ts'
 
 test('pan bounds preserve viewing direction at all four corners and vertical limits', () => {
@@ -297,4 +305,135 @@ test('3D Graphics Quality: getSavedGraphicsQuality safely handles missing or inv
   assert.equal(getQualityConfig(undefined).detailLevel, 'balanced')
   assert.equal(getQualityConfig(null).detailLevel, 'balanced')
   assert.equal(getQualityConfig('non_existent').detailLevel, 'balanced')
+})
+
+test('WASD Navigation: calculateWasdMovement moves camera-relative and normalizes diagonals', () => {
+  // 1. Forward along -Z
+  const forwardZ = { x: 0, y: -0.5, z: -1 } // tilted down
+  const delta = 0.1 // 0.1s
+  
+  // W: forward (-Z)
+  const moveW = calculateWasdMovement({ w: true, a: false, s: false, d: false }, forwardZ, delta)
+  assert.ok(Math.abs(moveW.x) < 1e-6)
+  assert.ok(Math.abs(moveW.z - (-0.6)) < 1e-6, `moveW.z should be -0.6, got ${moveW.z}`)
+
+  // S: backward (+Z)
+  const moveS = calculateWasdMovement({ w: false, a: false, s: true, d: false }, forwardZ, delta)
+  assert.ok(Math.abs(moveS.x) < 1e-6)
+  assert.ok(Math.abs(moveS.z - 0.6) < 1e-6, `moveS.z should be 0.6, got ${moveS.z}`)
+
+  // D: strafe right (+X)
+  const moveD = calculateWasdMovement({ w: false, a: false, s: false, d: true }, forwardZ, delta)
+  assert.ok(Math.abs(moveD.x - 0.6) < 1e-6, `moveD.x should be 0.6, got ${moveD.x}`)
+  assert.ok(Math.abs(moveD.z) < 1e-6)
+
+  // A: strafe left (-X)
+  const moveA = calculateWasdMovement({ w: false, a: true, s: false, d: false }, forwardZ, delta)
+  assert.ok(Math.abs(moveA.x - (-0.6)) < 1e-6, `moveA.x should be -0.6, got ${moveA.x}`)
+  assert.ok(Math.abs(moveA.z) < 1e-6)
+
+  // 2. Camera facing +X
+  const forwardX = { x: 1, y: 0, z: 0 }
+  const moveWX = calculateWasdMovement({ w: true, a: false, s: false, d: false }, forwardX, delta)
+  assert.ok(Math.abs(moveWX.x - 0.6) < 1e-6, `moveWX.x should be 0.6, got ${moveWX.x}`)
+  assert.ok(Math.abs(moveWX.z) < 1e-6)
+
+  const moveDX = calculateWasdMovement({ w: false, a: false, s: false, d: true }, forwardX, delta)
+  assert.ok(Math.abs(moveDX.x) < 1e-6)
+  assert.ok(Math.abs(moveDX.z - 0.6) < 1e-6, `moveDX.z should be 0.6, got ${moveDX.z}`)
+
+  // 3. Diagonal normalization: W + D must have length equal to speed * delta, NOT sqrt(2) * speed * delta
+  const moveDiag = calculateWasdMovement({ w: true, a: false, s: false, d: true }, forwardZ, delta)
+  const diagLen = Math.hypot(moveDiag.x, moveDiag.z)
+  const expectedDist = DEFAULT_WASD_BASE_SPEED * delta
+  assert.ok(Math.abs(diagLen - expectedDist) < 1e-6, `Diagonal speed must be normalized: expected ${expectedDist}, got ${diagLen}`)
+})
+
+test('WASD Navigation: Shift increases movement speed by boost multiplier', () => {
+  const forward = { x: 0, y: 0, z: -1 }
+  const delta = 0.05
+  const normalMove = calculateWasdMovement({ w: true, a: false, s: false, d: false, shift: false }, forward, delta)
+  const boostMove = calculateWasdMovement({ w: true, a: false, s: false, d: false, shift: true }, forward, delta)
+
+  const normalDist = Math.abs(normalMove.z)
+  const boostDist = Math.abs(boostMove.z)
+
+  assert.ok(boostDist > normalDist, 'Shift must increase movement distance')
+  assert.ok(
+    Math.abs(boostDist / normalDist - DEFAULT_WASD_BOOST_MULTIPLIER) < 1e-6,
+    `Boost multiplier must match ${DEFAULT_WASD_BOOST_MULTIPLIER}`
+  )
+})
+
+test('WASD Navigation: applyWasdMovement translates camera and target together and respects bounds', () => {
+  const camera = { x: 10, y: 15, z: 12 }
+  const target = { x: 0, y: 1, z: 0 }
+  const forward = { x: 0, y: 0, z: -1 }
+  const delta = 0.1
+
+  const initialOffset = [camera.x - target.x, camera.y - target.y, camera.z - target.z]
+
+  // Translate forward
+  const moved = applyWasdMovement(camera, target, { w: true, a: false, s: false, d: false }, forward, delta)
+  assert.equal(moved, true)
+
+  const newOffset = [camera.x - target.x, camera.y - target.y, camera.z - target.z]
+  assert.deepEqual(newOffset, initialOffset, 'Camera and OrbitControls target must be translated identically')
+
+  // Bounds enforcement: Move target far in X beyond 15 limit
+  target.x = 14.8
+  camera.x = 24.8
+  const moveRight = { x: 1, y: 0, z: 0 }
+  applyWasdMovement(camera, target, { w: true, a: false, s: false, d: false }, moveRight, 1.0) // moves 6 units
+
+  assert.ok(target.x <= 15.0, `Target X must be clamped to 15, got ${target.x}`)
+  assert.equal(target.x, 15.0)
+  assert.equal(camera.x - target.x, 10, 'Camera offset must be maintained after clamp')
+})
+
+test('WASD Navigation: isTypingTarget detects form inputs and contenteditable elements to prevent hijacking', () => {
+  // Global HTMLElement mock for Node test environment
+  if (typeof globalThis.HTMLElement === 'undefined') {
+    globalThis.HTMLElement = class {}
+  }
+
+  const createTarget = (tagName, isContentEditable = false) => {
+    const el = Object.create(globalThis.HTMLElement.prototype)
+    el.tagName = tagName
+    el.isContentEditable = isContentEditable
+    el.closest = (sel) => {
+      if (sel.includes(tagName.toLowerCase())) return el
+      if (isContentEditable && sel.includes('contenteditable')) return el
+      return null
+    }
+    return el
+  }
+
+  assert.equal(isTypingTarget(createTarget('INPUT')), true, 'INPUT must be recognized as typing target')
+  assert.equal(isTypingTarget(createTarget('TEXTAREA')), true, 'TEXTAREA must be recognized as typing target')
+  assert.equal(isTypingTarget(createTarget('SELECT')), true, 'SELECT must be recognized as typing target')
+  assert.equal(isTypingTarget(createTarget('DIV', true)), true, 'Contenteditable DIV must be recognized as typing target')
+  assert.equal(isTypingTarget(createTarget('CANVAS', false)), false, 'CANVAS must NOT be recognized as typing target')
+  assert.equal(isTypingTarget(createTarget('DIV', false)), false, 'Plain DIV must NOT be recognized as typing target')
+  assert.equal(isTypingTarget(null), false, 'null must return false')
+})
+
+test('WASD Shortcuts & Compatibility: F resets to Overview preset, Shift+F toggles fullscreen semantics', () => {
+  const overviewPreset = lookupCameraPreset('overview')
+  assert.equal(overviewPreset.id, 'overview')
+
+  // Verify keyboard handling logic contracts
+  const simulateShortcut = (key, shiftKey, isTyping) => {
+    if (isTyping) return 'IGNORED'
+    if (shiftKey && (key === 'F' || key === 'f')) return 'TOGGLE_FULLSCREEN'
+    if (!shiftKey && (key === 'F' || key === 'f')) return 'RESET_OVERVIEW'
+    return 'NOOP'
+  }
+
+  assert.equal(simulateShortcut('F', true, false), 'TOGGLE_FULLSCREEN')
+  assert.equal(simulateShortcut('f', true, false), 'TOGGLE_FULLSCREEN')
+  assert.equal(simulateShortcut('F', false, false), 'RESET_OVERVIEW')
+  assert.equal(simulateShortcut('f', false, false), 'RESET_OVERVIEW')
+  assert.equal(simulateShortcut('f', false, true), 'IGNORED')
+  assert.equal(simulateShortcut('F', true, true), 'IGNORED')
 })

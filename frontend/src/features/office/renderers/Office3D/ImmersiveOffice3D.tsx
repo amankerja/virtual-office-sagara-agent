@@ -1,9 +1,9 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Canvas } from '@react-three/fiber'
 import * as THREE from 'three'
 import { PerformanceMonitor } from '@react-three/drei'
 import { getOfficePalette } from './systems/OfficePalette'
-import { workstationPosition } from './camera/camera-navigation'
+import { workstationPosition, isTypingTarget, type WasdKeys } from './camera/camera-navigation'
 import type { CameraAction } from './camera/CameraController'
 import { CameraController } from './camera/CameraController'
 import { CAMERA_PRESETS, DEFAULT_CAMERA_PRESET } from './camera/camera-presets'
@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
   Maximize2,
+  Minimize2,
   UserCheck,
   X,
   Compass,
@@ -68,8 +69,64 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
 
   const isFollowing = rawIsFollowing && !!focusedAgentId
 
-  const followTarget = useMemo((): [number, number, number] => {
-    if (!isFollowing || !focusedAgentId) return [0, 0, 0]
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isFocused, setIsFocused] = useState(false)
+  const keysRef = useRef<WasdKeys>({ w: false, a: false, s: false, d: false, shift: false })
+
+  const isFullscreenSupported = typeof document !== 'undefined' && Boolean(
+    document.fullscreenEnabled ??
+    (document as any).webkitFullscreenEnabled ??
+    (document.documentElement && ('requestFullscreen' in document.documentElement || 'webkitRequestFullscreen' in document.documentElement))
+  )
+
+  const toggleFullscreen = useCallback(async () => {
+    try {
+      const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement
+      if (fsEl) {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen()
+        } else if ((document as any).webkitExitFullscreen) {
+          await (document as any).webkitExitFullscreen()
+        }
+      } else if (containerRef.current) {
+        if (containerRef.current.requestFullscreen) {
+          await containerRef.current.requestFullscreen()
+        } else if ((containerRef.current as any).webkitRequestFullscreen) {
+          await (containerRef.current as any).webkitRequestFullscreen()
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen toggle failed:', err)
+    }
+  }, [])
+
+  // Fullscreen change & window blur listeners
+  useEffect(() => {
+    const handleFsChange = () => {
+      const fsEl = document.fullscreenElement || (document as any).webkitFullscreenElement
+      const isFs = fsEl === containerRef.current
+      setIsFullscreen(isFs)
+      keysRef.current = { w: false, a: false, s: false, d: false, shift: false }
+    }
+
+    const handleWindowBlur = () => {
+      keysRef.current = { w: false, a: false, s: false, d: false, shift: false }
+    }
+
+    document.addEventListener('fullscreenchange', handleFsChange)
+    document.addEventListener('webkitfullscreenchange', handleFsChange)
+    window.addEventListener('blur', handleWindowBlur)
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange)
+      document.removeEventListener('webkitfullscreenchange', handleFsChange)
+      window.removeEventListener('blur', handleWindowBlur)
+    }
+  }, [])
+
+  const followTarget = useMemo((): [number, number, number] | null => {
+    if (!isFollowing || !focusedAgentId) return null
     let foundPos: [number, number, number] | null = null
     const spec = scene.desks
     spec.forEach((d, idx) => {
@@ -79,7 +136,7 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
       }
     })
 
-    return foundPos || [0, 0, 0]
+    return foundPos
   }, [isFollowing, focusedAgentId, scene.desks])
 
   const handleSelectPreset = useCallback((preset: OfficeCameraPreset) => {
@@ -98,30 +155,95 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
     setActivePreset({ ...CAMERA_PRESETS.overview })
   }, [])
 
-  // Keyboard shortcuts: 'F' -> fit overview, 'Esc' -> exit follow
+  // Keyboard navigation & shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || (e.target instanceof HTMLElement && e.target.closest('input, textarea, select, [contenteditable="true"]'))) return
-      if (e.key === 'f' || e.key === 'F') {
+      if (e.ctrlKey || e.metaKey || e.altKey) return
+      if (isTypingTarget(e.target)) return
+
+      // Fullscreen shortcut: Shift + F
+      if (e.shiftKey && (e.key === 'F' || e.key === 'f')) {
+        e.preventDefault()
+        void toggleFullscreen()
+        return
+      }
+
+      // Fit / Overview: F (without Shift)
+      if (!e.shiftKey && (e.key === 'f' || e.key === 'F')) {
+        e.preventDefault()
         setRawIsFollowing(false)
         setActivePreset({ ...CAMERA_PRESETS.overview })
-      } else if (e.key === 'Escape') {
-        if (isFollowing) {
+        return
+      }
+
+      // Escape: exit follow mode when not fullscreen (browser handles Esc in fullscreen)
+      if (e.key === 'Escape') {
+        if (!isFullscreen && isFollowing) {
           setRawIsFollowing(false)
           setActivePreset({ ...CAMERA_PRESETS.overview })
         }
+        return
+      }
+
+      // WASD continuous navigation (only active when viewport is focused or in fullscreen)
+      if (isFocused || isFullscreen) {
+        const key = e.key.toLowerCase()
+        if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+          keysRef.current[key] = true
+          keysRef.current.shift = e.shiftKey
+          // Prevent default scroll
+          e.preventDefault()
+        } else if (e.key === 'Shift') {
+          keysRef.current.shift = true
+        }
       }
     }
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase()
+      if (key === 'w' || key === 'a' || key === 's' || key === 'd') {
+        keysRef.current[key] = false
+      }
+      if (e.key === 'Shift') {
+        keysRef.current.shift = false
+      } else {
+        keysRef.current.shift = e.shiftKey
+      }
+    }
+
     window.addEventListener('keydown', handleKeyDown)
-    return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [isFollowing])
+    window.addEventListener('keyup', handleKeyUp)
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      window.removeEventListener('keyup', handleKeyUp)
+    }
+  }, [isFollowing, isFullscreen, isFocused, toggleFullscreen])
 
   const focusedAgent = useMemo(() => {
     return scene.desks.find((d) => d.agentId === focusedAgentId)?.agent
   }, [scene.desks, focusedAgentId])
 
   return (
-    <div className="relative w-full h-165 md:h-180 rounded-xl overflow-hidden border border-border bg-slate-950 select-none">
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      role="region"
+      aria-label="3D Virtual Office Viewport. Use WASD keys to navigate, Shift to boost speed, F to fit overview, Shift+F to toggle fullscreen."
+      className={`relative select-none outline-none focus:outline-none transition-all duration-200 ${
+        isFullscreen
+          ? 'fixed inset-0 z-50 w-screen h-screen rounded-none border-0 bg-slate-950'
+          : 'w-full h-165 md:h-180 rounded-xl overflow-hidden border border-border bg-slate-950'
+      }`}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => {
+        setIsFocused(false)
+        keysRef.current = { w: false, a: false, s: false, d: false, shift: false }
+      }}
+      onPointerDown={() => {
+        containerRef.current?.focus()
+      }}
+    >
       {/* 3D WebGL Canvas Viewport */}
       <Canvas
         key={canvasKey}
@@ -167,6 +289,8 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
           preset={activePreset}
           followTarget={followTarget}
           command={cameraCommand}
+          keysRef={keysRef}
+          isNavActive={isFocused || isFullscreen}
           onUserInteraction={() => setRawIsFollowing(false)}
         />
 
@@ -280,10 +404,30 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
               setActivePreset({ ...CAMERA_PRESETS.overview })
             }}
             title="Reset to Overview [F]"
+            aria-label="Reset to Overview [F]"
             className="h-7 px-2 text-xs text-text-muted hover:text-text-primary gap-1 font-mono-tech"
           >
-            <Maximize2 className="w-3.5 h-3.5" />
+            <RotateCcw className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Fit [F]</span>
+          </Button>
+
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={toggleFullscreen}
+            disabled={!isFullscreenSupported}
+            aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+            title={
+              !isFullscreenSupported
+                ? 'Fullscreen not supported in this browser'
+                : isFullscreen
+                ? 'Exit Fullscreen (Esc or Shift+F)'
+                : 'Fullscreen (Shift+F)'
+            }
+            className="h-7 px-2 text-xs text-text-muted hover:text-text-primary gap-1 font-mono-tech"
+          >
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">{isFullscreen ? 'Exit' : 'Fullscreen'}</span>
           </Button>
         </div>
       </div>
@@ -323,9 +467,18 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
             <RotateCcw className="h-4 w-4" />
           </button>
         </div>
-        <div className="max-w-88 px-3 py-2 rounded-md bg-surface/90 border border-border text-xs text-text-secondary pointer-events-none">
-          <span className="hidden md:block">Rotate: left drag / Zoom: scroll / Pan: right drag</span>
-          <span>Touch: one finger rotates / Two fingers pan or pinch</span>
+        <div className="max-w-md px-3 py-1.5 rounded-md bg-surface/90 backdrop-blur-md border border-border text-[11px] text-text-secondary pointer-events-none leading-relaxed">
+          <div className="hidden md:flex flex-col gap-0.5">
+            <span className="font-mono-tech text-text-primary/90">
+              {isFullscreen
+                ? 'WASD Move · Shift Boost · Esc Exit Fullscreen'
+                : 'WASD Move · Shift Boost · Drag Rotate · Right-drag Pan · Scroll Zoom · F Fit · Shift+F Fullscreen'}
+            </span>
+            <span className="text-[10px] text-text-muted">
+              {isFocused || isFullscreen ? '● WASD navigation active' : '○ Click 3D view for keyboard navigation'}
+            </span>
+          </div>
+          <span className="md:hidden">Touch: one finger rotate · Two fingers pan/pinch</span>
         </div>
       </div>
     </div>
