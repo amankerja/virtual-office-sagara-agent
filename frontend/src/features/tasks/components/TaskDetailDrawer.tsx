@@ -434,6 +434,51 @@ export const TaskDetailDrawer: React.FC<TaskDetailDrawerProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Production Execution Policy & Telemetry */}
+                  <div className="p-3.5 rounded-lg border border-border bg-surface space-y-2">
+                    <span className="text-[11px] font-mono-tech text-text-muted uppercase tracking-wider block">
+                      Production Execution Policy & Telemetry
+                    </span>
+                    <div className="p-3 rounded-md bg-surface-subtle border border-border space-y-2 text-xs font-mono-tech">
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Task class</span>
+                        <span className="font-semibold text-text-primary">
+                          {task.taskClass || 'REASONING_ONLY'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Execution policy</span>
+                        <span className="font-semibold text-text-primary">
+                          {task.executionPolicy || 'V1'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Execution mode</span>
+                        <span className="font-semibold text-text-primary">
+                          {task.executionMode || 'SAFE_NO_TOOLS'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Receipt</span>
+                        <span className="font-semibold text-text-primary">
+                          {task.receiptId || (task.sessionId ? `rcpt-${task.sessionId.slice(-8)}` : '—')}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Hermes session</span>
+                        <span className="font-semibold text-text-primary">
+                          {task.sessionId || '—'}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-text-muted">Correlation</span>
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                          {task.sessionId ? 'CONFIRMED' : 'None / Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </TabsContent>

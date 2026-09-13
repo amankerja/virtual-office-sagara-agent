@@ -88,6 +88,12 @@ export interface TaskProjection {
 
   revision?: number
   version?: number
+
+  taskClass?: string
+  executionPolicy?: string
+  executionMode?: string
+  receiptId?: string
+  correlation?: string
 }
 
 export interface CreateTaskInput {

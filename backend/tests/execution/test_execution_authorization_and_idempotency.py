@@ -4,6 +4,8 @@ import tempfile
 from pathlib import Path
 import pytest
 
+pytestmark = [pytest.mark.security, pytest.mark.execution]
+
 from app.config import settings
 from app.db.connection import get_db_connection
 from app.db.migrations import run_migrations
@@ -25,10 +27,10 @@ from app.services.task_dispatch_coordinator import TaskDispatchCoordinator
 
 class StubProfileCatalog:
     def __init__(self):
-        self.profile = ProfileDto(id="profile-1", name="Agent One", enabled=True)
+        self.profile = ProfileDto(id="sagara-lab", name="Agent One", enabled=True)
 
     async def get_profile(self, profile_id: str):
-        if profile_id == "profile-1":
+        if profile_id == "sagara-lab":
             return self.profile
         return None
 
@@ -54,7 +56,7 @@ async def execution_env(monkeypatch):
         state="READY",
         priority="MEDIUM",
         created_at="2026-09-11T00:00:00Z",
-        assigned_agent_id="profile-1",
+        assigned_agent_id="sagara-lab",
         revision=1,
     )
     task_repo._tasks.append(task)
@@ -106,7 +108,7 @@ async def test_single_use_authorization_claim(execution_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-dispatch-01",
-        payload={"task_id": "task-dispatch-01", "target_profile_id": "profile-1"},
+        payload={"task_id": "task-dispatch-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-claim-1")
 
@@ -114,7 +116,7 @@ async def test_single_use_authorization_claim(execution_env):
         id="auth-test-claim-1",
         intent_id=intent.id,
         payload_hash=intent.payload_hash,
-        profile_id="profile-1",
+        profile_id="sagara-lab",
         task_id="task-dispatch-01",
         task_revision=1,
         issued_to="operator-1",
@@ -159,7 +161,7 @@ async def test_full_execution_dispatch_and_idempotency(execution_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-dispatch-01",
-        payload={"task_id": "task-dispatch-01", "target_profile_id": "profile-1", "prompt": "Execute task"},
+        payload={"task_id": "task-dispatch-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY", "prompt": "Execute task"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-e2e-1")
     await intent_svc.approve_intent(
@@ -213,7 +215,7 @@ async def test_reconciliation_with_authoritative_evidence(execution_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-dispatch-01",
-        payload={"task_id": "task-dispatch-01", "target_profile_id": "profile-1"},
+        payload={"task_id": "task-dispatch-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-recon-1")
 
@@ -221,7 +223,7 @@ async def test_reconciliation_with_authoritative_evidence(execution_env):
         id="auth-recon-1",
         intent_id=intent.id,
         payload_hash=intent.payload_hash,
-        profile_id="profile-1",
+        profile_id="sagara-lab",
         task_id="task-dispatch-01",
         task_revision=1,
         issued_to="operator-1",
@@ -239,7 +241,7 @@ async def test_reconciliation_with_authoritative_evidence(execution_env):
         intent_id=intent.id,
         authorization_id="auth-recon-1",
         task_id="task-dispatch-01",
-        profile_id="profile-1",
+        profile_id="sagara-lab",
         correlation_id="corr-recon-1",
         state="OUTCOME_UNKNOWN",
         created_at="2026-09-11T00:00:00Z",

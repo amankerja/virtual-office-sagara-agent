@@ -10,6 +10,9 @@ from app.services.executor import (
     DisabledActionExecutor,
     FakeHermesTaskDispatchExecutor,
     HermesTaskDispatchExecutor,
+    ERROR_HERMES_UNAVAILABLE,
+    ERROR_PROFILE_NOT_TARGETABLE,
+    ERROR_HERMES_TIMEOUT,
 )
 
 
@@ -93,7 +96,7 @@ async def test_hermes_executor_missing_binary():
     )
     res = await executor.dispatch_task(req)
     assert res.outcome == "FAILED_PRE_SUBMISSION"
-    assert res.error_code == "HERMES_EXECUTION_UNAVAILABLE"
+    assert res.error_code == ERROR_HERMES_UNAVAILABLE
 
 
 @pytest.mark.asyncio
@@ -120,7 +123,7 @@ async def test_hermes_executor_untargetable_profile():
         )
         res = await executor.dispatch_task(req)
         assert res.outcome == "FAILED_PRE_SUBMISSION"
-        assert res.error_code == "HERMES_PROFILE_NOT_TARGETABLE"
+        assert res.error_code == ERROR_PROFILE_NOT_TARGETABLE
 
 
 @pytest.mark.asyncio
@@ -187,5 +190,5 @@ async def test_hermes_executor_timeout_produces_outcome_unknown():
         with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd=["hermes"], timeout=5.0)):
             res = await executor.dispatch_task(req)
             assert res.outcome == "OUTCOME_UNKNOWN"
-            assert res.error_code == "HERMES_EXECUTION_TIMEOUT"
+            assert res.error_code == ERROR_HERMES_TIMEOUT
             assert res.hermes_session_id is None

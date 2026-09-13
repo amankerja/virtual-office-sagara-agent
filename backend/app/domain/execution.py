@@ -95,6 +95,12 @@ class ExecutionReceipt(BaseModel):
     result: str = "SUCCESS"
     receipt_hash: str
     created_at: str
+    execution_policy_version: Optional[str] = None
+    execution_policy_hash: Optional[str] = None
+    execution_mode: Optional[str] = None
+    tool_security_policy_version: Optional[str] = None
+    tool_security_policy_hash: Optional[str] = None
+    tool_executions_count: int = 0
 
 
 class TaskDispatchExecutionRequest(BaseModel):
@@ -125,3 +131,22 @@ class TaskDispatchExecutionResult(BaseModel):
     executor_version: str
     raw_output_snippet: str = ""
     error_code: Optional[str] = None
+
+
+class ExecutionWindow(BaseModel):
+    """
+    Time-bounded, budget-constrained execution window for canary and production dispatches (Prompt 14.4 Section 54-56).
+    """
+    id: str
+    lock_name: str = "global_dispatch"
+    opened_by: str
+    opened_at: str
+    expires_at: str
+    max_executions: int = 1
+    executions_consumed: int = 0
+    reason: str
+    state: Literal["OPEN", "EXHAUSTED", "EXPIRED", "CLOSED"] = "OPEN"
+    closed_at: Optional[str] = None
+    closed_by: Optional[str] = None
+    created_at: Optional[str] = None
+

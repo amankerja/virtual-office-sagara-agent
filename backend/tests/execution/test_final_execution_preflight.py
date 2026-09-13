@@ -50,13 +50,13 @@ async def preflight_env(monkeypatch):
         state="READY",
         priority="MEDIUM",
         created_at="2026-09-11T00:00:00Z",
-        assigned_agent_id="profile-sagara-1",
+        assigned_agent_id="sagara-lab",
         revision=1,
     )
     task_repo._tasks.append(task)
 
-    profile_dto = ProfileDto(id="profile-sagara-1", name="Sagara Agent", enabled=True)
-    profile_catalog = MockProfileCatalog({"profile-sagara-1": profile_dto})
+    profile_dto = ProfileDto(id="sagara-lab", name="Sagara Agent", enabled=True)
+    profile_catalog = MockProfileCatalog({"sagara-lab": profile_dto})
 
     auth = AuthorizationService()
     preflight = ActionPreflightService(
@@ -98,7 +98,7 @@ async def test_final_preflight_passes_for_valid_approved_intent(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-1")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")
@@ -131,7 +131,7 @@ async def test_final_preflight_blocks_tampered_payload(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-2")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")
@@ -168,7 +168,7 @@ async def test_final_preflight_blocks_expired_intent(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-3")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")
@@ -204,7 +204,7 @@ async def test_final_preflight_blocks_when_kill_switch_locked(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-4")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")
@@ -240,7 +240,7 @@ async def test_final_preflight_blocks_already_executed_intent(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-5")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")
@@ -251,7 +251,7 @@ async def test_final_preflight_blocks_already_executed_intent(preflight_env):
         id="auth-existing-1",
         intent_id=approved.id,
         payload_hash=approved.payload_hash,
-        profile_id="profile-sagara-1",
+        profile_id="sagara-lab",
         task_id="task-test-01",
         task_revision=1,
         issued_to="operator-1",
@@ -269,7 +269,7 @@ async def test_final_preflight_blocks_already_executed_intent(preflight_env):
         intent_id=approved.id,
         authorization_id="auth-existing-1",
         task_id="task-test-01",
-        profile_id="profile-sagara-1",
+        profile_id="sagara-lab",
         correlation_id="corr-5",
         state="ACKNOWLEDGED",
         created_at="2026-09-11T00:00:00Z",
@@ -281,7 +281,7 @@ async def test_final_preflight_blocks_already_executed_intent(preflight_env):
         attempt_id="att-existing-1",
         intent_id=approved.id,
         task_id="task-test-01",
-        profile_id="profile-sagara-1",
+        profile_id="sagara-lab",
         hermes_session_id="sess-existing-1",
         submitted_at="2026-09-11T00:00:00Z",
         acknowledged_at="2026-09-11T00:00:01Z",
@@ -321,7 +321,7 @@ async def test_final_preflight_blocks_corrupted_audit_chain(preflight_env):
         action_type="TASK_DISPATCH",
         target_type="TASK",
         target_id="task-test-01",
-        payload={"task_id": "task-test-01", "target_profile_id": "profile-sagara-1"},
+        payload={"task_id": "task-test-01", "target_profile_id": "sagara-lab", "task_class": "REASONING_ONLY"},
     )
     intent = await intent_svc.create_intent(dto, principal=requester, correlation_id="corr-6")
     approved = await intent_svc.approve_intent(intent.id, principal=approver, confirmation_phrase="APPROVE TASK DISPATCH")

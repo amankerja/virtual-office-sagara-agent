@@ -64,6 +64,38 @@ def run_migrations(conn: sqlite3.Connection) -> None:
                 (2, "v2_controlled_execution_gate", now),
             )
 
+        if current_version < 3:
+            _apply_v3_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (3, "v3_execution_windows", now),
+            )
+
+        if current_version < 4:
+            _apply_v4_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (4, "v4_production_execution_policy", now),
+            )
+
+        if current_version < 5:
+            _apply_v5_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (5, "v5_tool_security_policy", now),
+            )
+
+        if current_version < 6:
+            _apply_v6_migration(conn)
+            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+            conn.execute(
+                "INSERT INTO schema_migrations (version, name, applied_at) VALUES (?, ?, ?);",
+                (6, "v6_read_only_resource_registry", now),
+            )
+
         conn.execute("COMMIT;")
     except Exception:
         conn.execute("ROLLBACK;")
@@ -97,7 +129,9 @@ def _apply_v1_migration(conn: sqlite3.Connection) -> None:
             correlation_id TEXT NOT NULL,
             created_at TEXT NOT NULL,
             updated_at TEXT NOT NULL,
-            execution_authorization_id TEXT
+            execution_authorization_id TEXT,
+            execution_policy_version TEXT,
+            execution_policy_hash TEXT
         );
         """
     )
@@ -358,6 +392,9 @@ def _apply_v2_migration(conn: sqlite3.Connection) -> None:
             result TEXT NOT NULL,
             receipt_hash TEXT NOT NULL,
             created_at TEXT NOT NULL,
+            execution_policy_version TEXT,
+            execution_policy_hash TEXT,
+            execution_mode TEXT,
             FOREIGN KEY (attempt_id) REFERENCES execution_attempts(id),
             FOREIGN KEY (intent_id) REFERENCES action_intents(id)
         );
@@ -409,4 +446,277 @@ def _apply_v2_migration(conn: sqlite3.Connection) -> None:
             """,
             ("global_dispatch", "LOCKED", now, "system:init", "Default fail-closed execution lock"),
         )
+
+
+def _apply_v3_migration(conn: sqlite3.Connection) -> None:
+    """V3 Schema: Execution windows with time-to-live and execution budget (Prompt 14.4 Section 54-56)."""
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_windows (
+            id TEXT PRIMARY KEY,
+            lock_name TEXT NOT NULL,
+            opened_by TEXT NOT NULL,
+            opened_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            max_executions INTEGER NOT NULL DEFAULT 1,
+            executions_consumed INTEGER NOT NULL DEFAULT 0,
+            reason TEXT NOT NULL,
+            state TEXT NOT NULL DEFAULT 'OPEN',
+            closed_at TEXT,
+            closed_by TEXT,
+            created_at TEXT NOT NULL
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_windows_state ON execution_windows(state);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_windows_lock ON execution_windows(lock_name);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_windows_expires ON execution_windows(expires_at);")
+
+
+def _apply_v4_migration(conn: sqlite3.Connection) -> None:
+    """V4 Schema: Production Execution Policy and Change Sets (Prompt 14.6 Section 6-12, 86-90)."""
+    import json
+    from app.domain.execution_policy import create_canonical_v1_policy, compute_policy_hash
+
+    # 1. Execution Policies Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_policies (
+            id TEXT PRIMARY KEY,
+            version TEXT NOT NULL,
+            policy_hash TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'ACTIVE',
+            definition_json TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            created_by TEXT NOT NULL,
+            applied_at TEXT,
+            applied_by TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_policies_status ON execution_policies(status);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_policies_version ON execution_policies(version);")
+
+    # 2. Execution Policy Change Sets Table (Draft -> Validate -> Diff -> Approval -> Apply)
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS execution_policy_change_sets (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            proposed_policy_json TEXT NOT NULL,
+            diff_json TEXT,
+            created_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            approved_by TEXT,
+            approved_at TEXT,
+            applied_by TEXT,
+            applied_at TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_exec_policy_cs_status ON execution_policy_change_sets(status);")
+
+    # 3. Add policy binding columns to action_intents if not present
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(action_intents);")
+    ai_cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+    if "execution_policy_version" not in ai_cols:
+        conn.execute("ALTER TABLE action_intents ADD COLUMN execution_policy_version TEXT;")
+    if "execution_policy_hash" not in ai_cols:
+        conn.execute("ALTER TABLE action_intents ADD COLUMN execution_policy_hash TEXT;")
+
+    # 4. Add policy binding columns to execution_receipts if not present (Prompt 14.6 Section 103)
+    cursor.execute("PRAGMA table_info(execution_receipts);")
+    rcpt_cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+    if "execution_policy_version" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN execution_policy_version TEXT;")
+    if "execution_policy_hash" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN execution_policy_hash TEXT;")
+    if "execution_mode" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN execution_mode TEXT;")
+
+    # 5. Seed Canonical V1 Policy if not already present
+    cursor.execute("SELECT COUNT(*) AS cnt FROM execution_policies WHERE status = 'ACTIVE';")
+    row = cursor.fetchone()
+    cnt = (row["cnt"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
+    if cnt == 0:
+        canonical = create_canonical_v1_policy()
+        c_dict = canonical.model_dump()
+        phash = compute_policy_hash(c_dict)
+        c_dict["policy_hash"] = phash
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        conn.execute(
+            """
+            INSERT INTO execution_policies (
+                id, version, policy_hash, status, definition_json, created_at, created_by, applied_at, applied_by
+            ) VALUES (?, ?, ?, 'ACTIVE', ?, ?, 'system:init', ?, 'system:init');
+            """,
+            ("pol-v1-canonical", canonical.version, phash, json.dumps(c_dict), now, now),
+        )
+
+
+def _apply_v5_migration(conn: sqlite3.Connection) -> None:
+    """V5 Schema: Tool security policies, changesets, and tool execution audit ledger (Prompt 14.9A Section 11-16, 48-60, 100)."""
+    import json
+    from app.domain.tool_security_policy import (
+        compute_tool_policy_hash,
+        create_canonical_tool_security_policy_v1,
+    )
+
+    # 1. Tool Security Policies Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tool_security_policies (
+            id TEXT PRIMARY KEY,
+            version TEXT NOT NULL,
+            policy_hash TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'INSTALLED_BUT_NOT_ENABLED',
+            definition_json TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            created_by TEXT NOT NULL,
+            applied_at TEXT,
+            applied_by TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_policies_status ON tool_security_policies(status);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_policies_version ON tool_security_policies(version);")
+
+    # 2. Tool Security Policy Change Sets Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tool_security_policy_change_sets (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            proposed_policy_json TEXT NOT NULL,
+            diff_json TEXT,
+            created_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            approved_by TEXT,
+            approved_at TEXT,
+            applied_by TEXT,
+            applied_at TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_policy_cs_status ON tool_security_policy_change_sets(status);")
+
+    # 3. Tool Execution Audits Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS tool_execution_audits (
+            id TEXT PRIMARY KEY,
+            intent_id TEXT,
+            tool_id TEXT NOT NULL,
+            operation_id TEXT NOT NULL,
+            profile_id TEXT NOT NULL,
+            status TEXT NOT NULL,
+            denial_reason TEXT,
+            arguments_hash TEXT,
+            result_bytes INTEGER DEFAULT 0,
+            result_hash TEXT,
+            redacted INTEGER DEFAULT 0,
+            created_at TEXT NOT NULL
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_audits_tool ON tool_execution_audits(tool_id, operation_id);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_tool_audits_status ON tool_execution_audits(status);")
+
+    # 4. Add tool policy binding columns to action_intents if not present
+    cursor = conn.cursor()
+    cursor.execute("PRAGMA table_info(action_intents);")
+    ai_cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+    if "tool_security_policy_version" not in ai_cols:
+        conn.execute("ALTER TABLE action_intents ADD COLUMN tool_security_policy_version TEXT;")
+    if "tool_security_policy_hash" not in ai_cols:
+        conn.execute("ALTER TABLE action_intents ADD COLUMN tool_security_policy_hash TEXT;")
+
+    # 5. Add tool policy binding columns to execution_receipts if not present
+    cursor.execute("PRAGMA table_info(execution_receipts);")
+    rcpt_cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+    if "tool_security_policy_version" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN tool_security_policy_version TEXT;")
+    if "tool_security_policy_hash" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN tool_security_policy_hash TEXT;")
+    if "tool_executions_count" not in rcpt_cols:
+        conn.execute("ALTER TABLE execution_receipts ADD COLUMN tool_executions_count INTEGER DEFAULT 0;")
+
+    # 6. Seed Canonical Tool Security Policy V1 (INSTALLED_BUT_NOT_ENABLED)
+    cursor.execute("SELECT COUNT(*) AS cnt FROM tool_security_policies;")
+    row = cursor.fetchone()
+    cnt = (row["cnt"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
+    if cnt == 0:
+        canonical = create_canonical_tool_security_policy_v1()
+        c_dict = canonical.model_dump()
+        phash = compute_tool_policy_hash(c_dict)
+        c_dict["policy_hash"] = phash
+        now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        conn.execute(
+            """
+            INSERT INTO tool_security_policies (
+                id, version, policy_hash, status, definition_json, created_at, created_by, applied_at, applied_by
+            ) VALUES (?, ?, ?, 'INSTALLED_BUT_NOT_ENABLED', ?, ?, 'system:init', ?, 'system:init');
+            """,
+            ("tool-pol-v1-canonical", canonical.version, phash, json.dumps(c_dict), now, now),
+        )
+
+
+def _apply_v6_migration(conn: sqlite3.Connection) -> None:
+    """V6 Schema: Read-only resource registry, changesets, and canonical seed resources (Prompt 14.9A.7 Section 15-21)."""
+    # 1. Read-Only Resources Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS read_only_resources (
+            resource_id TEXT PRIMARY KEY,
+            display_name TEXT NOT NULL,
+            canonical_path TEXT NOT NULL,
+            root_id TEXT NOT NULL,
+            resource_type TEXT NOT NULL DEFAULT 'DOCUMENT',
+            enabled INTEGER NOT NULL DEFAULT 1,
+            classification TEXT NOT NULL DEFAULT 'INTERNAL',
+            max_bytes INTEGER NOT NULL DEFAULT 32768,
+            max_lines INTEGER NOT NULL DEFAULT 500,
+            current_hash TEXT,
+            allow_redaction INTEGER NOT NULL DEFAULT 1,
+            owner_policy TEXT NOT NULL DEFAULT 'MISSION_CONTROL',
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ro_resources_enabled ON read_only_resources(enabled);")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ro_resources_type ON read_only_resources(resource_type);")
+
+    # 2. Resource Change Sets Table
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS read_only_resource_change_sets (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT,
+            status TEXT NOT NULL DEFAULT 'DRAFT',
+            proposed_resource_json TEXT NOT NULL,
+            diff_json TEXT,
+            created_by TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            approved_by TEXT,
+            approved_at TEXT,
+            applied_by TEXT,
+            applied_at TEXT
+        );
+        """
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_ro_resource_cs_status ON read_only_resource_change_sets(status);")
+
+    # 3. Seed Canonical Resources
+    from app.services.resource_registry_service import ReadOnlyResourceRegistry
+    ReadOnlyResourceRegistry.seed_canonical_resources(conn)
+
+
+
 

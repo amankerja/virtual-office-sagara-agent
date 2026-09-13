@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = [pytest.mark.smoke]
+
 
 @pytest.mark.asyncio
 async def test_list_and_get_profiles(client):

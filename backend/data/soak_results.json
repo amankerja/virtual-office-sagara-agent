@@ -1,0 +1,108 @@
+{
+  "workload_002": {
+    "workload_num": "002",
+    "task_id": "task-workload-002",
+    "task_title": "Sagara Limited Rollout Safety Review 002",
+    "task_class": "REASONING_ONLY",
+    "intent_id": "act-int-3fc959fd78c1",
+    "authorization_id": "auth-bed410aa2ff5afa3",
+    "attempt_id": "att-ecb1ccc28098cd0a",
+    "receipt_id": "rcpt-6fb29b1650b7ac5c",
+    "hermes_session_id": "20260912_170641_0740ce",
+    "correlation_id": "corr-soak-002-27a86e18",
+    "receipt_hash": "0943db9f3a69d653d6975511adad7f4a9c3fa5c586ed536fa9ba30adb893c5ec",
+    "raw_output": "SOAK_READINESS\nRollout suitable for additional SAFE_NO_TOOLS soak workloads. Canary 001 passed, Production Execution Policy V1 installed, Workload 001 passed SAFE_NO_TOOLS, zero tools, zero side effects, successful relock.\n\nFAILURE_SIGNALS\n- Policy violations: any tool-enabled or side-effecting execution attempt by `sagara-lab`.\n- Concurrency breaches: global or `sagara-lab` concurrency > 1.\n- Rate limit exceedance: > 3 successful executions/hour.\n- Execution failures: Workload failures or `TASK_DISPATCH` failures.\n- Security bypass: Production execution unexpected unlocking.\n- Scope creep: Other profiles enabling or becoming LIMITED.\n\nMETRICS_TO_WATCH\n- Successful `SAFE_NO_TOOLS` execution count.\n- Failed `SAFE_NO_TOOLS` execution count.\n- Execution latency.\n- Rate limit adherence.\n- Policy enforcement log alerts.\n\nEXPANSION_GATE\n- SAFE_READ_ONLY tools: Sustained successful SAFE_NO_TOOLS soak workloads, zero policy violations, stable performance, absence of side effects.\n- Second LIMITED profile: Extensive successful SAFE_NO_TOOLS soak testing with `sagara-lab`, demonstrating policy and infrastructure reliability for single limited profile.\n\nSession:        20260912_170641_0740ce\n\n\nsession_id: 20260912_170641_0740ce\n",
+    "submitted_at": "2026-09-12T09:06:39.878690Z",
+    "acknowledged_at": "2026-09-12T09:06:56.193231Z",
+    "sessions_before": {
+      "central_store_sessions": 116,
+      "sagara_lab_profile_local_sessions": 10,
+      "aggregate_distinct_sessions": 123
+    },
+    "sessions_after": {
+      "central_store_sessions": 116,
+      "sagara_lab_profile_local_sessions": 11,
+      "aggregate_distinct_sessions": 124
+    },
+    "gateway_before": {
+      "MainPID": "142020",
+      "NRestarts": "3",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "gateway_after": {
+      "MainPID": "142020",
+      "NRestarts": "3",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "hr_count_before": 0,
+    "hr_count_after": 1,
+    "audit_before_seq": 48,
+    "audit_after_seq": 56
+  },
+  "workload_003": {
+    "workload_num": "003",
+    "task_id": "task-workload-003",
+    "task_title": "Sagara Limited Rollout Operator Checklist Draft 003",
+    "task_class": "DRAFT_GENERATION",
+    "intent_id": "act-int-65d4204c1981",
+    "authorization_id": "auth-15725bc6520b5dd5",
+    "attempt_id": "att-b011416fb0135a9e",
+    "receipt_id": "rcpt-7e2bdc42182a1739",
+    "hermes_session_id": "20260912_170703_3ace37",
+    "correlation_id": "corr-soak-003-445e0fb2",
+    "receipt_hash": "d6ffed75ab32765d69e66c606e4adcf20d7e1bc2164429456c0cec24df479912",
+    "raw_output": "PRE_EXECUTION_CHECKLIST\n- Authenticated request received.\n- Execution approval obtained.\n- Execution authorization verified.\n- Bounded execution window defined.\n- Final preflight executed.\n- Hermes session direct receipt confirmed.\n- Audit verification configured.\n- Production is in locked state.\n\nEXECUTION_CHECKLIST\n- Production unlocked for sagara-lab.\n- Concurrency limit set to 1.\n- Execution window started.\n- Only one TASK_DISPATCH action executed.\n- SAFE_NO_TOOLS mandatory enabled for TASK_DISPATCH.\n\nPOST_EXECUTION_CHECKLIST\n- Execution window closed.\n- Production re-locked immediately.\n- Audit verification completed.\n- Rate limit check (3 successful executions per hour for sagara-lab) updated.\n\nSTOP_AND_LOCK_CONDITIONS\n- Any deviation from authorized actions.\n- Any attempt to use denied tools (Tools, MCP, external communication, filesystem mutation, profile mutation, skill mutation, schedule mutation).\n- Execution concurrency > 1 detected.\n- More than one execution within an execution window.\n- Exceeding 3 successful sagara-lab executions per hour.\n- Bounded execution window exceeded.\n\nSession:        20260912_170703_3ace37\n\n\nsession_id: 20260912_170703_3ace37\n",
+    "submitted_at": "2026-09-12T09:07:01.372820Z",
+    "acknowledged_at": "2026-09-12T09:07:13.644978Z",
+    "sessions_before": {
+      "central_store_sessions": 116,
+      "sagara_lab_profile_local_sessions": 11,
+      "aggregate_distinct_sessions": 124
+    },
+    "sessions_after": {
+      "central_store_sessions": 116,
+      "sagara_lab_profile_local_sessions": 12,
+      "aggregate_distinct_sessions": 125
+    },
+    "gateway_before": {
+      "MainPID": "142020",
+      "NRestarts": "3",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "gateway_after": {
+      "MainPID": "142020",
+      "NRestarts": "3",
+      "ActiveState": "active",
+      "SubState": "running"
+    },
+    "hr_count_before": 1,
+    "hr_count_after": 2,
+    "audit_before_seq": 56,
+    "audit_after_seq": 64
+  },
+  "initial_sessions": {
+    "central_store_sessions": 116,
+    "sagara_lab_profile_local_sessions": 10,
+    "aggregate_distinct_sessions": 123
+  },
+  "final_sessions": {
+    "central_store_sessions": 116,
+    "sagara_lab_profile_local_sessions": 12,
+    "aggregate_distinct_sessions": 125
+  },
+  "initial_gateway": {
+    "MainPID": "142020",
+    "NRestarts": "3",
+    "ActiveState": "active",
+    "SubState": "running"
+  },
+  "final_gateway": {
+    "MainPID": "142020",
+    "NRestarts": "3",
+    "ActiveState": "active",
+    "SubState": "running"
+  }
+}

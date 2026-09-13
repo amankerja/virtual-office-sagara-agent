@@ -8,27 +8,36 @@
 
 ## 1. How to Lock Execution (Emergency Kill Switch)
 
-Mission Control incorporates a two-tier kill switch to immediately halt all new task dispatches.
+Mission Control incorporates a multi-tier kill switch to immediately halt all new task dispatches.
 
-### 1.1 Database Lock (Immediate Runtime Lock)
-To immediately block all execution attempts across all running instances without restarting services:
+### 1.1 Immediate Application API Lock (Recommended)
+To immediately block all execution attempts across all instances and close active execution windows:
 
+```bash
+curl -X POST http://localhost:8000/api/v1/execution-lock/lock \
+  -H "Content-Type: application/json" \
+  -H "X-Operator-ID: <operator-id>" \
+  -H "X-Auth-Source: trusted_proxy" \
+  -d '{"reason": "Emergency operator kill switch engagement"}'
+```
+
+*Effect:* Sets persistent lock to `LOCKED`, closes all open execution windows, appends `execution.locked` to the tamper-evident audit ledger, and notifies connected UI clients via realtime WebSocket. Any subsequent execution attempt receives `403 ACTION_EXECUTION_DISABLED (Kill switch is LOCKED)`.
+
+### 1.2 Programmatic Database Lock
 ```python
-# Connect to Mission Control database (e.g. via backend python shell or migration tool):
 from app.db.connection import get_db_connection
-from app.repositories.sqlite.execution_repo import ExecutionSqliteRepository
+from app.domain.principal import OperatorPrincipal
+from app.services.execution_lock_service import ExecutionLockService
 
 conn = get_db_connection()
 try:
-    repo = ExecutionSqliteRepository(conn)
-    repo.set_execution_lock("global_dispatch", "LOCKED")
-    conn.commit()
+    admin = OperatorPrincipal(id="operator-admin", roles=["admin"])
+    ExecutionLockService.lock(conn, principal=admin, reason="Emergency shutdown")
 finally:
     conn.close()
 ```
-*Effect:* Any in-flight or subsequent execute requests receive `403 ACTION_EXECUTION_DISABLED (Kill switch is LOCKED)`.
 
-### 1.2 Environment Variable Disable (Process Level)
+### 1.3 Environment Variable Disable (Process Level)
 In Mission Control environment configuration (`.env`):
 ```bash
 MISSION_CONTROL_EXECUTION_ENABLED=false
@@ -42,31 +51,43 @@ Restart backend. Execution coordinator will default to `DisabledActionExecutor`.
 Before attempting any canary or production dispatch, check the execution readiness endpoint:
 
 ```bash
-curl -s http://localhost:8000/api/v1/action-safety/status | jq .
+curl -s http://localhost:8000/api/v1/execution-readiness | jq .
 ```
 
-Inspect the response keys:
+Inspect the response:
 ```json
 {
-  "execution_mode": "DISABLED",
-  "kill_switch_status": "LOCKED",
-  "execution_feature_enabled": false,
-  "trusted_auth_configured": true,
-  "hermes_interface_available": true,
-  "direct_session_receipt_supported": true,
-  "audit_chain": "VALID",
-  "execution_ready": false
+  "execution_ready": false,
+  "infrastructure_ready": true,
+  "canary_ready": true,
+  "live_canary_ready": "YES",
+  "live_canary_executed": "NO",
+  "components": {
+    "auth_boundary": "READY",
+    "operator_authorization": "READY",
+    "action_signing": "READY",
+    "control_database": "READY",
+    "audit_integrity": "READY",
+    "profile_targetability": "READY",
+    "hermes_executor": "READY",
+    "direct_session_receipt": "READY",
+    "execution_env": "BLOCKED",
+    "kill_switch": "BLOCKED",
+    "canary_gate": "BLOCKED"
+  }
 }
 ```
 
-**Preconditions for `execution_ready: true`:**
-1. `execution_feature_enabled == true` (`MISSION_CONTROL_EXECUTION_ENABLED=true`)
-2. `kill_switch_status == "UNLOCKED"`
-3. `trusted_auth_configured == true` (Trusted proxy CIDRs configured)
-4. `action_signing == "CONFIGURED"` (Cryptographic HMAC secret active)
-5. `audit_chain == "VALID"` (Audit hash chain intact)
-6. `hermes_interface_available == true` (Hermes CLI binary exists and is executable)
-7. `direct_session_receipt_supported == true`
+**Preconditions for `canary_ready: true` (`live_canary_ready: "YES"`):**
+1. `auth_boundary == "READY"` (Trusted proxy CIDRs valid, no open wildcards)
+2. `operator_authorization == "READY"`
+3. `action_signing == "READY"` (HMAC signing key active)
+4. `control_database == "READY"` (SQLite schema version operational)
+5. `audit_integrity == "READY"` (Tamper-evident hash chain intact)
+6. `profile_targetability == "READY"` (All 8/8 canonical profiles targetable)
+7. `hermes_executor == "READY"`
+8. `direct_session_receipt == "READY"`
+
 
 ---
 
@@ -144,3 +165,46 @@ If `valid == false`:
 - An unauthorized database modification occurred.
 - All execution preflights will instantly FAIL CLOSED (`FINAL_PREFLIGHT_FAILED: Audit chain integrity broken`).
 - Operators must inspect the damaged block sequence in `audit_ledger`.
+
+---
+
+## 7. How to Inspect & Manage Production Execution Policy V1
+
+Prompt 14.6 introduces the authoritative server-side `ProductionExecutionPolicy`.
+
+### 7.1 Inspect Active Execution Policy
+```bash
+curl -s http://localhost:8000/api/v1/execution-policy | jq .
+```
+Verify that:
+- `version`: `PRODUCTION_EXECUTION_POLICY_V1`
+- `global_execution_enabled`: `false`
+- `profiles.sagara-lab.status`: `LIMITED`
+- All other profiles: `DISABLED`
+
+### 7.2 Propose an Execution Policy Changeset
+Policy changes must follow the structured changeset lifecycle:
+```text
+Draft -> Validate -> Diff -> Approval -> Apply
+```
+Submit a draft changeset:
+```bash
+curl -X POST http://localhost:8000/api/v1/execution-policy/changesets \
+  -H "Content-Type: application/json" \
+  -H "X-Operator-ID: <admin-id>" \
+  -H "X-Auth-Source: trusted_proxy" \
+  -d '{
+    "title": "Enable read-only inspection for Sagara Lab",
+    "description": "Safe rollout of read-only tools for architecture reviews",
+    "proposed_policy": { ... }
+  }'
+```
+
+### 7.3 Apply an Approved Policy Changeset
+```bash
+curl -X POST http://localhost:8000/api/v1/execution-policy/changesets/<cs_id>/apply \
+  -H "X-Operator-ID: <admin-id>" \
+  -H "X-Auth-Source: trusted_proxy"
+```
+*Effect:* Atomically updates the active policy record in SQLite, logs `execution_policy.applied` to the audit ledger, and invalidates stale pending intents. Does **not** arm execution (execution remains `LOCKED`).
+

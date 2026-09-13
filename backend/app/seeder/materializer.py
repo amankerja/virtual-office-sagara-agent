@@ -99,13 +99,21 @@ class SeedMaterializer:
             allowed_skills = sorted(seed_assignments.get(pid, []))
             allowed_domains = p_data.get("allowed_domains", [])
 
+            # Memory namespace guard (Prompt 14.1C Section 29)
+            memory_ns = p_data.get("memory_namespace")
+            if not memory_ns or (self.validator.source_mode == "production-readonly" and memory_ns == "default"):
+                raise ValueError(
+                    f"DEFAULT VALUE GUARD: Profile '{pid}' has invalid or defaulted memory_namespace '{memory_ns}'. "
+                    f"Production canonical namespace must be 'profile:{pid}'."
+                )
+
             canonical_data = {
                 "id": pid,
                 "name": p_data["name"],
                 "role": p_data.get("role"),
                 "description": p_data.get("description", ""),
                 "enabled": p_data.get("enabled", True),
-                "memory_namespace": p_data.get("memory_namespace"),
+                "memory_namespace": memory_ns,
                 "allowed_domains": allowed_domains,
                 "allowed_skills": allowed_skills,
                 "permissions_policy": p_data.get("permissions_policy", "business-default"),

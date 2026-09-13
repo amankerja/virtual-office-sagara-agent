@@ -1,5 +1,7 @@
 import pytest
 
+pytestmark = [pytest.mark.smoke]
+
 
 @pytest.mark.asyncio
 async def test_health_endpoint(client):
@@ -44,3 +46,22 @@ async def test_canonical_error_format_on_404(client):
     assert "error" in data
     assert data["error"]["code"] == "RESOURCE_NOT_FOUND"
     assert "correlation_id" in data["error"]
+
+
+@pytest.mark.asyncio
+async def test_operations_readiness_endpoint(client):
+    """Prompt 14.9A.9 Section 22-32: Consolidated read-only operational status model."""
+    response = await client.get("/api/v1/operations/readiness")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["infrastructure_ready"] is True
+    assert data["execution_armed"] is False
+    assert data["policy_diagnostics"]["active_policy_version"] == "PRODUCTION_EXECUTION_POLICY_V2"
+    assert data["policy_diagnostics"]["tool_policy_version"] == "TOOL_SECURITY_POLICY_V1"
+    assert "tool_broker_health" in data
+    assert "resource_registry_health" in data
+    assert "rate_limit_state" in data
+    assert "concurrency_state" in data
+    assert "last_execution_summary" in data
+    assert data["telemetry"]["session_metrics"]["central_store_sessions"] == 119
+    assert data["telemetry"]["session_metrics"]["profile_local_sessions"] == 15

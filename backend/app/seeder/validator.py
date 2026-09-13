@@ -262,6 +262,18 @@ class SeedValidator:
 
                 if not p.memory_namespace:
                     errors.append(f"Profile '{p.id}' is missing required memory namespace.")
+                elif self.source_mode == "production-readonly":
+                    expected_ns_candidates = {f"profile:{p.id}", f"profile:{p.id.removeprefix('profile-')}"}
+                    if p.memory_namespace == "default":
+                        errors.append(
+                            f"DEFAULT VALUE GUARD: Profile '{p.id}' specifies memory_namespace 'default'. "
+                            f"Silent normalization to 'default' is prohibited. Production canonical namespace is 'profile:{p.id}'."
+                        )
+                    elif p.memory_namespace not in expected_ns_candidates:
+                        errors.append(
+                            f"MEMORY NAMESPACE MISMATCH: Profile '{p.id}' memory_namespace '{p.memory_namespace}' "
+                            f"does not match canonical production namespace 'profile:{p.id}'."
+                        )
 
                 profile_map[p.id] = p
         except Exception as e:

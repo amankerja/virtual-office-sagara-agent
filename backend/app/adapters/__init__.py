@@ -7,12 +7,14 @@ from .hermes_runtime import HermesSqliteRuntimeAdapter
 from .hermes_sessions import SessionReader
 from .hermes_usage import UsageReader
 from .profiles import ProfileCatalogAdapter
+from .routing import RoutingAdapter
 from .runtime import RuntimeReader
 from .skills import SkillCatalogAdapter
 
 __all__ = [
     "ProfileCatalogAdapter",
     "SkillCatalogAdapter",
+    "RoutingAdapter",
     "RuntimeReader",
     "HermesSqliteRuntimeAdapter",
     "HermesReadOnlyDatabase",

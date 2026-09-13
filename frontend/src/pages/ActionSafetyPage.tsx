@@ -2,7 +2,11 @@ import React from 'react';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { SectionCard } from '@/components/shared/SectionCard';
+import { SystemSafetySummaryCard } from '@/features/action-safety/components/SystemSafetySummaryCard';
 import { ActionSafetyCard } from '@/features/action-safety/components/ActionSafetyCard';
+import { ProductionExecutionPolicyCard } from '@/features/action-safety/components/ProductionExecutionPolicyCard';
+import { ToolSecurityPolicyCard } from '@/features/action-safety/components/ToolSecurityPolicyCard';
+import { SecondProfileReadinessCard } from '@/features/action-safety/components/SecondProfileReadinessCard';
 import { ShieldCheck, AlertOctagon, CheckCircle, FileText, Ban } from 'lucide-react';
 
 export const ActionSafetyPage: React.FC = () => {
@@ -12,15 +16,27 @@ export const ActionSafetyPage: React.FC = () => {
         title="Action Safety & Gate"
         description="Mission Control production control boundary: persistent intent lifecycle, HMAC-SHA256 integrity, preflight verification, and tamper-evident audit ledger."
         badge={
-          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800/50 font-mono-tech text-[10px]">
-            EXECUTION DISABLED (PROMPT 13)
+          <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-800 rounded-full font-mono-tech text-[10px] px-2.5 py-0.5">
+            EXECUTION LOCKED (SAFE_READ_ONLY LIMITED POLICY V2 — PROMPT 14.9A.7)
           </Badge>
         }
       />
 
       <div className="space-y-6">
+        {/* Consolidated System Safety Summary (Prompt 14.9A.9 Section 33-38) */}
+        <SystemSafetySummaryCard />
+
         {/* Core Status & Audit Verification Card */}
         <ActionSafetyCard />
+
+        {/* Production Execution Policy V1/V2 Card */}
+        <ProductionExecutionPolicyCard />
+
+        {/* Tool Security Policy V1 Card */}
+        <ToolSecurityPolicyCard />
+
+        {/* Second Limited Profile Readiness (Prompt 14.9B Advisory) */}
+        <SecondProfileReadinessCard />
 
         {/* Safety Guardrails Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 font-mono-tech text-xs">

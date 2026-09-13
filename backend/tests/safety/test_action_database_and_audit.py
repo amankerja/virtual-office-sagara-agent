@@ -23,6 +23,8 @@ def temp_sqlite_db():
         Path(db_path).unlink(missing_ok=True)
 
 
+@pytest.mark.smoke
+@pytest.mark.security
 def test_migrations_and_wal_mode(temp_sqlite_db):
     """Verify schema migrations apply, tables exist, and WAL mode is active."""
     conn = get_db_connection(temp_sqlite_db)
@@ -59,6 +61,8 @@ def test_migrations_and_wal_mode(temp_sqlite_db):
         conn.close()
 
 
+@pytest.mark.smoke
+@pytest.mark.security
 def test_audit_chain_verification_intact(temp_sqlite_db):
     """Verify audit chain passes verification on clean append sequence."""
     conn = get_db_connection(temp_sqlite_db)
@@ -70,6 +74,7 @@ def test_audit_chain_verification_intact(temp_sqlite_db):
         conn.close()
 
 
+@pytest.mark.security
 @pytest.mark.asyncio
 async def test_audit_ledger_append_and_tamper_detection(temp_sqlite_db):
     """Section 68, 70, 125: Append events, verify chain, then tamper and detect failure."""

@@ -2,6 +2,8 @@ import sqlite3
 import tempfile
 from pathlib import Path
 import pytest
+
+pytestmark = [pytest.mark.security]
 from app.api.errors import AppError, ConflictError
 from app.db.connection import get_db_connection
 from app.db.migrations import run_migrations

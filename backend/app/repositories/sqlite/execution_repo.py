@@ -5,7 +5,9 @@ from app.domain.execution import (
     ExecutionAuthorization,
     ExecutionAttempt,
     ExecutionReceipt,
+    ExecutionWindow,
 )
+
 
 
 class ExecutionSqliteRepository:
@@ -205,30 +207,130 @@ class ExecutionSqliteRepository:
 
     # --- Receipts ---
     def save_receipt(self, receipt: ExecutionReceipt) -> None:
-        self._conn.execute(
-            """
-            INSERT INTO execution_receipts (
-                receipt_id, attempt_id, intent_id, task_id, profile_id,
-                hermes_session_id, submitted_at, acknowledged_at, executor_type,
-                executor_version, correlation_id, result, receipt_hash, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-            """,
-            (
-                receipt.receipt_id,
-                receipt.attempt_id,
-                receipt.intent_id,
-                receipt.task_id,
-                receipt.profile_id,
-                receipt.hermes_session_id,
-                receipt.submitted_at,
-                receipt.acknowledged_at,
-                receipt.executor_type,
-                receipt.executor_version,
-                receipt.correlation_id,
-                receipt.result,
-                receipt.receipt_hash,
-                receipt.created_at,
-            ),
+        cursor = self._conn.cursor()
+        cursor.execute("PRAGMA table_info(execution_receipts);")
+        cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+
+        if "tool_security_policy_version" in cols:
+            self._conn.execute(
+                """
+                INSERT INTO execution_receipts (
+                    receipt_id, attempt_id, intent_id, task_id, profile_id,
+                    hermes_session_id, submitted_at, acknowledged_at, executor_type,
+                    executor_version, correlation_id, result, receipt_hash, created_at,
+                    execution_policy_version, execution_policy_hash, execution_mode,
+                    tool_security_policy_version, tool_security_policy_hash, tool_executions_count
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    receipt.receipt_id,
+                    receipt.attempt_id,
+                    receipt.intent_id,
+                    receipt.task_id,
+                    receipt.profile_id,
+                    receipt.hermes_session_id,
+                    receipt.submitted_at,
+                    receipt.acknowledged_at,
+                    receipt.executor_type,
+                    receipt.executor_version,
+                    receipt.correlation_id,
+                    receipt.result,
+                    receipt.receipt_hash,
+                    receipt.created_at,
+                    receipt.execution_policy_version,
+                    receipt.execution_policy_hash,
+                    receipt.execution_mode,
+                    receipt.tool_security_policy_version,
+                    receipt.tool_security_policy_hash,
+                    receipt.tool_executions_count,
+                ),
+            )
+        elif "execution_policy_version" in cols:
+            self._conn.execute(
+                """
+                INSERT INTO execution_receipts (
+                    receipt_id, attempt_id, intent_id, task_id, profile_id,
+                    hermes_session_id, submitted_at, acknowledged_at, executor_type,
+                    executor_version, correlation_id, result, receipt_hash, created_at,
+                    execution_policy_version, execution_policy_hash, execution_mode
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    receipt.receipt_id,
+                    receipt.attempt_id,
+                    receipt.intent_id,
+                    receipt.task_id,
+                    receipt.profile_id,
+                    receipt.hermes_session_id,
+                    receipt.submitted_at,
+                    receipt.acknowledged_at,
+                    receipt.executor_type,
+                    receipt.executor_version,
+                    receipt.correlation_id,
+                    receipt.result,
+                    receipt.receipt_hash,
+                    receipt.created_at,
+                    receipt.execution_policy_version,
+                    receipt.execution_policy_hash,
+                    receipt.execution_mode,
+                ),
+            )
+        else:
+            self._conn.execute(
+                """
+                INSERT INTO execution_receipts (
+                    receipt_id, attempt_id, intent_id, task_id, profile_id,
+                    hermes_session_id, submitted_at, acknowledged_at, executor_type,
+                    executor_version, correlation_id, result, receipt_hash, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                """,
+                (
+                    receipt.receipt_id,
+                    receipt.attempt_id,
+                    receipt.intent_id,
+                    receipt.task_id,
+                    receipt.profile_id,
+                    receipt.hermes_session_id,
+                    receipt.submitted_at,
+                    receipt.acknowledged_at,
+                    receipt.executor_type,
+                    receipt.executor_version,
+                    receipt.correlation_id,
+                    receipt.result,
+                    receipt.receipt_hash,
+                    receipt.created_at,
+                ),
+            )
+
+    def _row_to_receipt(self, row: Any) -> ExecutionReceipt:
+        has_pol_ver = "execution_policy_version" in row.keys() if hasattr(row, "keys") else False
+        has_pol_hash = "execution_policy_hash" in row.keys() if hasattr(row, "keys") else False
+        has_mode = "execution_mode" in row.keys() if hasattr(row, "keys") else False
+        has_tp_ver = "tool_security_policy_version" in row.keys() if hasattr(row, "keys") else False
+        has_tp_hash = "tool_security_policy_hash" in row.keys() if hasattr(row, "keys") else False
+        has_tool_cnt = "tool_executions_count" in row.keys() if hasattr(row, "keys") else False
+
+        return ExecutionReceipt(
+            receipt_id=row["receipt_id"],
+            attempt_id=row["attempt_id"],
+            intent_id=row["intent_id"],
+            task_id=row["task_id"],
+            profile_id=row["profile_id"],
+            hermes_session_id=row["hermes_session_id"],
+            submitted_at=row["submitted_at"],
+            acknowledged_at=row["acknowledged_at"],
+            executor_type=row["executor_type"],
+            executor_version=row["executor_version"],
+            correlation_id=row["correlation_id"],
+            result=row["result"],
+            receipt_hash=row["receipt_hash"],
+            created_at=row["created_at"],
+            execution_policy_version=row["execution_policy_version"] if has_pol_ver else None,
+            execution_policy_hash=row["execution_policy_hash"] if has_pol_hash else None,
+            execution_mode=row["execution_mode"] if has_mode else None,
+            tool_security_policy_version=row["tool_security_policy_version"] if has_tp_ver else None,
+            tool_security_policy_hash=row["tool_security_policy_hash"] if has_tp_hash else None,
+            tool_executions_count=row["tool_executions_count"] if has_tool_cnt and row["tool_executions_count"] is not None else 0,
         )
 
     def get_receipt(self, receipt_id: str) -> Optional[ExecutionReceipt]:
@@ -237,22 +339,7 @@ class ExecutionSqliteRepository:
         row = cursor.fetchone()
         if not row:
             return None
-        return ExecutionReceipt(
-            receipt_id=row["receipt_id"],
-            attempt_id=row["attempt_id"],
-            intent_id=row["intent_id"],
-            task_id=row["task_id"],
-            profile_id=row["profile_id"],
-            hermes_session_id=row["hermes_session_id"],
-            submitted_at=row["submitted_at"],
-            acknowledged_at=row["acknowledged_at"],
-            executor_type=row["executor_type"],
-            executor_version=row["executor_version"],
-            correlation_id=row["correlation_id"],
-            result=row["result"],
-            receipt_hash=row["receipt_hash"],
-            created_at=row["created_at"],
-        )
+        return self._row_to_receipt(row)
 
     def get_receipt_by_intent(self, intent_id: str) -> Optional[ExecutionReceipt]:
         cursor = self._conn.cursor()
@@ -260,22 +347,7 @@ class ExecutionSqliteRepository:
         row = cursor.fetchone()
         if not row:
             return None
-        return ExecutionReceipt(
-            receipt_id=row["receipt_id"],
-            attempt_id=row["attempt_id"],
-            intent_id=row["intent_id"],
-            task_id=row["task_id"],
-            profile_id=row["profile_id"],
-            hermes_session_id=row["hermes_session_id"],
-            submitted_at=row["submitted_at"],
-            acknowledged_at=row["acknowledged_at"],
-            executor_type=row["executor_type"],
-            executor_version=row["executor_version"],
-            correlation_id=row["correlation_id"],
-            result=row["result"],
-            receipt_hash=row["receipt_hash"],
-            created_at=row["created_at"],
-        )
+        return self._row_to_receipt(row)
 
     def get_receipt_by_task(self, task_id: str) -> Optional[ExecutionReceipt]:
         cursor = self._conn.cursor()
@@ -283,22 +355,7 @@ class ExecutionSqliteRepository:
         row = cursor.fetchone()
         if not row:
             return None
-        return ExecutionReceipt(
-            receipt_id=row["receipt_id"],
-            attempt_id=row["attempt_id"],
-            intent_id=row["intent_id"],
-            task_id=row["task_id"],
-            profile_id=row["profile_id"],
-            hermes_session_id=row["hermes_session_id"],
-            submitted_at=row["submitted_at"],
-            acknowledged_at=row["acknowledged_at"],
-            executor_type=row["executor_type"],
-            executor_version=row["executor_version"],
-            correlation_id=row["correlation_id"],
-            result=row["result"],
-            receipt_hash=row["receipt_hash"],
-            created_at=row["created_at"],
-        )
+        return self._row_to_receipt(row)
 
     # --- Correlations ---
     def save_correlation(
@@ -362,3 +419,147 @@ class ExecutionSqliteRepository:
             """,
             (lock_name, status.upper(), updated_at, updated_by, reason),
         )
+
+    # --- Execution Windows (Prompt 14.4 Section 54-56) ---
+    def create_execution_window(self, window: ExecutionWindow) -> None:
+        """Persist a new bounded execution window."""
+        created_at = window.created_at or datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        self._conn.execute(
+            """
+            INSERT INTO execution_windows (
+                id, lock_name, opened_by, opened_at, expires_at,
+                max_executions, executions_consumed, reason, state,
+                closed_at, closed_by, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+            """,
+            (
+                window.id,
+                window.lock_name,
+                window.opened_by,
+                window.opened_at,
+                window.expires_at,
+                window.max_executions,
+                window.executions_consumed,
+                window.reason,
+                window.state,
+                window.closed_at,
+                window.closed_by,
+                created_at,
+            ),
+        )
+
+    def get_active_execution_window(self, lock_name: str = "global_dispatch") -> Optional[ExecutionWindow]:
+        """
+        Get the currently active OPEN execution window for the lock.
+        Orders by opened_at DESC to retrieve the latest window.
+        """
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT * FROM execution_windows
+            WHERE lock_name = ? AND state = 'OPEN'
+            ORDER BY opened_at DESC LIMIT 1;
+            """,
+            (lock_name,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return ExecutionWindow(
+            id=row["id"],
+            lock_name=row["lock_name"],
+            opened_by=row["opened_by"],
+            opened_at=row["opened_at"],
+            expires_at=row["expires_at"],
+            max_executions=row["max_executions"],
+            executions_consumed=row["executions_consumed"],
+            reason=row["reason"],
+            state=row["state"],
+            closed_at=row["closed_at"],
+            closed_by=row["closed_by"],
+            created_at=row["created_at"],
+        )
+
+    def get_latest_execution_window(self, lock_name: str = "global_dispatch") -> Optional[ExecutionWindow]:
+        """
+        Get the latest execution window for the lock regardless of state.
+        """
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            SELECT * FROM execution_windows
+            WHERE lock_name = ?
+            ORDER BY opened_at DESC LIMIT 1;
+            """,
+            (lock_name,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return None
+        return ExecutionWindow(
+            id=row["id"],
+            lock_name=row["lock_name"],
+            opened_by=row["opened_by"],
+            opened_at=row["opened_at"],
+            expires_at=row["expires_at"],
+            max_executions=row["max_executions"],
+            executions_consumed=row["executions_consumed"],
+            reason=row["reason"],
+            state=row["state"],
+            closed_at=row["closed_at"],
+            closed_by=row["closed_by"],
+            created_at=row["created_at"],
+        )
+
+
+    def claim_execution_slot(self, window_id: str, now_iso: str) -> bool:
+        """
+        Atomically claim one execution slot from the execution window (Prompt 14.4 Section 95-96).
+        Ensures concurrency safety: only succeeds if state is OPEN, executions_consumed < max_executions,
+        and window has not expired. Transitions state to EXHAUSTED if max_executions reached.
+        """
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            UPDATE execution_windows
+            SET executions_consumed = executions_consumed + 1,
+                state = CASE WHEN executions_consumed + 1 >= max_executions THEN 'EXHAUSTED' ELSE 'OPEN' END
+            WHERE id = ? AND state = 'OPEN' AND executions_consumed < max_executions AND expires_at > ?;
+            """,
+            (window_id, now_iso),
+        )
+        return cursor.rowcount == 1
+
+    def close_active_windows(
+        self,
+        lock_name: str = "global_dispatch",
+        closed_by: str = "operator:admin",
+        closed_at: Optional[str] = None,
+    ) -> int:
+        """Close all OPEN windows for a lock (used during emergency lock or relock)."""
+        if not closed_at:
+            closed_at = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            UPDATE execution_windows
+            SET state = 'CLOSED', closed_at = ?, closed_by = ?
+            WHERE lock_name = ? AND state = 'OPEN';
+            """,
+            (closed_at, closed_by, lock_name),
+        )
+        return cursor.rowcount
+
+    def expire_stale_windows(self, now_iso: str) -> int:
+        """Auto-expire windows that have passed their TTL."""
+        cursor = self._conn.cursor()
+        cursor.execute(
+            """
+            UPDATE execution_windows
+            SET state = 'EXPIRED'
+            WHERE state = 'OPEN' AND expires_at <= ?;
+            """,
+            (now_iso,),
+        )
+        return cursor.rowcount
+

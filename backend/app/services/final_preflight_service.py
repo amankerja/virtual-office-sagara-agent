@@ -1,5 +1,6 @@
 import sqlite3
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import List, Optional
 from pydantic import BaseModel
 
@@ -11,6 +12,13 @@ from app.schemas.action_intents import ActionIntentDto
 from app.services.audit_verifier import verify_audit_chain
 from app.services.execution_kill_switch import ExecutionKillSwitch
 from app.services.signing import compute_payload_hash, verify_action_signature
+
+
+def _resolve_mission_control_base_dir() -> Path:
+    b = Path(__file__).resolve().parents[3]
+    if not (b / "docs").exists():
+        return Path.cwd()
+    return b
 
 
 class FinalPreflightResult(BaseModel):
@@ -109,9 +117,9 @@ class FinalExecutionPreflightService:
             if appr_row["payload_hash"] != intent.payload_hash:
                 blocking_reasons.append("Approval record is bound to a different payload hash than the intent.")
 
-        # 6. Operator Authorization
-        if not (principal.has_role("admin") or principal.has_role("operator") or principal.has_permission("action:execute")):
-            blocking_reasons.append(f"Operator '{principal.id}' lacks execution authority ('action:execute').")
+        # 6. Operator Authorization (Prompt 14.4 Section 23-25)
+        if not (principal.has_permission("execution.execute") or principal.has_permission("action:execute")):
+            blocking_reasons.append(f"Operator '{principal.id}' lacks execution authority ('execution.execute').")
 
         # 7. Kill Switch & Execution Gate (Prompt 14 Section 27)
         is_locked, lock_reason = ExecutionKillSwitch.is_locked(self._conn)
@@ -192,6 +200,189 @@ class FinalExecutionPreflightService:
             else:
                 targetability = "UNKNOWN"
                 blocking_reasons.append(f"Targetability of profile '{target_profile_id}' cannot be proven.")
+
+        # 12. Production Execution Policy Evaluation (Prompt 14.6 & Prompt 14.9A.7)
+        try:
+            from app.services.execution_policy_service import ExecutionPolicyService
+            from app.services.tool_security_service import ToolSecurityService
+            from app.domain.tool_security_policy import (
+                RUNTIME_STATUS_FINGERPRINT,
+                DOCUMENT_INSPECTION_FINGERPRINT,
+            )
+            from app.services.resource_registry_service import ReadOnlyResourceRegistry
+
+            policy = ExecutionPolicyService.get_active_policy(self._conn)
+
+            # Policy stale check: if intent was approved under a policy hash, it must match active policy hash
+            intent_policy_hash = getattr(intent, "execution_policy_hash", None)
+            if intent_policy_hash and intent_policy_hash != policy.policy_hash:
+                blocking_reasons.append(
+                    f"Production execution policy has changed since intent approval: recorded '{intent_policy_hash}' != active '{policy.policy_hash}' (POLICY_VERSION_STALE)."
+                )
+
+            # Retrieve installed tool security policy (fail closed if missing or corrupt during tool execution)
+            try:
+                tool_policy = ToolSecurityService.get_installed_policy(self._conn)
+            except Exception as tp_err:
+                tool_policy = None
+                if intent.payload.get("execution_mode") == "SAFE_READ_ONLY" or intent.payload.get("task_class") == "READ_ONLY_INSPECTION":
+                    blocking_reasons.append(f"Tool security policy could not be loaded: {tp_err} (TOOL_POLICY_UNAVAILABLE).")
+
+            # If SAFE_READ_ONLY or READ_ONLY_INSPECTION, perform deep capability & resource preflight checks
+            is_safe_read_only = (
+                intent.payload.get("execution_mode") == "SAFE_READ_ONLY"
+                or intent.payload.get("task_class") == "READ_ONLY_INSPECTION"
+            )
+
+            # In V1, SAFE_READ_ONLY was permitted only under canary override (Prompt 14.9A.5, 14.9A.6, 14.9A.7 Section 88).
+            # Under V2, SAFE_READ_ONLY is evaluated directly against the active ProductionExecutionPolicy.
+            if policy.version == "PRODUCTION_EXECUTION_POLICY_V1" and is_safe_read_only:
+                policy_blockers = []
+            else:
+                policy_blockers = ExecutionPolicyService.validate_intent_against_policy(
+                    policy=policy,
+                    action_type=intent.action_type,
+                    target_profile_id=target_profile_id,
+                    payload=intent.payload,
+                    risk=intent.risk,
+                    safe_mode=intent.payload.get("safe_mode", True),
+                    tool_policy=tool_policy,
+                )
+            blocking_reasons.extend(policy_blockers)
+
+
+            if is_safe_read_only:
+                # 1. Tool Security Policy binding checks (Prompt 14.9A.7 Section 9)
+                expected_tp_hash = "9bdd1d54102280e49f1d23a13be404c44bb0f22e2c3f100b8d6aed61e3ec033d"
+                if not tool_policy:
+                    blocking_reasons.append("Tool security policy is missing. Fail closed (MISSING_POLICY).")
+                elif tool_policy.policy_hash != expected_tp_hash:
+                    blocking_reasons.append(
+                        f"Tool security policy hash mismatch: active '{tool_policy.policy_hash}' != expected '{expected_tp_hash}' (TOOL_POLICY_STALE)."
+                    )
+
+                intent_tp_hash = getattr(intent, "tool_security_policy_hash", None)
+                if intent_tp_hash and tool_policy and intent_tp_hash != tool_policy.policy_hash:
+                    blocking_reasons.append(
+                        f"Intent tool security policy hash mismatch: intent '{intent_tp_hash}' != active '{tool_policy.policy_hash}' (TOOL_POLICY_STALE)."
+                    )
+
+                # 2. Tool capability lookup and profile permission
+                tool_id = intent.payload.get("tool_id")
+                cap = tool_policy.approved_capabilities.get(tool_id) if (tool_policy and tool_id) else None
+                if not cap:
+                    blocking_reasons.append(
+                        f"Tool '{tool_id}' is not an approved capability in ToolSecurityPolicy (UNAUTHORIZED_TOOL)."
+                    )
+                else:
+                    if target_profile_id not in cap.enabled_profiles:
+                        blocking_reasons.append(
+                            f"SAFE_READ_ONLY is not authorized for profile '{target_profile_id}'. Allowed: {cap.enabled_profiles} (RESOURCE_SCOPE_DENIED)."
+                        )
+
+                # 3. Tool-specific deep capability checks
+                if tool_id == "runtime_status":
+                    operation = intent.payload.get("operation") or intent.payload.get("operation_id")
+                    if operation != "inspect_service":
+                        blocking_reasons.append(
+                            f"SAFE_READ_ONLY only authorizes operation 'inspect_service' for runtime_status, got '{operation}' (UNAUTHORIZED_OPERATION)."
+                        )
+
+                    resource = intent.payload.get("resource") or intent.payload.get("resource_id")
+                    if resource != "hermes-gateway.service":
+                        blocking_reasons.append(
+                            f"SAFE_READ_ONLY only authorizes resource 'hermes-gateway.service', got '{resource}' (RESOURCE_SCOPE_VIOLATION)."
+                        )
+
+                    authorized_properties = ["ActiveState", "SubState", "MainPID", "NRestarts", "ActiveEnterTimestamp", "UnitFileState"]
+                    properties = intent.payload.get("properties") or intent.payload.get("allowed_properties") or []
+                    if properties and set(properties) - set(authorized_properties):
+                        extra_props = list(set(properties) - set(authorized_properties))
+                        blocking_reasons.append(
+                            f"Properties {extra_props} are not in the approved allowlist (PROPERTY_ALLOWLIST_VIOLATION)."
+                        )
+
+                    fingerprint = intent.payload.get("implementation_fingerprint")
+                    if fingerprint and fingerprint != RUNTIME_STATUS_FINGERPRINT:
+                        blocking_reasons.append(
+                            f"Implementation fingerprint drift detected ({fingerprint} != {RUNTIME_STATUS_FINGERPRINT}) (TOOL_IMPLEMENTATION_DRIFT)."
+                        )
+
+                elif tool_id == "document_inspection":
+                    operation = intent.payload.get("operation") or intent.payload.get("operation_id")
+                    if operation != "read_text":
+                        blocking_reasons.append(
+                            f"SAFE_READ_ONLY only authorizes operation 'read_text' for document_inspection, got '{operation}' (UNAUTHORIZED_OPERATION)."
+                        )
+
+                    fingerprint = intent.payload.get("implementation_fingerprint")
+                    if fingerprint and fingerprint != DOCUMENT_INSPECTION_FINGERPRINT:
+                        blocking_reasons.append(
+                            f"Implementation fingerprint drift detected ({fingerprint} != {DOCUMENT_INSPECTION_FINGERPRINT}) (TOOL_IMPLEMENTATION_DRIFT)."
+                        )
+
+                    # Logical Resource Registry Validation (Prompt 14.9A.7 Section 15-21)
+                    raw_res = intent.payload.get("resource_id") or intent.payload.get("resource") or intent.payload.get("path")
+                    if not raw_res:
+                        blocking_reasons.append("Document inspection requires logical 'resource_id' in payload (INVALID_ARGUMENTS).")
+                    else:
+                        base_dir = _resolve_mission_control_base_dir()
+                        try:
+                            ro_res = ReadOnlyResourceRegistry.get_resource(self._conn, raw_res)
+                        except Exception as reg_err:
+                            ro_res = None
+                            blocking_reasons.append(f"Resource registry database error: {reg_err} (RESOURCE_REGISTRY_CORRUPTED).")
+
+                        if not ro_res:
+                            blocking_reasons.append(
+                                f"Resource '{raw_res}' is not registered in ReadOnlyResourceRegistry. Freeform paths are denied (UNKNOWN_RESOURCE)."
+                            )
+                        elif not ro_res.enabled:
+                            blocking_reasons.append(
+                                f"Document resource '{raw_res}' is disabled or revoked (RESOURCE_REVOKED)."
+                            )
+                        else:
+                            is_valid, code, resolved_path, reg_obj, msg = ReadOnlyResourceRegistry.resolve_and_validate(
+                                self._conn, raw_res, base_dir
+                            )
+                            if not is_valid:
+                                blocking_reasons.append(f"Document resource validation failed: {msg} ({code}).")
+                            elif not resolved_path or not resolved_path.is_file():
+                                blocking_reasons.append(f"Document '{raw_res}' does not exist on disk (RESOURCE_NOT_FOUND).")
+                            else:
+                                import hashlib
+                                try:
+                                    file_bytes = resolved_path.read_bytes()
+                                    actual_hash = hashlib.sha256(file_bytes).hexdigest()
+                                    expected_hash = intent.payload.get("source_sha256") or intent.payload.get("resource_hash")
+                                    if expected_hash and expected_hash != actual_hash:
+                                        blocking_reasons.append(
+                                            f"Document content hash mismatch: payload recorded '{expected_hash}' != disk '{actual_hash}' (DOCUMENT_RESOURCE_CHANGED)."
+                                        )
+                                    if ro_res.current_hash and ro_res.current_hash != actual_hash:
+                                        blocking_reasons.append(
+                                            f"Document content hash changed from registered baseline: registered '{ro_res.current_hash}' != disk '{actual_hash}' (DOCUMENT_RESOURCE_CHANGED)."
+                                        )
+                                    if len(file_bytes) > ro_res.max_bytes:
+                                        blocking_reasons.append(f"Document size exceeds maximum {ro_res.max_bytes} limit (FILE_SIZE_LIMIT_EXCEEDED).")
+                                    if len(file_bytes.splitlines()) > ro_res.max_lines:
+                                        blocking_reasons.append(f"Document line count exceeds maximum {ro_res.max_lines} lines limit (LINE_LIMIT_EXCEEDED).")
+                                except Exception as err:
+                                    blocking_reasons.append(f"Failed to read document for hash verification: {err}")
+
+
+            # Concurrency and Rate Limits check
+            limit_blockers = ExecutionPolicyService.check_concurrency_and_rate_limits(
+                conn=self._conn,
+                policy=policy,
+                profile_id=target_profile_id,
+            )
+            blocking_reasons.extend(limit_blockers)
+        except Exception as e:
+            if not isinstance(e, AppError):
+                blocking_reasons.append(f"Production execution policy evaluation failed: {e}. Fail closed.")
+            else:
+                blocking_reasons.append(e.message)
 
         passed = len(blocking_reasons) == 0
         return FinalPreflightResult(

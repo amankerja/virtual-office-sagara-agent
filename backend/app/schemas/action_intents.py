@@ -81,6 +81,10 @@ class ActionIntentDto(BaseModel):
     created_at: str
     updated_at: str
     execution_authorization_id: Optional[str] = None
+    execution_policy_version: Optional[str] = None
+    execution_policy_hash: Optional[str] = None
+    tool_security_policy_version: Optional[str] = None
+    tool_security_policy_hash: Optional[str] = None
 
 
 class ActionSafetyStatusDto(BaseModel):

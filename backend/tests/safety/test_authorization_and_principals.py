@@ -11,6 +11,7 @@ class DummyRequest:
         self.headers = headers or {}
 
 
+@pytest.mark.smoke
 def test_dev_principal_default_in_development():
     req = DummyRequest()
     orig_env = settings.environment
@@ -24,6 +25,7 @@ def test_dev_principal_default_in_development():
         settings.environment = orig_env
 
 
+@pytest.mark.security
 def test_production_fails_closed_without_auth():
     """Section 19: If production does not have an approved provider, fails closed (403)."""
     req = DummyRequest()
@@ -38,6 +40,7 @@ def test_production_fails_closed_without_auth():
         settings.environment = orig_env
 
 
+@pytest.mark.security
 def test_dev_principal_rejected_in_production():
     """Section 18 & 119: Dev principal provider cannot escape into production."""
     req = DummyRequest()
@@ -52,6 +55,7 @@ def test_dev_principal_rejected_in_production():
         settings.environment = orig_env
 
 
+@pytest.mark.security
 def test_authorization_service_request_checks():
     auth = AuthorizationService()
     viewer = OperatorPrincipal(id="viewer-1", roles=["viewer"])
@@ -65,6 +69,7 @@ def test_authorization_service_request_checks():
     auth.authorize_action_request(operator, "TASK_DISPATCH", "task-1")
 
 
+@pytest.mark.security
 def test_self_approval_forbidden_for_high_and_critical():
     """Section 42 & 119: Requester cannot self-approve HIGH or CRITICAL intent."""
     auth = AuthorizationService()

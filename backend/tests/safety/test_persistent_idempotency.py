@@ -2,6 +2,8 @@ import sqlite3
 import tempfile
 from pathlib import Path
 import pytest
+
+pytestmark = [pytest.mark.security]
 from app.api.errors import ConflictError
 from app.db.migrations import run_migrations
 from app.repositories.sqlite.idempotency_repo import PersistentIdempotencyStore

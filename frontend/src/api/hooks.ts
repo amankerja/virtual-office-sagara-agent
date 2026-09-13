@@ -14,7 +14,16 @@ import {
   evaluatePreflight,
   approveActionIntent,
   rejectActionIntent,
+  getMyPrincipal,
+  getExecutionReadiness,
+  getExecutionLock,
+  unlockExecution,
+  emergencyLockExecution,
+  getExecutionPolicy,
+  getToolSecurityPolicy,
+  getReadOnlyResources,
 } from './actionSafety'
+
 
 // Snapshot
 export function useMissionControlSnapshot() {
@@ -384,5 +393,84 @@ export function useRejectActionIntent() {
   })
 }
 
+// V1.1 Auth & Execution Readiness Hooks (Prompt 14.4)
+export function useMyPrincipal() {
+  return useQuery({
+    queryKey: ['auth', 'me'],
+    queryFn: () => getMyPrincipal(),
+    staleTime: 1000 * 60,
+  })
+}
+
+export function useExecutionReadiness() {
+  return useQuery({
+    queryKey: ['execution', 'readiness'],
+    queryFn: () => getExecutionReadiness(),
+    staleTime: 1000 * 5,
+  })
+}
+
+export function useExecutionLock() {
+  return useQuery({
+    queryKey: ['execution', 'lock'],
+    queryFn: () => getExecutionLock(),
+    staleTime: 1000 * 5,
+  })
+}
+
+export function useUnlockExecution() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: {
+      confirmation_phrase: string;
+      reason: string;
+      ttl_minutes?: number;
+      max_executions?: number;
+    }) => unlockExecution(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['execution', 'lock'] })
+      queryClient.invalidateQueries({ queryKey: ['execution', 'readiness'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+    },
+  })
+}
+
+export function useLockExecution() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (reason?: string) => emergencyLockExecution(reason),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['execution', 'lock'] })
+      queryClient.invalidateQueries({ queryKey: ['execution', 'readiness'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.actionSafety.status() })
+    },
+  })
+}
+
+export function useExecutionPolicy() {
+  return useQuery({
+    queryKey: ['execution', 'policy'],
+    queryFn: () => getExecutionPolicy(),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useToolSecurityPolicy() {
+  return useQuery({
+    queryKey: ['tool', 'security-policy'],
+    queryFn: () => getToolSecurityPolicy(),
+    staleTime: 1000 * 30,
+  })
+}
+
+export function useReadOnlyResources() {
+  return useQuery({
+    queryKey: ['execution', 'resources'],
+    queryFn: () => getReadOnlyResources(),
+    staleTime: 1000 * 30,
+  })
+}
+
 export { isMockMode }
+
 

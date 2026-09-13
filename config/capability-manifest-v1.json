@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "manifest_name": "SAGARA_PROFILE_CAPABILITY_MANIFEST_V1",
+  "version": "1.0.0",
+  "status": "FROZEN",
+  "profiles": {
+    "lead": {
+      "profile_id": "lead",
+      "runtime_targetable": true,
+      "network_sensitive": true,
+      "mutation_sensitive": true,
+      "external_communication_sensitive": true,
+      "skill_ids": [
+        "lead-management",
+        "crm-integration",
+        "pipeline-review",
+        "deal-status-tracker",
+        "follow-up-scheduler"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "personal": {
+      "profile_id": "personal",
+      "runtime_targetable": true,
+      "network_sensitive": false,
+      "mutation_sensitive": false,
+      "external_communication_sensitive": true,
+      "skill_ids": [
+        "personal-assistant",
+        "calendar-management",
+        "reminder-service"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "business": {
+      "profile_id": "business",
+      "runtime_targetable": true,
+      "network_sensitive": true,
+      "mutation_sensitive": true,
+      "external_communication_sensitive": true,
+      "skill_ids": [
+        "business-intelligence",
+        "financial-reporting",
+        "ops-monitor"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "marketing": {
+      "profile_id": "marketing",
+      "runtime_targetable": true,
+      "network_sensitive": true,
+      "mutation_sensitive": false,
+      "external_communication_sensitive": true,
+      "skill_ids": [
+        "content-generation",
+        "social-media-scheduler",
+        "campaign-tracker"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "cs": {
+      "profile_id": "cs",
+      "runtime_targetable": true,
+      "network_sensitive": false,
+      "mutation_sensitive": false,
+      "external_communication_sensitive": true,
+      "skill_ids": [
+        "customer-support",
+        "ticket-triage",
+        "response-drafter"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "it-support": {
+      "profile_id": "it-support",
+      "runtime_targetable": true,
+      "network_sensitive": true,
+      "mutation_sensitive": true,
+      "external_communication_sensitive": false,
+      "skill_ids": [
+        "system-diagnostics",
+        "service-health-check",
+        "log-analysis"
+      ],
+      "execution_authorization": "DISABLED",
+      "policy_advisory": "READY_FOR_LIMITED_POLICY_DESIGN",
+      "policy_restriction": "Prompt 15.0 Section 46: it-support is strictly DISABLED for production execution."
+    },
+    "it-coding": {
+      "profile_id": "it-coding",
+      "runtime_targetable": true,
+      "network_sensitive": true,
+      "mutation_sensitive": true,
+      "external_communication_sensitive": false,
+      "skill_ids": [
+        "code-review",
+        "code-generation",
+        "refactor-assist",
+        "security-audit",
+        "test-generation"
+      ],
+      "execution_authorization": "DISABLED"
+    },
+    "sagara-lab": {
+      "profile_id": "sagara-lab",
+      "runtime_targetable": true,
+      "network_sensitive": false,
+      "mutation_sensitive": false,
+      "external_communication_sensitive": false,
+      "skill_ids": [
+        "research-only",
+        "reasoning-sandbox",
+        "draft-generation",
+        "read-only-inspection"
+      ],
+      "execution_authorization": "LIMITED",
+      "allowed_modes": ["SAFE_NO_TOOLS", "SAFE_READ_ONLY"],
+      "allowed_task_classes": ["REASONING_ONLY", "DRAFT_GENERATION", "READ_ONLY_INSPECTION"]
+    }
+  },
+  "runtime_only_profiles": {
+    "default": {
+      "profile_id": "default",
+      "runtime_targetable": true,
+      "is_canonical_sagara": false,
+      "execution_authorization": "DISABLED"
+    },
+    "career": {
+      "profile_id": "career",
+      "runtime_targetable": true,
+      "is_canonical_sagara": false,
+      "execution_authorization": "DISABLED"
+    }
+  }
+}

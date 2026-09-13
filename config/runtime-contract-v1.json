@@ -1,0 +1,144 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "contract_name": "SAGARA_HERMES_RUNTIME_CONTRACT_V1",
+  "contract_version": "1.0.0",
+  "status": "FROZEN",
+  "created_at": "2026-09-12T20:44:00Z",
+  "runtime_baseline": {
+    "host": "VM-17-49-ubuntu",
+    "hermes": {
+      "version": "0.20.6",
+      "commit": "a9c783f21995723c812dcb2f8ae58bc6a4323e2f",
+      "binary_path": "/home/ubuntu/.local/bin/hermes",
+      "service_unit": "hermes-gateway.service",
+      "service_singleton": true
+    },
+    "sagara": {
+      "branch": "main",
+      "commit": "ef03dbcd90538339cd493246959540ba628b0773",
+      "repo_path": "/home/ubuntu/sagara-agent"
+    }
+  },
+  "profiles": {
+    "canonical_sagara_profiles": [
+      "lead",
+      "personal",
+      "business",
+      "marketing",
+      "cs",
+      "it-support",
+      "it-coding",
+      "sagara-lab"
+    ],
+    "canonical_count": 8,
+    "targetable_count": 8,
+    "hermes_runtime_only_profiles": [
+      "default",
+      "career"
+    ],
+    "execution_policy": {
+      "sagara-lab": {
+        "status": "LIMITED",
+        "modes": ["SAFE_NO_TOOLS", "SAFE_READ_ONLY"],
+        "max_tool_invocations": 1
+      },
+      "it-support": {
+        "status": "DISABLED",
+        "policy_state": "READY_FOR_LIMITED_POLICY_DESIGN",
+        "activation_milestone": "POST_INTEGRATION_FREEZE"
+      },
+      "other_profiles": {
+        "status": "DISABLED"
+      }
+    }
+  },
+  "execution_contract": {
+    "invocation_format": "argv_list",
+    "shell": false,
+    "profile_selector_flag": "-p",
+    "env_isolation": {
+      "strip_hermes_home": true
+    },
+    "input_delivery": "query_file",
+    "receipt_parsing": {
+      "mode": "regex_receipt",
+      "receipt_pattern": "(?:Session:\\s+|session_id:\\s+|hermes\\s+--resume\\s+)([a-zA-Z0-9_\\-]+)",
+      "heuristic_correlation_allowed": false
+    },
+    "timeout_policy": {
+      "default_seconds": 60.0,
+      "max_seconds": 600.0,
+      "timeout_outcome": "OUTCOME_UNKNOWN",
+      "timeout_error_code": "HERMES_TIMEOUT",
+      "auto_retry_allowed": false
+    }
+  },
+  "session_observability": {
+    "metric_fields": [
+      "central_store_sessions",
+      "profile_local_sessions",
+      "aggregate_distinct_sessions"
+    ],
+    "deprecated_fields": [
+      "global_sessions"
+    ]
+  },
+  "skill_registry": {
+    "authority": "core/registry/skill.py",
+    "status": "HEALTHY",
+    "unresolved_references": 0,
+    "remediated_declarations": [
+      "lead-status-check",
+      "cross-platform-session-coordinator"
+    ]
+  },
+  "routing": {
+    "authority": "RoutingAdapter",
+    "total_routes": 19,
+    "channels": [
+      {"context": "ops-general", "profile_id": "lead", "platform": "discord", "mention_required": true},
+      {"context": "ops-personal", "profile_id": "personal", "platform": "discord", "mention_required": true},
+      {"context": "ops-business", "profile_id": "business", "platform": "discord", "mention_required": true},
+      {"context": "ops-marketing", "profile_id": "marketing", "platform": "discord", "mention_required": true},
+      {"context": "ops-cs", "profile_id": "cs", "platform": "discord", "mention_required": true},
+      {"context": "ops-it-coding", "profile_id": "it-coding", "platform": "discord", "mention_required": true},
+      {"context": "ops-lab", "profile_id": "sagara-lab", "platform": "discord", "mention_required": true},
+      {"context": "ops-it-support", "profile_id": "it-support", "platform": "discord", "mention_required": true, "policy_status": "POLICY_DECISION_REQUIRED"},
+      {"context": "command-home", "profile_id": "lead", "platform": "discord", "mention_required": false},
+      {"context": "status", "profile_id": "lead", "platform": "discord", "mention_required": false},
+      {"context": "alerts", "profile_id": "lead", "platform": "discord", "mention_required": false},
+      {"context": "content", "profile_id": "marketing", "platform": "discord", "mention_required": false},
+      {"context": "posting", "profile_id": "marketing", "platform": "discord", "mention_required": false},
+      {"context": "system", "profile_id": "lead", "platform": "discord", "mention_required": false},
+      {"context": "telegram-personal", "profile_id": "personal", "platform": "telegram", "mention_required": false},
+      {"context": "telegram-business", "profile_id": "business", "platform": "telegram", "mention_required": false},
+      {"context": "telegram-lead", "profile_id": "lead", "platform": "telegram", "mention_required": false},
+      {"context": "whatsapp-cs", "profile_id": "cs", "platform": "whatsapp", "mention_required": false},
+      {"context": "whatsapp-business", "profile_id": "business", "platform": "whatsapp", "mention_required": false}
+    ]
+  },
+  "adapters": [
+    "ProfileRegistryAdapter",
+    "SkillRegistryAdapter",
+    "RoutingAdapter",
+    "CapabilityManifestAdapter",
+    "HermesRuntimeAdapter",
+    "HermesExecutionAdapter",
+    "HermesSessionAdapter",
+    "GatewayHealthAdapter",
+    "TaskAdapter",
+    "ApprovalAdapter",
+    "AuditAdapter"
+  ],
+  "error_codes": [
+    "PROFILE_NOT_FOUND",
+    "PROFILE_NOT_TARGETABLE",
+    "SKILL_REGISTRY_INVALID",
+    "HERMES_UNAVAILABLE",
+    "HERMES_TIMEOUT",
+    "HERMES_EXECUTION_FAILED",
+    "HERMES_SESSION_RECEIPT_MISSING",
+    "ROUTING_DRIFT",
+    "AUDIT_UNAVAILABLE"
+  ]
+}

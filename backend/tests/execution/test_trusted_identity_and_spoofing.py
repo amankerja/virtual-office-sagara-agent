@@ -1,4 +1,6 @@
 import pytest
+
+pytestmark = [pytest.mark.security]
 from unittest.mock import MagicMock
 from app.api.auth import get_current_principal, is_client_from_trusted_proxy
 from app.api.errors import AppError
@@ -101,3 +103,111 @@ def test_production_trusted_proxy_disabled_fails_closed(monkeypatch):
         )
     assert exc_info.value.status_code == 403
     assert exc_info.value.code == "AUTHORIZATION_UNAVAILABLE"
+
+
+def test_forwarded_for_header_spoofing_does_not_bypass_trusted_cidr(monkeypatch):
+    """Prompt 14.4B Section 15: Never trust client-controlled X-Forwarded-For headers."""
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "trusted_auth_proxy_enabled", True)
+    monkeypatch.setattr(settings, "trusted_proxy_cidrs", ["10.0.0.0/8"])
+
+    req = MagicMock()
+    req.client.host = "203.0.113.50"  # External attacker IP
+    req.headers = {"X-Forwarded-For": "10.0.0.1, 10.0.1.5"}  # Attacker spoofing internal IP
+
+    with pytest.raises(AppError) as exc_info:
+        get_current_principal(
+            request=req,
+            x_operator_id="admin-spoofed",
+            x_operator_roles="admin",
+        )
+    assert exc_info.value.status_code == 403
+    assert exc_info.value.code == "AUTHORIZATION_DENIED"
+
+
+def test_role_spoofing_ordinary_operator_cannot_elevate_privileges(monkeypatch):
+    """Prompt 14.4B Section 18: Ordinary operator cannot elevate to admin or execution rights."""
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "trusted_auth_proxy_enabled", True)
+    monkeypatch.setattr(settings, "trusted_proxy_cidrs", ["10.0.0.0/8"])
+
+    req = MagicMock()
+    req.client.host = "10.0.0.1"  # Inside trusted proxy CIDR
+
+    # Authoritative proxy injects operator role
+    principal = get_current_principal(
+        request=req,
+        x_operator_id="operator-standard-42",
+        x_operator_roles="operator",
+        x_operator_name="Standard Operator",
+    )
+    assert principal.roles == ["operator"]
+    assert "execution.execute" not in principal.permissions
+    assert "execution.lock.manage" not in principal.permissions
+    assert "action.request" in principal.permissions
+
+    # Test viewer role strictly restricted to audit.verify
+    viewer_principal = get_current_principal(
+        request=req,
+        x_operator_id="viewer-42",
+        x_operator_roles="viewer",
+        x_operator_name="Auditor Viewer",
+    )
+    assert viewer_principal.roles == ["viewer"]
+    assert "execution.execute" not in viewer_principal.permissions
+    assert "execution.lock.manage" not in viewer_principal.permissions
+    assert "action.approve" not in viewer_principal.permissions
+    assert "action.request" not in viewer_principal.permissions
+    assert "audit.verify" in viewer_principal.permissions
+
+
+def test_open_world_cidrs_rejected_with_specific_code():
+    """Prompt 14.4B Section 22: 0.0.0.0/0 and ::/0 must be rejected."""
+    from app.api.auth import validate_trusted_proxy_cidrs
+
+    with pytest.raises(ValueError) as exc_ipv4:
+        validate_trusted_proxy_cidrs(["0.0.0.0/0"])
+    assert "OPEN_WORLD_CIDR_REJECTED" in str(exc_ipv4.value)
+
+    with pytest.raises(ValueError) as exc_ipv6:
+        validate_trusted_proxy_cidrs(["::/0"])
+    assert "OPEN_WORLD_CIDR_REJECTED" in str(exc_ipv6.value)
+
+
+def test_production_empty_trusted_cidrs_fails_closed(monkeypatch):
+    """Prompt 14.4B Section 21: Empty trusted proxy CIDRs fails closed."""
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "trusted_auth_proxy_enabled", True)
+    monkeypatch.setattr(settings, "trusted_proxy_cidrs", [])
+
+    req = MagicMock()
+    req.client.host = "127.0.0.1"
+
+    with pytest.raises(AppError) as exc_info:
+        get_current_principal(
+            request=req,
+            x_operator_id="operator-1",
+        )
+    assert exc_info.value.status_code == 403
+    assert exc_info.value.code == "AUTHORIZATION_UNAVAILABLE"
+
+
+def test_read_only_principal_sanitization():
+    """Prompt 14.4B Section 23: Principal exposes only safe metadata."""
+    from app.domain.principal import OperatorPrincipal
+
+    principal = OperatorPrincipal(
+        id="op-101",
+        display_name="Security Lead",
+        roles=["admin"],
+        permissions=["action.request", "execution.lock.manage"],
+        source="trusted_proxy",
+        authentication_strength="sso_mfa",
+    )
+    data = principal.model_dump()
+    assert "password" not in data
+    assert "secret" not in data
+    assert "token" not in data
+    assert data["id"] == "op-101"
+    assert data["source"] == "trusted_proxy"
+

@@ -17,6 +17,7 @@ from app.schemas.action_intents import (
 from app.services.approval_policy import ApprovalPolicyEngine
 from app.services.audit_verifier import verify_audit_chain
 from app.services.authorization_service import AuthorizationService
+from app.services.execution_policy_service import ExecutionPolicyService
 from app.services.preflight_service import ActionPreflightService
 from app.services.risk_evaluator import ActionRiskEvaluator
 from app.services.signing import (
@@ -134,40 +135,91 @@ class ActionIntentService:
                     message=f"Audit chain verification failed: {audit_err}. Mutation rejected.",
                 )
 
+            # Get active production execution policy to bind version and hash (Prompt 14.6 Section 62-66)
+            try:
+                active_exec_policy = ExecutionPolicyService.get_active_policy(conn)
+                exec_policy_version = active_exec_policy.version
+                exec_policy_hash = active_exec_policy.policy_hash
+            except Exception:
+                exec_policy_version = "PRODUCTION_EXECUTION_POLICY_V1"
+                exec_policy_hash = None
+
             # Insert into action_intents table
-            conn.execute(
-                """
-                INSERT INTO action_intents (
-                    id, action_type, target_type, target_id, requested_by,
-                    requested_at, payload, payload_hash, risk, status,
-                    requires_approval, preflight_revision, resource_revision,
-                    preflight_result, nonce, signature, expires_at,
-                    correlation_id, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
-                """,
-                (
-                    intent_id,
-                    dto.action_type,
-                    dto.target_type,
-                    dto.target_id,
-                    principal.id,
-                    now_str,
-                    canonical_str,
-                    payload_hash,
-                    risk,
-                    status,
-                    1 if policy.requires_approval else 0,
-                    1,
-                    dto.resource_revision,
-                    preflight_res.model_dump_json(),
-                    nonce,
-                    signature,
-                    expires_at,
-                    correlation_id,
-                    now_str,
-                    now_str,
-                ),
-            )
+            cursor = conn.cursor()
+            cursor.execute("PRAGMA table_info(action_intents);")
+            ai_cols = [r[1] if isinstance(r, (list, tuple)) else r["name"] for r in cursor.fetchall()]
+
+            if "execution_policy_version" in ai_cols and "execution_policy_hash" in ai_cols:
+                conn.execute(
+                    """
+                    INSERT INTO action_intents (
+                        id, action_type, target_type, target_id, requested_by,
+                        requested_at, payload, payload_hash, risk, status,
+                        requires_approval, preflight_revision, resource_revision,
+                        preflight_result, nonce, signature, expires_at,
+                        correlation_id, created_at, updated_at,
+                        execution_policy_version, execution_policy_hash
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        intent_id,
+                        dto.action_type,
+                        dto.target_type,
+                        dto.target_id,
+                        principal.id,
+                        now_str,
+                        canonical_str,
+                        payload_hash,
+                        risk,
+                        status,
+                        1 if policy.requires_approval else 0,
+                        1,
+                        dto.resource_revision,
+                        preflight_res.model_dump_json(),
+                        nonce,
+                        signature,
+                        expires_at,
+                        correlation_id,
+                        now_str,
+                        now_str,
+                        exec_policy_version,
+                        exec_policy_hash,
+                    ),
+                )
+            else:
+                conn.execute(
+                    """
+                    INSERT INTO action_intents (
+                        id, action_type, target_type, target_id, requested_by,
+                        requested_at, payload, payload_hash, risk, status,
+                        requires_approval, preflight_revision, resource_revision,
+                        preflight_result, nonce, signature, expires_at,
+                        correlation_id, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                    """,
+                    (
+                        intent_id,
+                        dto.action_type,
+                        dto.target_type,
+                        dto.target_id,
+                        principal.id,
+                        now_str,
+                        canonical_str,
+                        payload_hash,
+                        risk,
+                        status,
+                        1 if policy.requires_approval else 0,
+                        1,
+                        dto.resource_revision,
+                        preflight_res.model_dump_json(),
+                        nonce,
+                        signature,
+                        expires_at,
+                        correlation_id,
+                        now_str,
+                        now_str,
+                    ),
+                )
 
             # If approval is required, create the approval gate record
             approval_id = f"appr-{uuid.uuid4().hex[:12]}"
@@ -251,6 +303,10 @@ class ActionIntentService:
             correlation_id=correlation_id,
             created_at=now_str,
             updated_at=now_str,
+            execution_policy_version=exec_policy_version,
+            execution_policy_hash=exec_policy_hash,
+            tool_security_policy_version=dto.payload.get("tool_security_policy_version"),
+            tool_security_policy_hash=dto.payload.get("tool_security_policy_hash"),
         )
 
     async def get_intent(self, intent_id: str) -> ActionIntentDto:
@@ -794,6 +850,10 @@ class ActionIntentService:
         preflight_dict = json.loads(row["preflight_result"]) if row["preflight_result"] else None
         preflight_res = PreflightResultDto(**preflight_dict) if preflight_dict else None
 
+        keys = row.keys() if hasattr(row, "keys") else []
+        exec_pol_ver = row["execution_policy_version"] if "execution_policy_version" in keys else None
+        exec_pol_hash = row["execution_policy_hash"] if "execution_policy_hash" in keys else None
+
         return ActionIntentDto(
             id=row["id"],
             action_type=row["action_type"],
@@ -816,4 +876,8 @@ class ActionIntentService:
             created_at=row["created_at"],
             updated_at=row["updated_at"],
             execution_authorization_id=row["execution_authorization_id"],
+            execution_policy_version=exec_pol_ver,
+            execution_policy_hash=exec_pol_hash,
+            tool_security_policy_version=payload.get("tool_security_policy_version"),
+            tool_security_policy_hash=payload.get("tool_security_policy_hash"),
         )

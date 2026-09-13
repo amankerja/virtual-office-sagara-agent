@@ -2,6 +2,8 @@ from pathlib import Path
 import yaml
 import pytest
 
+pytestmark = [pytest.mark.smoke, pytest.mark.contract]
+
 
 def load_frozen_openapi() -> dict:
     # Frontend openapi spec path relative to workspace

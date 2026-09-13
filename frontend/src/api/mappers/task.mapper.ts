@@ -82,6 +82,12 @@ export function mapTaskDtoToDomain(dto: TaskDto): TaskProjection {
 
     revision: preserveNumber(dto.revision ?? dto.version),
     version: preserveNumber(dto.version ?? dto.revision),
+
+    taskClass: dto.task_class ?? undefined,
+    executionPolicy: dto.execution_policy ?? undefined,
+    executionMode: dto.execution_mode ?? undefined,
+    receiptId: dto.receipt_id ?? undefined,
+    correlation: dto.correlation ?? undefined,
   };
 }
 

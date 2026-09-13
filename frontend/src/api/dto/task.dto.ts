@@ -59,6 +59,11 @@ export interface TaskDto {
   timeline?: TaskActivityEventDto[] | null;
   revision?: number | null;
   version?: number | null;
+  task_class?: string | null;
+  execution_policy?: string | null;
+  execution_mode?: string | null;
+  receipt_id?: string | null;
+  correlation?: string | null;
 }
 
 export interface CreateTaskDto {

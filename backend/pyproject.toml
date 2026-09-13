@@ -24,8 +24,19 @@ dev = [
 [tool.pytest.ini_options]
 minversion = "8.0"
 testpaths = ["tests"]
+pythonpath = ["."]
 asyncio_mode = "auto"
 python_files = ["test_*.py"]
+markers = [
+    "smoke: fast developer feedback smoke tests (foundational health, readiness, policy parsing, API contracts)",
+    "security: security-critical invariants (authorization, proxy spoofing, drift, traversal, kill switch, audit)",
+    "feature: feature-specific regression tests",
+    "execution: execution engine, coordinator, and policy enforcement tests",
+    "tool_security: tool broker, capability binding, resource scope, and sandbox tests",
+    "realtime: realtime protocol, websocket, and backpressure tests",
+    "contract: API contract and schema tests",
+]
+
 
 [tool.ruff]
 target-version = "py311"

@@ -5,7 +5,11 @@ from app.api.v1 import (
     approvals,
     artifacts,
     audit,
+    auth,
     delegations,
+    execution_lock,
+    execution_policy,
+    execution_readiness,
     governance,
     mission_control,
     profiles,
@@ -16,6 +20,8 @@ from app.api.v1 import (
     action_intents,
     action_safety,
     changesets,
+    tool_security_policy,
+    operations,
 )
 from app.config import settings
 from app.realtime.router import realtime_router
@@ -51,3 +57,9 @@ api_v1_router.include_router(realtime_router)
 api_v1_router.include_router(action_intents.router)
 api_v1_router.include_router(action_safety.router)
 api_v1_router.include_router(changesets.router)
+api_v1_router.include_router(auth.router)
+api_v1_router.include_router(execution_readiness.router)
+api_v1_router.include_router(execution_lock.router)
+api_v1_router.include_router(execution_policy.router)
+api_v1_router.include_router(tool_security_policy.router)
+api_v1_router.include_router(operations.router)

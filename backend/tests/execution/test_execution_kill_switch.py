@@ -1,6 +1,8 @@
 import sqlite3
 import pytest
 from app.config import settings
+
+pytestmark = [pytest.mark.security]
 from app.db.connection import get_db_connection
 from app.db.migrations import run_migrations
 from app.repositories.sqlite.execution_repo import ExecutionSqliteRepository
@@ -16,6 +18,7 @@ def clean_db():
     conn.close()
 
 
+@pytest.mark.smoke
 def test_kill_switch_default_locked(clean_db, monkeypatch):
     """By default, env is False and DB is LOCKED -> is_locked is True."""
     monkeypatch.setattr(settings, "execution_enabled", False)

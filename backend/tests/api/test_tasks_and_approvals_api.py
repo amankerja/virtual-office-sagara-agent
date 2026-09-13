@@ -1,6 +1,8 @@
 import uuid
 import pytest
 
+pytestmark = [pytest.mark.smoke]
+
 
 @pytest.mark.asyncio
 async def test_task_lifecycle_and_mutations(client):

@@ -23,7 +23,15 @@ from app.services.final_preflight_service import (
     FinalExecutionPreflightService,
     FinalPreflightResult,
 )
+from pathlib import Path
 from app.services.signing import compute_payload_hash
+
+
+def _resolve_mission_control_base_dir() -> Path:
+    b = Path(__file__).resolve().parents[3]
+    if not (b / "docs").exists():
+        return Path.cwd()
+    return b
 
 
 class TaskDispatchCoordinator:
@@ -181,9 +189,9 @@ class TaskDispatchCoordinator:
             issued_at=now_str,
             expires_at=expires_str,
             nonce=secrets.token_hex(16),
-            state="CLAIMED",
-            consumed_at=now_str,
-            execution_attempt_id=attempt_id,
+            state="ISSUED",
+            consumed_at=None,
+            execution_attempt_id=None,
         )
 
         attempt = ExecutionAttempt(
@@ -199,15 +207,26 @@ class TaskDispatchCoordinator:
             submitted_at=now_str,
         )
 
-        # Commit state to database BEFORE calling external executor (Prompt 14 Section 75-76)
+        # Commit state to database BEFORE calling external executor (Prompt 14 Section 75-76, Prompt 14.4 Section 54-56)
         exec_repo = ExecutionSqliteRepository(self._conn)
 
         self._conn.execute("BEGIN IMMEDIATE;")
         try:
+            # If an active execution window exists, claim an execution slot from it (Prompt 14.4 Section 54-56, 95-96)
+            active_window = exec_repo.get_active_execution_window("global_dispatch")
+            if active_window:
+                slot_claimed = exec_repo.claim_execution_slot(active_window.id, now_str)
+                if not slot_claimed:
+                    raise AppError(status_code=403, code="EXECUTION_BUDGET_EXHAUSTED", message=f"Execution budget exhausted or window '{active_window.id}' expired.")
+
             exec_repo.save_authorization(auth)
+            claimed = exec_repo.claim_authorization(auth_id=auth.id, attempt_id=attempt.id, claimed_at=now_str)
+            if not claimed:
+                raise AppError(status_code=409, code="AUTHORIZATION_ALREADY_CLAIMED", message=f"Execution authorization '{auth.id}' could not be claimed.")
             exec_repo.save_attempt(attempt)
 
             # Record audit event: submission started
+
             append_audit_entry_to_conn(
                 conn=self._conn,
                 event_id=f"aud-{secrets.token_hex(8)}",
@@ -232,6 +251,94 @@ class TaskDispatchCoordinator:
             raise AppError(status_code=500, code="EXECUTION_PREPARATION_FAILED", message=f"Failed to record execution attempt: {e}")
 
         # 5. Invoke External Executor (Outside database write transaction)
+        from app.services.execution_policy_service import ExecutionPolicyService
+        active_policy = ExecutionPolicyService.get_active_policy(self._conn)
+        prof_rule = active_policy.profiles.get(profile_id)
+        effective_safe_mode = True
+        effective_tools_enabled = False
+
+        is_canary_safe_read_only = (
+            intent.payload.get("execution_mode") == "SAFE_READ_ONLY"
+            or intent.payload.get("task_class") == "READ_ONLY_INSPECTION"
+        )
+        tool_count = 0
+        tool_result_content = None
+        tool_policy_ver = None
+        tool_policy_hash = None
+
+        if is_canary_safe_read_only:
+            from app.services.tool_security_service import ToolSecurityService
+            tool_policy = ToolSecurityService.get_installed_policy(self._conn)
+            tool_policy_ver = tool_policy.version
+            tool_policy_hash = tool_policy.policy_hash
+
+            req_tool = intent.payload.get("tool_id", "runtime_status")
+            req_op = intent.payload.get("operation", "inspect_service")
+
+            cap = tool_policy.approved_capabilities.get(req_tool)
+            if not cap:
+                raise AppError(status_code=403, code="UNAUTHORIZED_TOOL", message=f"Tool '{req_tool}' not in approved capabilities.")
+            op = cap.operations.get(req_op)
+            if not op:
+                raise AppError(status_code=403, code="UNAUTHORIZED_OPERATION", message=f"Operation '{req_op}' not in tool capabilities.")
+
+            if req_tool == "runtime_status":
+                req_resource = intent.payload.get("resource", "hermes-gateway.service")
+                req_props = intent.payload.get("properties") or ["ActiveState", "SubState", "MainPID", "NRestarts", "ActiveEnterTimestamp", "UnitFileState"]
+
+                def server_systemctl_runner(cmd_argv, timeout_sec):
+                    import subprocess
+                    remote_cmd = " ".join(cmd_argv)
+                    res = subprocess.run(["ssh", "sagara", remote_cmd], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, timeout=timeout_sec)
+                    return res.stdout
+
+                envelope = ToolSecurityService.execute_runtime_status(
+                    unit=req_resource,
+                    properties=req_props,
+                    resource_scope=cap.resource_scope,
+                    op_policy=op,
+                    command_runner=server_systemctl_runner,
+                )
+                audit_args = {"unit": req_resource, "properties": req_props}
+
+            elif req_tool == "document_inspection":
+                req_resource = intent.payload.get("resource") or intent.payload.get("path")
+                max_bytes = intent.payload.get("max_bytes", op.max_result_bytes)
+                base_dir = _resolve_mission_control_base_dir()
+
+                envelope = ToolSecurityService.execute_document_inspection(
+                    raw_path=req_resource,
+                    max_bytes=max_bytes,
+                    resource_scope=cap.resource_scope,
+                    op_policy=op,
+                    base_dir=base_dir,
+                )
+                audit_args = {"path": req_resource, "max_bytes": max_bytes}
+
+            else:
+                raise AppError(status_code=403, code="UNAUTHORIZED_TOOL", message=f"Tool '{req_tool}' is unauthorized for SAFE_READ_ONLY canary.")
+
+            tool_count = 1
+            tool_result_content = envelope.content
+
+            ToolSecurityService.record_tool_audit(
+                conn=self._conn,
+                intent_id=intent.id,
+                tool_id=req_tool,
+                operation_id=req_op,
+                profile_id=profile_id,
+                status="EXECUTED",
+                denial_reason=None,
+                arguments=audit_args,
+                result_bytes=len(envelope.content),
+                result_content=envelope.content,
+                redacted=envelope.redacted,
+            )
+
+        prompt_text = intent.payload.get("prompt", f"Execute task {task_id}")
+        if is_canary_safe_read_only and tool_result_content:
+            prompt_text += f"\n\n=== UNTRUSTED TOOL DATA ({req_tool}.{req_op}) ===\n{tool_result_content}\n=======================================================\n"
+
         exec_request = TaskDispatchExecutionRequest(
             intent_id=intent.id,
             task_id=task_id,
@@ -240,10 +347,10 @@ class TaskDispatchCoordinator:
             payload_hash=intent.payload_hash,
             correlation_id=intent.correlation_id,
             execution_authorization_id=auth_id,
-            prompt=intent.payload.get("prompt", f"Execute task {task_id}"),
-            timeout_seconds=settings.execution_timeout_seconds,
-            tools_enabled=intent.payload.get("tools_enabled", True),
-            safe_mode=intent.payload.get("safe_mode", False),
+            prompt=prompt_text,
+            timeout_seconds=min(settings.execution_timeout_seconds, (prof_rule.timeout_seconds if prof_rule else 300.0)),
+            tools_enabled=effective_tools_enabled,
+            safe_mode=effective_safe_mode,
         )
 
         exec_result: TaskDispatchExecutionResult = await self._executor.dispatch_task(exec_request)
@@ -285,6 +392,12 @@ class TaskDispatchCoordinator:
                     result="SUCCESS",
                     receipt_hash=rec_hash,
                     created_at=post_str,
+                    execution_policy_version=active_policy.version,
+                    execution_policy_hash=active_policy.policy_hash,
+                    execution_mode="SAFE_READ_ONLY" if is_canary_safe_read_only else ("SAFE_NO_TOOLS" if effective_safe_mode else "APPROVED_TOOLS"),
+                    tool_security_policy_version=tool_policy_ver,
+                    tool_security_policy_hash=tool_policy_hash,
+                    tool_executions_count=tool_count,
                 )
 
                 exec_repo.save_receipt(receipt)
@@ -296,6 +409,7 @@ class TaskDispatchCoordinator:
                     correlation_id=intent.correlation_id,
                     created_at=post_str,
                 )
+                exec_repo.consume_authorization(auth_id, post_str)
 
                 exec_repo.update_attempt_state(
                     attempt_id=attempt_id,
@@ -348,6 +462,7 @@ class TaskDispatchCoordinator:
                     "submitted_at": now_str,
                     "acknowledged_at": exec_result.acknowledged_at or post_str,
                     "receipt": receipt.model_dump(),
+                    "raw_output": exec_result.raw_output_snippet,
                 }
 
             elif exec_result.outcome == "FAILED_PRE_SUBMISSION":

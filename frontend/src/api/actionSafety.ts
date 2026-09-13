@@ -5,7 +5,12 @@ import type {
   AuditVerificationResult,
   ExecutionResponse,
   PreflightResult,
+  OperatorPrincipal,
+  ExecutionReadiness,
+  ExecutionLockInfo,
+  ProductionExecutionPolicy,
 } from '@/types/action-safety';
+
 
 interface RawActionSafetyStatus {
   execution_mode: string;
@@ -257,3 +262,43 @@ export async function executeActionIntent(
     { headers }
   );
 }
+
+export async function getMyPrincipal(): Promise<OperatorPrincipal> {
+  return await apiClient.get<OperatorPrincipal>('/api/v1/auth/me');
+}
+
+export async function getExecutionReadiness(): Promise<ExecutionReadiness> {
+  return await apiClient.get<ExecutionReadiness>('/api/v1/execution-readiness');
+}
+
+export async function getExecutionLock(): Promise<ExecutionLockInfo> {
+  return await apiClient.get<ExecutionLockInfo>('/api/v1/execution-lock');
+}
+
+export async function unlockExecution(payload: {
+  confirmation_phrase: string;
+  reason: string;
+  ttl_minutes?: number;
+  max_executions?: number;
+}): Promise<unknown> {
+  return await apiClient.post('/api/v1/execution-lock/unlock', payload);
+}
+
+export async function emergencyLockExecution(reason?: string): Promise<unknown> {
+  return await apiClient.post('/api/v1/execution-lock/lock', {
+    reason: reason || 'Operator emergency execution lock',
+  });
+}
+
+export async function getExecutionPolicy(): Promise<ProductionExecutionPolicy> {
+  return await apiClient.get<ProductionExecutionPolicy>('/api/v1/execution-policy');
+}
+
+export async function getToolSecurityPolicy(): Promise<import('@/types/action-safety').ToolSecurityPolicyDto> {
+  return await apiClient.get<import('@/types/action-safety').ToolSecurityPolicyDto>('/api/v1/tool-security-policy');
+}
+
+export async function getReadOnlyResources(): Promise<import('@/types/action-safety').ReadOnlyResourceDto[]> {
+  return await apiClient.get<import('@/types/action-safety').ReadOnlyResourceDto[]>('/api/v1/execution-policy/resources');
+}
+
