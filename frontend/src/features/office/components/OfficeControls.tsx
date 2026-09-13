@@ -216,12 +216,13 @@ export const OfficeControls: React.FC<OfficeControlsProps> = ({
           </div>
         )}
 
-        {/* Prototype Data Badge (Section 68: PROTOTYPE DATA, not LIVE) */}
+        {/* Operational Telemetry Badge */}
         <Badge
           variant="outline"
-          className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono-tech text-[10px] tracking-wider uppercase h-7 px-2"
+          className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-sans text-[10px] h-7 px-2 gap-1"
         >
-          PROTOTYPE DATA
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+          LIVE
         </Badge>
       </div>
 

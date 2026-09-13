@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Plus, RefreshCw, Sparkles } from 'lucide-react'
+import { Plus, RefreshCw } from 'lucide-react'
 import { TaskSummary } from '@/features/tasks/components/TaskSummary'
 import { TaskFilters } from '@/features/tasks/components/TaskFilters'
 import { TaskKanbanBoard } from '@/features/tasks/components/TaskKanbanBoard'
@@ -33,7 +33,7 @@ export const TasksPage: React.FC = () => {
   const urlAgent = searchParams.get('agent') || 'ALL'
   const urlAttention = searchParams.get('attention') || 'ALL'
   const urlSkill = searchParams.get('skill') || 'ALL'
-  const urlView = (searchParams.get('view') as 'board' | 'list') || 'board'
+  const urlView = (searchParams.get('view') as 'board' | 'list') || 'list'
 
   // Local filter states synced with URL
   const [search, setSearch] = useState('')
@@ -192,7 +192,7 @@ export const TasksPage: React.FC = () => {
       <div className="py-12">
         <ErrorState
           title="Failed to Load Task Orchestration Board"
-          message="Unable to ingest active task projections. Please verify the local prototype engine or retry."
+          message="Task telemetry unavailable. Mission Control remains online; verify backend API or retry."
           onRetry={() => refetchTasks()}
         />
       </div>
@@ -209,10 +209,10 @@ export const TasksPage: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <Badge
               variant="outline"
-              className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
+              className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-sans text-[10px] gap-1"
             >
-              <Sparkles className="h-3 w-3" />
-              PROTOTYPE DATA
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              LIVE
             </Badge>
           </div>
         }
@@ -222,7 +222,7 @@ export const TasksPage: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => refetchTasks()}
-              className="text-xs h-9 font-mono-tech border-border bg-surface text-text-primary hover:bg-surface-hover"
+              className="text-xs h-9 font-sans border-border bg-surface text-text-primary hover:bg-surface-hover"
             >
               <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
               Refresh
@@ -232,7 +232,7 @@ export const TasksPage: React.FC = () => {
               variant="default"
               size="sm"
               onClick={() => setIsCreateDrawerOpen(true)}
-              className="text-xs h-9 font-mono-tech"
+              className="text-xs h-9 font-sans"
             >
               <Plus className="h-4 w-4 mr-1.5" />
               New Task

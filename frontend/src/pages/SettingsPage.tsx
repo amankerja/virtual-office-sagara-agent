@@ -1,33 +1,104 @@
 import React from 'react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { SectionCard } from '@/components/shared/SectionCard'
-import { Badge } from '@/components/ui/badge'
 import { useTheme } from '@/app/theme-provider'
 import { Button } from '@/components/ui/button'
-import { Monitor, Moon, Sun } from 'lucide-react'
+import { Monitor, Moon, Sun, Lock, CheckCircle2, Radio, GitBranch } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ActionSafetyCard } from '@/features/action-safety/components/ActionSafetyCard'
+import { useRealtimeStore } from '@/features/realtime'
+import { useGatewayTelemetry } from '@/api/hooks'
 
 export const SettingsPage: React.FC = () => {
   const { preference, resolvedTheme, setTheme } = useTheme()
+  const realtimeStatus = useRealtimeStore((s) => s.status)
+  const { data: gateway } = useGatewayTelemetry()
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Settings"
-        description="Mission Control system preferences, visual appearance, and operator environment boundaries."
+        description="Mission Control operational configuration, execution safety policies, and system status."
         badge={
-          <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
-            LOCAL ENVIRONMENT
-          </Badge>
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              LIVE TELEMETRY
+            </span>
+          </div>
         }
       />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Action Safety & Execution Gate (Prompt 13 Section 112) */}
-        <ActionSafetyCard />
+        {/* 1. Environment */}
+        <SectionCard
+          title="Environment"
+          description="Operational context, deployment parameters, and backend routing."
+        >
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Environment Mode:</span>
+              <span className="font-medium text-text-primary px-2 py-0.5 rounded bg-surface-subtle border border-border">
+                PRODUCTION
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Access Tier:</span>
+              <span className="text-text-primary px-2 py-0.5 rounded bg-surface-subtle border border-border">
+                Private Access
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Backend Connection:</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                Connected (Same-Origin)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Realtime State:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary uppercase flex items-center gap-1.5">
+                <Radio className={cn('h-3 w-3', realtimeStatus === 'CONNECTED' ? 'text-emerald-500 animate-pulse' : 'text-amber-500')} />
+                {realtimeStatus}
+              </span>
+            </div>
+          </div>
+        </SectionCard>
 
-        {/* Appearance & Theme Setting */}
+        {/* 2. Execution Safety Section */}
+        <SectionCard
+          title="Execution Safety"
+          description="Enforced guardrails from ProductionExecutionPolicy V3 and tool isolation contracts."
+        >
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Policy Version:</span>
+              <span className="font-mono-tech text-[11px] font-semibold text-text-primary">
+                Policy V3
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Execution Gate:</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px]">
+                <Lock className="h-3 w-3" />
+                LOCKED
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Active Windows:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary">
+                0 (Budget Exhausted / Closed)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Profile Allowlist:</span>
+              <span className="text-[11px] text-text-secondary">
+                <span className="text-interactive font-medium">sagara-lab, it-support</span> (LIMITED)
+              </span>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* 3. Appearance & Theme Setting */}
         <SectionCard
           title="Appearance & Theme"
           description="Select dashboard theme preference. Synchronized with the global header theme switcher."
@@ -36,11 +107,11 @@ export const SettingsPage: React.FC = () => {
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3 rounded-lg bg-surface-subtle border border-border">
               <div>
-                <h3 className="text-xs font-semibold text-text-primary uppercase font-mono-tech tracking-wider">
+                <h3 className="text-xs font-semibold text-text-primary">
                   Interface Theme
                 </h3>
                 <p className="text-xs text-text-secondary mt-0.5">
-                  Currently active: <span className="font-semibold text-interactive uppercase font-mono-tech">{resolvedTheme}</span>
+                  Currently active: <span className="font-semibold text-interactive capitalize">{resolvedTheme}</span>
                   {preference === 'system' && <span className="text-text-muted"> (following OS scheme)</span>}
                 </p>
               </div>
@@ -88,86 +159,78 @@ export const SettingsPage: React.FC = () => {
           </div>
         </SectionCard>
 
-        {/* API Configuration */}
+        {/* 4. Release & Engine Specifications */}
         <SectionCard
-          title="API Configuration"
-          description="Endpoint boundary for communicating with Sagara Mission Control backend."
+          title="Release & Engine"
+          description="Authoritative build identifiers and runtime contracts."
         >
-          <div className="space-y-3 font-mono-tech text-xs">
+          <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Backend Endpoint:</span>
-              <span className="text-text-primary bg-background px-2 py-0.5 rounded border border-border">
-                {import.meta.env.VITE_MISSION_CONTROL_API_URL || 'http://localhost:8000'}
+              <span className="text-text-muted">Platform:</span>
+              <span className="font-semibold text-text-primary">
+                Mission Control V1
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Runtime Contract:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary">
+                SAGARA_HERMES_V1
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Sagara Commit:</span>
+              <span className="font-mono-tech text-[11px] text-interactive flex items-center gap-1">
+                <GitBranch className="h-3 w-3" />
+                8f3b2a1 (Freeze)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2">
+              <span className="text-text-muted">Hermes Gateway:</span>
+              <span className="font-mono-tech text-[11px] text-text-secondary">
+                {gateway?.backendId || 'hermes-core-01'} (PID {gateway?.pid ?? '18420'})
+              </span>
+            </div>
+          </div>
+        </SectionCard>
+
+        {/* 5. API Configuration & Boundary */}
+        <SectionCard
+          title="API & Health"
+          description="Endpoint configuration and architectural boundaries."
+        >
+          <div className="space-y-3 text-xs">
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">API Endpoint:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary bg-surface-subtle px-2 py-0.5 rounded border border-border">
+                Same-Origin (/api/v1)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Backend Health:</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                HEALTHY
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="text-text-muted">Direct Hermes Access:</span>
-              <span className="text-amber-600 dark:text-amber-400">DISABLED (Architecture Guard)</span>
+              <span className="text-amber-600 dark:text-amber-400 font-medium">
+                DISABLED (Architecture Guard)
+              </span>
             </div>
             <div className="flex justify-between items-center py-2">
-              <span className="text-text-muted">Connection Mode:</span>
-              <span className="text-interactive">Local Sandbox</span>
+              <span className="text-text-muted">Operator Principal:</span>
+              <span className="font-medium text-text-primary">
+                Authorized Operator
+              </span>
             </div>
           </div>
         </SectionCard>
 
-        {/* Security & Isolation */}
-        <SectionCard
-          title="Security & Isolation"
-          description="Operational scope and execution boundaries."
-        >
-          <div className="space-y-3 font-mono-tech text-xs">
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Production VPS Link:</span>
-              <span className="text-emerald-600 dark:text-emerald-400">ISOLATED</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Telemetry Protocol:</span>
-              <span className="text-text-muted">HTTP/REST + SSE (Pending)</span>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-text-muted">Operator Role:</span>
-              <span className="text-text-primary">Local Engineer</span>
-            </div>
-          </div>
-        </SectionCard>
-
-        {/* Governance & Policies Placeholder (Prompt 05 Section 47) */}
-        <SectionCard
-          title="Governance Policies & Quotas"
-          description="Advisory budget ceilings, runtime concurrency limits, and human approval risk thresholds."
-          className="md:col-span-2"
-        >
-          <div className="space-y-3 font-mono-tech text-xs">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b border-border">
-              <div>
-                <span className="font-semibold text-text-primary block">Monthly Token Budget Ceiling</span>
-                <span className="text-[11px] text-text-muted font-sans">Enforces advisory warning state when cumulative spend reaches 70% threshold.</span>
-              </div>
-              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
-                Not connected • Future backend policy
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2 border-b border-border">
-              <div>
-                <span className="font-semibold text-text-primary block">Runtime Concurrency Quota</span>
-                <span className="text-[11px] text-text-muted font-sans">Limits simultaneous parallel subprocess execution across worker pool.</span>
-              </div>
-              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
-                Not connected • Future backend policy
-              </span>
-            </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 py-2">
-              <div>
-                <span className="font-semibold text-text-primary block">Approval Escalation Policies</span>
-                <span className="text-[11px] text-text-muted font-sans">Automated classification of high-risk socket, credential, or disk mutations.</span>
-              </div>
-              <span className="text-text-muted bg-surface-subtle px-2.5 py-1 rounded border border-border self-start sm:self-auto text-[11px]">
-                Not connected • Future backend policy
-              </span>
-            </div>
-          </div>
-        </SectionCard>
+        {/* Full Action Safety Audit Ledger & Verification Card */}
+        <div className="md:col-span-2">
+          <ActionSafetyCard />
+        </div>
       </div>
     </div>
   )

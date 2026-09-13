@@ -236,6 +236,7 @@ export interface ReadOnlyResourceDto {
   enabled: boolean;
   allow_redaction: boolean;
   owner_policy: string;
+  allowed_profiles?: string[];
 }
 
 export interface ToolOperationPolicyDto {

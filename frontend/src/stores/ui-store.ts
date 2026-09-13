@@ -39,14 +39,14 @@ const getInitialSidebarState = (): boolean => {
 }
 
 const getInitialViewModeState = (): 'grid' | 'list' => {
-  if (typeof window === 'undefined') return 'grid'
+  if (typeof window === 'undefined') return 'list'
   try {
     const stored = localStorage.getItem(VIEW_MODE_STORAGE_KEY)
     if (stored === 'list' || stored === 'grid') return stored
   } catch {
     // ignore
   }
-  return 'grid'
+  return 'list'
 }
 
 const getInitialOfficeViewModeState = (): 'office' | 'list' => {

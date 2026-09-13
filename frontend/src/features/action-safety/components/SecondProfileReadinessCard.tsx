@@ -190,7 +190,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
     >
       <div className="space-y-4 font-sans text-xs">
         {/* Top Summary Banner */}
-        <div className="p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-[#15803d]" />
@@ -207,7 +207,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setShowDetails(!showDetails)}
-            className="rounded-[8px] border-[#e2e8f0] text-[#0f172a] hover:bg-white text-xs font-mono shrink-0 flex items-center gap-1.5"
+            className="rounded-lg border-[#e2e8f0] text-[#0f172a] hover:bg-white text-xs font-mono shrink-0 flex items-center gap-1.5"
           >
             <span>{showDetails ? 'Hide Preconditions' : 'View Preconditions'}</span>
             {showDetails ? (
@@ -219,7 +219,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
         </div>
 
         {/* Evaluation Table */}
-        <div className="overflow-x-auto rounded-[12px] border border-[#e2e8f0]">
+        <div className="overflow-x-auto rounded-xl border border-[#e2e8f0]">
           <table className="w-full text-left text-[11px] font-mono">
             <thead className="bg-[#f8fafc] text-[#64748b] border-b border-[#e2e8f0]">
               <tr>
@@ -255,7 +255,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
                       <span>{c.profileId}</span>
                     </div>
                   </td>
-                  <td className="py-2.5 px-3 font-sans text-[#475569] max-w-[280px]">
+                  <td className="py-2.5 px-3 font-sans text-[#475569] max-w-70">
                     {c.rolePurpose}
                   </td>
                   <td className="py-2.5 px-3">
@@ -292,13 +292,13 @@ export const SecondProfileReadinessCard: React.FC = () => {
 
         {/* Collapsible Preconditions & Proposed Policy Guidance */}
         {showDetails && (
-          <div className="space-y-3 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] font-mono text-xs">
+          <div className="space-y-3 p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] font-mono text-xs">
             <div className="flex items-center gap-1.5 font-semibold text-[#0f172a]">
               <Info className="h-4 w-4 text-[#2563eb]" />
               <span>Mandatory Preconditions for Future V3 Policy Design</span>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[11px] text-[#475569]">
-              <div className="p-2.5 rounded-[8px] bg-white border border-[#e2e8f0] space-y-1">
+              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0] space-y-1">
                 <span className="font-semibold text-[#0f172a] block">
                   1. Profile Scope Isolation
                 </span>
@@ -306,7 +306,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
                   it-support must receive explicit, profile-scoped permissions. It does NOT automatically inherit sagara-lab resources or unrestricted document access.
                 </p>
               </div>
-              <div className="p-2.5 rounded-[8px] bg-white border border-[#e2e8f0] space-y-1">
+              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0] space-y-1">
                 <span className="font-semibold text-[#0f172a] block">
                   2. Strict Side-Effect Denial
                 </span>
@@ -314,7 +314,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
                   Prohibited: systemctl restart/stop, configuration mutation, shell execution, test execution, or deployment actions. Inspection and reasoning only.
                 </p>
               </div>
-              <div className="p-2.5 rounded-[8px] bg-white border border-[#e2e8f0] space-y-1">
+              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0] space-y-1">
                 <span className="font-semibold text-[#0f172a] block">
                   3. Resource Registry Scoping
                 </span>
@@ -322,7 +322,7 @@ export const SecondProfileReadinessCard: React.FC = () => {
                   Document inspection for it-support must be bounded to explicitly approved troubleshooting guides and architecture docs. No access to secret configs.
                 </p>
               </div>
-              <div className="p-2.5 rounded-[8px] bg-white border border-[#e2e8f0] space-y-1">
+              <div className="p-2.5 rounded-lg bg-white border border-[#e2e8f0] space-y-1">
                 <span className="font-semibold text-[#0f172a] block">
                   4. Rollout Cadence
                 </span>

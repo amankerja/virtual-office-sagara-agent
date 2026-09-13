@@ -54,16 +54,16 @@ export const ConfigurationChangesModal: React.FC<ConfigurationChangesModalProps>
           <AlertTriangle className="h-4 w-4 shrink-0 text-interactive mt-0.5" />
           <div>
             <span className="font-semibold text-text-primary block">
-              Local Prototype Changeset
+              Draft Configuration Changeset
             </span>
             <span className="text-text-muted text-[11px]">
-              These draft modifications are stored locally in your browser session. Production Sagara files (profile.yaml, skills.yaml) are NOT modified.
+              These staged modifications are held in operator session memory. Target agent configuration files will not be mutated without explicit policy validation.
             </span>
           </div>
         </div>
 
         {draftChanges.length === 0 ? (
-          <div className="py-12 text-center text-text-muted text-xs border border-border rounded-xl bg-surface">
+          <div className="py-12 text-center text-text-muted text-xs border border-border rounded-lg bg-surface">
             No staged configuration changes.
           </div>
         ) : (

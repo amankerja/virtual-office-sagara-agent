@@ -1,25 +1,19 @@
 import React from 'react'
-import { useLocation } from 'react-router-dom'
-import {
-  Bell,
-  Search,
-  SlidersHorizontal,
-  Menu,
-  User,
-} from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Bell, Menu, ShieldCheck } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { ThemeSwitcher } from '@/components/shell/ThemeSwitcher'
 import { RealtimeStatus } from '@/features/realtime'
+import { useApprovals } from '@/api/hooks'
 
 const ROUTE_CONTEXT_MAP: Record<string, { title: string; section: string }> = {
   '/': { title: 'Command Center', section: 'COMMAND' },
@@ -37,7 +31,12 @@ const ROUTE_CONTEXT_MAP: Record<string, { title: string; section: string }> = {
 
 export const GlobalHeader: React.FC = () => {
   const location = useLocation()
+  const navigate = useNavigate()
   const { isMobileSidebarOpen, setMobileSidebarOpen } = useUIStore()
+
+  const { data: approvals = [] } = useApprovals()
+  const pendingApprovals = approvals.filter((a) => a.state === 'PENDING')
+  const pendingCount = pendingApprovals.length
 
   const currentRoute = ROUTE_CONTEXT_MAP[location.pathname] || {
     title: 'Mission Control',
@@ -59,98 +58,104 @@ export const GlobalHeader: React.FC = () => {
           <Menu className="h-5 w-5" />
         </Button>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-xs font-mono-tech">
-          <span className="text-text-muted hidden md:inline">{currentRoute.section}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2 text-xs">
+          <span className="text-text-muted text-[11px] uppercase tracking-wider font-semibold hidden md:inline">
+            {currentRoute.section}
+          </span>
           <span className="text-text-muted/60 hidden md:inline">/</span>
-          <span className="font-medium text-text-primary text-xs sm:text-sm">{currentRoute.title}</span>
+          <span className="font-semibold text-text-primary text-xs sm:text-sm">
+            {currentRoute.title}
+          </span>
         </div>
       </div>
 
-      {/* Middle/Right: Controls, Health, Search, Attention, Theme, Profile */}
-      <div className="flex items-center gap-1.5 sm:gap-2.5">
-        {/* Profile Filter Placeholder (Desktop only) */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="xs"
-              className="hidden lg:flex items-center gap-1.5 bg-surface border-border text-text-secondary hover:text-text-primary hover:bg-surface-hover transition-colors"
-            >
-              <SlidersHorizontal className="h-3 w-3 text-text-muted" />
-              <span className="font-mono-tech text-[11px]">All Profiles</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-surface-overlay border-border text-text-primary">
-            <DropdownMenuLabel className="text-[10px] text-text-muted font-mono-tech uppercase">
-              Filter by Profile
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator className="bg-border" />
-            <DropdownMenuItem className="text-xs focus:bg-surface-hover focus:text-text-primary">
-              All Profiles (Default)
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled className="text-xs text-text-muted">
-              No profiles loaded yet
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Global Search Trigger (Desktop & Tablet) */}
-        <button
-          type="button"
-          onClick={() => {}}
-          className="hidden sm:flex items-center gap-2 h-7 px-2.5 rounded-md bg-surface border border-border text-xs text-text-muted hover:border-border-strong hover:text-text-secondary transition-colors"
-          aria-label="Search"
+      {/* Right: Realtime status, Execution LOCKED, Functional Attention, Theme */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Persistent Execution LOCKED Safety Badge */}
+        <div
+          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[11px] font-semibold tracking-wide"
+          title="Execution Safety Gate: LOCKED (Policy V3 enforces SAFE_READ_ONLY / Zero Production Mutations)"
         >
-          <Search className="h-3.5 w-3.5" />
-          <span className="hidden lg:inline font-mono-tech text-[11px]">Search or jump to...</span>
-          <kbd className="hidden lg:inline-flex h-4 items-center gap-0.5 rounded border border-border bg-surface-raised px-1 text-[10px] text-text-muted font-mono-tech">
-            ⌘K
-          </kbd>
-        </button>
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-500 shrink-0" />
+          <span>LOCKED</span>
+        </div>
 
         {/* Global Realtime Connection Status Indicator */}
         <RealtimeStatus className="hidden sm:flex" />
 
-        {/* Attention Indicator */}
+        {/* Functional Attention Indicator (Connected to real approvals data) */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="icon-xs"
-              className="relative text-text-secondary hover:text-text-primary hover:bg-surface-raised transition-colors min-h-10 min-w-10 sm:min-h-7 sm:min-w-7"
-              aria-label="Attention Queue"
+              className="relative text-text-secondary hover:text-text-primary hover:bg-surface-raised transition-colors min-h-10 min-w-10 sm:min-h-8 sm:min-w-8"
+              aria-label={`Attention Queue (${pendingCount} pending)`}
             >
               <Bell className="h-4 w-4 sm:h-3.5 sm:w-3.5" />
+              {pendingCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[10px] font-bold text-white">
+                  {pendingCount}
+                </span>
+              )}
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64 bg-surface-overlay border-border text-text-primary">
+          <DropdownMenuContent align="end" className="w-72 bg-surface-overlay border-border text-text-primary">
             <div className="flex items-center justify-between p-2.5">
-              <span className="text-xs font-semibold uppercase tracking-wider font-mono-tech text-text-muted">
+              <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                 Attention Queue
               </span>
-              <Badge variant="outline" className="border-border text-[10px] font-mono-tech text-text-muted">
-                0
+              <Badge
+                variant="outline"
+                className={
+                  pendingCount > 0
+                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400 text-[10px]'
+                    : 'border-border text-[10px] text-text-muted'
+                }
+              >
+                {pendingCount} PENDING
               </Badge>
             </div>
             <DropdownMenuSeparator className="bg-border" />
-            <div className="p-3 text-center text-xs text-text-muted">
-              No active alerts or approvals pending.
-            </div>
+            {pendingCount === 0 ? (
+              <div className="p-3 text-center text-xs text-text-muted flex flex-col items-center gap-1.5">
+                <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                <span>No pending approvals or alerts.</span>
+              </div>
+            ) : (
+              <div className="max-h-60 overflow-y-auto divide-y divide-border/60">
+                {pendingApprovals.slice(0, 4).map((item) => (
+                  <DropdownMenuItem
+                    key={item.id}
+                    onClick={() => navigate(`/approvals?approval=${item.id}`)}
+                    className="p-2.5 cursor-pointer focus:bg-surface-hover flex flex-col items-start gap-1 text-xs"
+                  >
+                    <div className="flex items-center justify-between w-full">
+                      <span className="font-semibold text-text-primary truncate">{item.actionType}</span>
+                      <span className="text-[10px] uppercase font-semibold text-amber-600 dark:text-amber-400">
+                        {item.risk}
+                      </span>
+                    </div>
+                    <span className="text-[11px] text-text-muted line-clamp-1">{item.description}</span>
+                  </DropdownMenuItem>
+                ))}
+                <div className="p-2 text-center border-t border-border">
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    onClick={() => navigate('/approvals')}
+                    className="w-full text-xs text-interactive hover:text-interactive-hover"
+                  >
+                    View all approvals →
+                  </Button>
+                </div>
+              </div>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Theme Switcher (Desktop, Tablet, Mobile) */}
+        {/* Theme Switcher */}
         <ThemeSwitcher />
-
-        {/* User Profile Placeholder */}
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          className="rounded-full bg-surface-raised border border-border text-text-secondary hover:text-text-primary min-h-9 min-w-9 sm:min-h-7 sm:min-w-7"
-          aria-label="User Account"
-        >
-          <User className="h-3.5 w-3.5" />
-        </Button>
       </div>
     </header>
   )

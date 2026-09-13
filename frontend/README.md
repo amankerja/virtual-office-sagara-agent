@@ -1,29 +1,36 @@
-# Sagara Mission Control — Frontend Foundation & Responsive Theme System
+﻿# Sagara Mission Control — Production Operations Interface
 
-```text
+`	ext
 STATUS:
-Frontend Foundation + Theme System & Responsive Shell
+Production Operations Control Center (Mission Control V1)
 
-BACKEND:
-Not Connected
+DEPLOYMENT:
+Same-Origin Relative API (/api/v1/...)
 
-HERMES:
-No Direct Frontend Connection
-```
+DATA MODE:
+API Mode (Default, fails closed in production)
+Explicit Mock Mode (Development & Story/Demo testing only)
+
+HERMES RUNTIME:
+Connected via Mission Control Backend Supervisor
+`
 
 An enterprise-grade, high-density operations dashboard for autonomous agent fleets and runtime telemetry, featuring full Light, Dark, and System theme support across all device viewports.
 
 ---
 
-## 1. Architectural Boundary & Isolation Guards
+## 1. Architectural Boundary & Operational Semantics
 
-* **Local Sandbox**: This frontend runs entirely locally in development.
-* **No Direct VPS Connection**: Does not connect to or alter any production VPS or Hermes process.
-* **Architecture Guard**: The frontend only communicates with the future **Sagara Mission Control API** via native fetch (`src/api/client.ts`). It **never** invokes Hermes or accesses SQLite directly.
+* **Production Same-Origin**: The frontend is deployed same-origin with the Mission Control backend, communicating over relative /api/v1/... and WebSocket endpoints.
+* **Fail-Closed Semantics**: Production builds default strictly to live API mode. An API communication failure displays UNAVAILABLE or OFFLINE status—it never silently falls back to synthetic mock data in production.
+* **Development Modes**:
+  * **API Mode (Default)**: Proxies /api and /ws to http://localhost:8000 via Vite dev server.
+  * **Mock Mode (Explicit)**: Enabled only when explicitly requested via VITE_DATA_MODE=mock.
+* **Execution Safety Guard**: The frontend operates under PRODUCTION_EXECUTION_POLICY_V3 with human-in-the-loop safety gates and explicit approval workflows. It never issues direct arbitrary shell executions or bypasses safety locks.
 
-```text
-React Frontend  ──(HTTP/REST + SSE)──>  Mission Control API  ──>  Sagara Agent / Hermes Runtime
-```
+`	ext
+Operator Browser  ──(Same-Origin HTTP/WS)──>  Mission Control API  ──>  Sagara Agent / Hermes Runtime
+`
 
 ---
 
@@ -31,11 +38,11 @@ React Frontend  ──(HTTP/REST + SSE)──>  Mission Control API  ──>  Sa
 
 * **Framework**: React 19 + TypeScript (Strict Mode)
 * **Build Tool**: Vite 8 with ESM native alias resolution
-* **Styling**: Tailwind CSS v4 (`@tailwindcss/vite`) + Theme Semantic Design Tokens
-* **Theming**: Custom lightweight `ThemeProvider` (`light`, `dark`, `system` with `prefers-color-scheme` listener)
+* **Styling**: Tailwind CSS v4 (@tailwindcss/vite) + Theme Semantic Design Tokens
+* **Theming**: Custom lightweight ThemeProvider (light, dark, system with prefers-color-scheme listener)
 * **UI Foundation**: Radix UI Primitives + shadcn/ui components (Nova preset with Lucide icons)
-* **Routing**: React Router v7 (Persistent Shell layout, 9 routes + 404 handler)
-* **State Management**: Zustand with `localStorage` persistence (desktop sidebar collapse state, mobile sheet, modals)
+* **Routing**: React Router v7 (Persistent Shell layout, 10 routes + 404 handler)
+* **State Management**: Zustand with localStorage persistence (desktop sidebar collapse state, mobile sheet, modals)
 * **Server State & Querying**: TanStack React Query v5
 * **Linter**: Oxlint
 
@@ -45,29 +52,36 @@ React Frontend  ──(HTTP/REST + SSE)──>  Mission Control API  ──>  Sa
 
 ### Prerequisites
 
-* Node.js: `v20+` (Verified on `v22.19.0`)
-* npm: `v10+` (Verified on `11.7.0`)
+* Node.js: 20+ (Verified on 22.19.0)
+* npm: 10+ (Verified on 11.7.0)
 * Git: Installed
 
 ### Installation
 
-```bash
+`ash
 cd frontend
 npm install
-```
+`
 
 ### Development Server
 
-```bash
+`ash
+# Run in default live API mode (proxied to localhost:8000)
 npm run dev
-```
 
-Default local URL: `http://localhost:5173` (or next available port).
+# Run in explicit mock mode for isolated UI development
+npm run dev:mock
+`
+
+Default local URL: http://localhost:5173.
 
 ### Production Build & Verification
 
-```bash
-# Type check and build bundle
+`ash
+# Run unit & component test suite
+npm test
+
+# Type check and build production bundle
 npm run build
 
 # Run linter
@@ -75,127 +89,75 @@ npm run lint
 
 # Preview production build locally
 npm run preview
-```
+`
 
 ---
 
 ## 4. Environment Variables
 
-Create `.env` from `.env.example`:
+Configure .env for development if customizing endpoints:
 
-```env
-# Sagara Mission Control API Endpoint (Default Local Development Port)
-VITE_MISSION_CONTROL_API_URL=http://localhost:8000
-```
+`env
+# Optional: explicitly configure API origin for external backend development
+# Leave empty or omitted for same-origin relative deployment
+VITE_MISSION_CONTROL_API_URL=
 
-> **IMPORTANT**: Never insert production server IPs or credentials into local frontend environment configurations.
+# Data mode: 'api' (default in production) or 'mock' (dev only)
+VITE_DATA_MODE=api
+`
+
+> **SECURITY NOTE**: Production deployments use same-origin relative paths. Never embed production server credentials or secret tokens into client bundles.
 
 ---
 
 ## 5. Theme System & Visual Direction
 
 ### Supported Modes
-1. **Light Mode**: Modern enterprise SaaS aesthetic, soft neutral background (`#f8fafc`), crisp elevated white cards (`#ffffff`), subtle borders (`#e2e8f0`), dark primary typography (`#0f172a`), and blue primary interaction accents (`#2563eb`).
-2. **Dark Mode**: Operational high-density dark aesthetic, deep neutral/navy background (`#090b10`), dark surface hierarchy (`#0f121a`, `#161a26`), restrained borders (`#1e2436`), and readable text (`#f1f5f9`).
-3. **System Mode**: Automatically synchronizes with OS `prefers-color-scheme` preferences and dynamically updates when the operating system theme toggles.
+1. **Light Mode**: Modern enterprise SaaS aesthetic, soft neutral background (#f8fafc), crisp elevated white cards (#ffffff), subtle borders (#e2e8f0), dark primary typography (#0f172a), and blue primary interaction accents (#2563eb).
+2. **Dark Mode**: Operational high-density dark aesthetic, deep neutral/navy background (#090b10), dark surface hierarchy (#0f121a, #161a26), restrained borders (#1e2436), and readable text (#f1f5f9).
+3. **System Mode**: Automatically synchronizes with OS prefers-color-scheme preferences and dynamically updates when the operating system theme toggles.
 
 ### Persistence
-* Key: `sagara-theme` in `localStorage`.
-* Instant zero-flash initialization script in `index.html`.
+* Key: sagara-theme in localStorage.
+* Instant zero-flash initialization script in index.html.
 
 ---
 
 ## 6. Responsive Layout Breakpoints
 
-* **Desktop (>= 1024px)**:
+* **Wide Display (>= 1440px)**:
+  * Expanded container (max-w-[1560px]).
+  * Dense operational tables and multi-column telemetry strips.
+  * Persistent collapsible sidebar.
+* **Desktop (1024px – 1439px)**:
   * Persistent collapsible sidebar (expanded ~256px, collapsed ~64px).
-  * System Pulse 6-column grid.
-  * Side-by-side operational panels (Attention Queue & Agent Overview).
+  * Standard multi-column operational views.
 * **Tablet (768px – 1023px)**:
   * Compact sidebar navigation.
-  * System Pulse 3-column grid.
-  * Compact header with search and status indicators.
+  * 3-column metric strips and scrollable data tables.
 * **Mobile (< 768px)**:
   * Desktop sidebar hidden.
-  * 56–64px compact mobile header with 44px touch targets.
-  * Navigation Sheet drawer with all command sections and theme segmented control.
-  * System Pulse 1–2 column stacked grid.
-  * Filter modal / dropdown on Agents page.
-  * Guaranteed `overflow-x: hidden` with zero accidental body horizontal scroll.
+  * Compact 56–64px header with 44px minimum touch targets.
+  * Full navigation drawer sheet.
+  * Stacked list rows and compact status cards.
+  * Guaranteed overflow-x: hidden with zero accidental body horizontal scroll.
 
 ---
 
-## 7. Application Structure
+## 7. Operational Verification Checklist
 
-```text
-frontend/
-├── src/
-│   ├── app/
-│   │   ├── App.tsx                  # Root app provider wrapping RouterProvider
-│   │   ├── router.tsx               # Route definitions with MissionControlLayout
-│   │   ├── providers.tsx            # ThemeProvider, TanStack Query & Tooltip providers
-│   │   ├── theme-provider.tsx       # Light/Dark/System ThemeProvider with OS scheme listener
-│   │   └── query-client.ts          # Cache configurations & query defaults
-│   │
-│   ├── layouts/
-│   │   └── MissionControlLayout.tsx # Persistent desktop & mobile responsive shell
-│   │
-│   ├── pages/
-│   │   ├── CommandCenterPage.tsx    # Responsive System Pulse, Attention Queue, Agent Overview
-│   │   ├── AgentsPage.tsx           # Fleet directory (responsive 1-4 column grid)
-│   │   ├── TasksPage.tsx            # Task orchestration placeholder
-│   │   ├── ApprovalsPage.tsx        # Human-in-the-loop approvals placeholder
-│   │   ├── OfficePage.tsx           # 2.5D Virtual Office visualization standby
-│   │   ├── ActivityPage.tsx         # Operational activity & event stream log
-│   │   ├── SkillsPage.tsx           # Registered capabilities & tool manifests
-│   │   ├── RuntimePage.tsx          # Hermes telemetry & supervisor status
-│   │   ├── SettingsPage.tsx         # Theme controls, API boundaries, security, and environment
-│   │   └── NotFoundPage.tsx         # 404 recovery route
-│   │
-│   ├── components/
-│   │   ├── ui/                      # 12 foundation shadcn/Radix components
-│   │   ├── shell/                   # AppSidebar, GlobalHeader & ThemeSwitcher
-│   │   └── shared/                  # StatusBadge, MetricCard, SectionCard, PageHeader, EmptyState, ErrorState, LoadingState
-│   │
-│   ├── api/
-│   │   ├── client.ts                # Lightweight native fetch client with error normalization
-│   │   └── query-keys.ts            # Centralized React Query cache keys
-│   │
-│   ├── stores/
-│   │   └── ui-store.ts              # Zustand store with localStorage persistence for sidebar
-│   │
-│   ├── types/
-│   │   ├── agent.ts                 # Full 9-state AgentStatus contract & AgentProjection
-│   │   ├── profile.ts               # Dynamic AgentProfile without hardcoded IDs
-│   │   ├── skill.ts                 # Capability schemas
-│   │   └── runtime.ts               # RuntimePulse & telemetry event types
-│   │
-│   ├── styles/
-│   │   └── globals.css              # Light & Dark semantic tokens, scrollbars & table styles
-│   │
-│   └── main.tsx                     # React 19 entry point
-│
-├── .env.example                     # Reference environment config
-├── package.json
-├── tsconfig.json
-└── vite.config.ts
-```
-
----
-
-## 8. Current Implementation Status
-
-* [x] Pure local project scaffolded in Windows filesystem.
-* [x] Full Light Mode, Dark Mode, and System Theme support with zero-flash reload.
-* [x] Complete semantic tokens in `globals.css` covering surfaces, borders, text, status, and charts.
-* [x] ThemeSwitcher dropdown in Global Header + segmented control on mobile & Settings page.
-* [x] Desktop, Tablet, and Mobile responsive layout breakpoints.
-* [x] Collapsible sidebar with `localStorage` persistence.
-* [x] Mobile Navigation Sheet drawer with >= 44px touch targets.
-* [x] System Pulse responsive grid (1-2 cols mobile, 3 cols tablet, 6 cols desktop).
-* [x] Agents directory responsive grid (1 col mobile, 2 cols tablet, 3-4 cols desktop).
-* [x] Section 15 Status contract (`ACTIVE`, `IDLE`, `RECENTLY_ACTIVE`, `AWAITING_APPROVAL`, `DEGRADED`, `ERROR`, `OFFLINE`, `UNKNOWN`, `CONFIGURATION_INCOMPLETE`) with high contrast in both light and dark modes.
-* [x] Dynamic Agent directory schema supporting arbitrary `AgentProjection[]` without hardcoding profile names.
-* [x] Zero fake production metric fabrication.
-* [x] Clean production build (`npm run build`) passing with zero errors.
-* [x] Linter (`npm run lint`) passing with zero errors.
+* [x] Production same-origin relative API routing (/api/v1/...).
+* [x] Production data provider fails closed (no silent fallback to mock fixtures).
+* [x] Zero prototype or sandbox environment labels in production interface.
+* [x] Nonfunctional header placeholder controls removed or connected to real telemetry.
+* [x] Persistent Execution Safety status pill (LOCKED) visible across operational views.
+* [x] Card container density reduced by 30-50% using flat status strips and compact tables.
+* [x] Border radiuses normalized to 4–8px (ounded-lg, ounded-md).
+* [x] Monospace typography strictly constrained to IDs, hashes, timestamps, and technical data.
+* [x] Full responsive compliance across Desktop (1440px+), Tablet (1024px), and Mobile (390px).
+* [x] Clean unit test suite (
+pm test).
+* [x] Clean production build (
+pm run build).
+* [x] Clean lint check (
+pm run lint).

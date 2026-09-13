@@ -12,8 +12,7 @@ import { Input } from '@/components/ui/input'
 import type { TaskPriority, CreateTaskInput } from '@/types/task'
 import type { AgentProjection } from '@/types/agent'
 import type { SkillProjection } from '@/types/skill'
-import { Plus, Info, Loader2, Sparkles } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
+import { Plus, Info, Loader2 } from 'lucide-react'
 
 interface CreateTaskDrawerProps {
   isOpen: boolean
@@ -105,7 +104,7 @@ export const CreateTaskDrawer: React.FC<CreateTaskDrawerProps> = ({
       })
       handleClose()
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to create task prototype record.')
+      setError(err instanceof Error ? err.message : 'Failed to create task record.')
     }
   }
 
@@ -121,13 +120,6 @@ export const CreateTaskDrawer: React.FC<CreateTaskDrawerProps> = ({
             <SheetTitle className="text-base font-semibold text-text-primary tracking-tight">
               Create New Task
             </SheetTitle>
-            <Badge
-              variant="outline"
-              className="border-interactive/30 bg-interactive/10 text-interactive text-[10px] font-mono-tech gap-1"
-            >
-              <Sparkles className="h-2.5 w-2.5" />
-              PROTOTYPE
-            </Badge>
           </div>
           <SheetDescription className="text-xs text-text-secondary mt-0.5">
             Define planning parameters and capabilities. Execution requires a separate explicit dispatch.

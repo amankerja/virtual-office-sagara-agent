@@ -2,8 +2,6 @@ import React from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Sparkles } from 'lucide-react'
 import { RuntimeOverview } from '@/features/runtime/components/RuntimeOverview'
 import { GatewayPanel } from '@/features/runtime/components/GatewayPanel'
 import { SessionsTable } from '@/features/runtime/components/SessionsTable'
@@ -120,13 +118,10 @@ export const RuntimePage: React.FC = () => {
         description="Hermes execution engine telemetry, process supervisors, and memory management."
         badge={
           <div className="flex items-center gap-1.5">
-            <Badge
-              variant="outline"
-              className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
-            >
-              <Sparkles className="h-3 w-3" />
-              PROTOTYPE DATA
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              LIVE
+            </span>
           </div>
         }
       />
@@ -137,37 +132,37 @@ export const RuntimePage: React.FC = () => {
           <TabsList className="bg-transparent h-10 p-0 space-x-6 border-b-0">
             <TabsTrigger
               value="overview"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="sessions"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Sessions ({sessions.length})
             </TabsTrigger>
             <TabsTrigger
               value="gateway"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Gateway
             </TabsTrigger>
             <TabsTrigger
               value="delegations"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Delegations ({delegations.length})
             </TabsTrigger>
             <TabsTrigger
               value="usage"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Usage Accounting
             </TabsTrigger>
             <TabsTrigger
               value="events"
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-mono-tech uppercase tracking-wide"
+              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-interactive rounded-none px-1 pb-2 text-xs font-medium"
             >
               Supervisor Events ({events.length})
             </TabsTrigger>

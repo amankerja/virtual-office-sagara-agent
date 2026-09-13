@@ -19,13 +19,13 @@ export const AgentSummaryBar: React.FC<AgentSummaryBarProps> = ({ agents }) => {
   ).length
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-lg border border-border bg-surface font-mono-tech text-xs">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 p-3 rounded-lg border border-border bg-surface text-xs">
       <div className="flex items-center gap-2">
         <div className="h-7 w-7 rounded bg-surface-subtle border border-border flex items-center justify-center text-text-muted">
           <Bot className="h-3.5 w-3.5" />
         </div>
         <div>
-          <span className="text-[10px] text-text-muted block uppercase">Registered</span>
+          <span className="text-[11px] text-text-muted block">Registered</span>
           <span className="font-semibold text-text-primary text-sm">{registered}</span>
         </div>
       </div>
@@ -35,7 +35,7 @@ export const AgentSummaryBar: React.FC<AgentSummaryBarProps> = ({ agents }) => {
           <CheckCircle2 className="h-3.5 w-3.5" />
         </div>
         <div>
-          <span className="text-[10px] text-text-muted block uppercase">Enabled</span>
+          <span className="text-[11px] text-text-muted block">Enabled</span>
           <span className="font-semibold text-text-primary text-sm">{enabled}</span>
         </div>
       </div>
@@ -45,7 +45,7 @@ export const AgentSummaryBar: React.FC<AgentSummaryBarProps> = ({ agents }) => {
           <Activity className="h-3.5 w-3.5" />
         </div>
         <div>
-          <span className="text-[10px] text-text-muted block uppercase">Active</span>
+          <span className="text-[11px] text-text-muted block">Active</span>
           <span className="font-semibold text-text-primary text-sm">{active}</span>
         </div>
       </div>
@@ -55,7 +55,7 @@ export const AgentSummaryBar: React.FC<AgentSummaryBarProps> = ({ agents }) => {
           <AlertTriangle className="h-3.5 w-3.5" />
         </div>
         <div>
-          <span className="text-[10px] text-text-muted block uppercase">Needs Attention</span>
+          <span className="text-[11px] text-text-muted block">Needs attention</span>
           <span className="font-semibold text-text-primary text-sm">{needsAttention}</span>
         </div>
       </div>

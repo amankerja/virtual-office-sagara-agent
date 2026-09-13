@@ -26,7 +26,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
   const isInfraReady = readiness?.infrastructureReady ?? true;
   const isExecutionArmed = readiness?.executionArmed ?? false;
   const activeWindowsCount = lockInfo?.active_window ? 1 : 0;
-  const policyVersion = policy?.version ? (policy.version.includes('V2') ? 'V2' : policy.version) : 'V2';
+  const policyVersion = policy?.version ? (policy.version.includes('V3') ? 'V3' : policy.version.includes('V2') ? 'V2' : policy.version.replace('PRODUCTION_EXECUTION_POLICY_', '')) : 'V3';
   const toolPolicyVersion = toolPolicy?.version ? (toolPolicy.version.includes('V1') ? 'V1' : toolPolicy.version) : 'V1';
 
   return (
@@ -59,7 +59,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
     >
       <div className="space-y-4 font-sans text-xs">
         {/* Section 33: Primary Concise Hierarchy Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] font-mono text-[11px]">
+        <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2 p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] font-mono text-[11px]">
           <div className="flex flex-col gap-1">
             <span className="text-[#64748b] text-[10px] uppercase">Production</span>
             <span className="font-semibold text-[#b91c1c] bg-[#fee2e2] px-2 py-0.5 rounded-full text-center text-[10px]">
@@ -111,7 +111,8 @@ export const SystemSafetySummaryCard: React.FC = () => {
         </div>
 
         {/* Section 24 & 34: Summary First Display */}
-        <div className="p-3.5 rounded-[12px] bg-white border border-[#e2e8f0] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        {/* Section 24 & 34: Summary First Display */}
+        <div className="p-3.5 rounded-xl bg-white border border-[#e2e8f0] flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <span className="font-semibold text-[#0f172a] text-sm">Operational Readiness Status</span>
@@ -137,7 +138,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
               </Badge>
             </div>
             <p className="text-[#64748b] text-[11px] font-sans">
-              All infrastructure prerequisites operational. Production execution is locked with zero active windows. Target profile <strong className="font-mono text-[#0f172a]">sagara-lab</strong> is LIMITED for 2 read-only capabilities. 7 other profiles remain DISABLED.
+              All infrastructure prerequisites operational. Production execution is locked with zero active windows. Target profiles <strong className="font-mono text-[#0f172a]">sagara-lab</strong> and <strong className="font-mono text-[#0f172a]">it-support</strong> are LIMITED for read-only capabilities. 6 other profiles remain DISABLED.
             </p>
           </div>
 
@@ -145,7 +146,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => setExpanded(!expanded)}
-            className="rounded-[8px] border-[#e2e8f0] text-[#0f172a] hover:bg-[#f8fafc] text-xs font-mono shrink-0 flex items-center gap-1.5"
+            className="rounded-lg border-[#e2e8f0] text-[#0f172a] hover:bg-[#f8fafc] text-xs font-mono shrink-0 flex items-center gap-1.5"
           >
             <span>{expanded ? 'Hide Technical Details' : 'View Technical Details'}</span>
             {expanded ? <ChevronUp className="h-3.5 w-3.5 text-[#64748b]" /> : <ChevronDown className="h-3.5 w-3.5 text-[#64748b]" />}
@@ -158,7 +159,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
             {/* Row 1: Drift Diagnostics & Tool Broker */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
               {/* Drift Diagnostics */}
-              <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+              <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                     <FileCheck className="h-3.5 w-3.5 text-[#2563eb]" />
@@ -171,13 +172,13 @@ export const SystemSafetySummaryCard: React.FC = () => {
                 <div className="space-y-1 text-[11px] text-[#64748b]">
                   <div className="flex justify-between">
                     <span>Production Policy Hash:</span>
-                    <span className="text-[#0f172a] truncate max-w-[200px]" title={policy?.policy_hash}>
-                      {policy?.policy_hash ? `${policy.policy_hash.substring(0, 16)}...` : 'c5dc6df112e5...'} (READY)
+                    <span className="text-[#0f172a] truncate max-w-50" title={policy?.policy_hash}>
+                      {policy?.policy_hash ? `${policy.policy_hash.substring(0, 16)}...` : '13ef245630dc...'} (READY)
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tool Policy Hash:</span>
-                    <span className="text-[#0f172a] truncate max-w-[200px]" title={toolPolicy?.policy_hash}>
+                    <span className="text-[#0f172a] truncate max-w-50" title={toolPolicy?.policy_hash}>
                       {toolPolicy?.policy_hash ? `${toolPolicy.policy_hash.substring(0, 16)}...` : '9bdd1d541022...'} (READY)
                     </span>
                   </div>
@@ -193,7 +194,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
               </div>
 
               {/* Tool Broker & Resources */}
-              <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+              <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                     <Cpu className="h-3.5 w-3.5 text-[#0369a1]" />
@@ -218,7 +219,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
                   </div>
                   <div className="flex justify-between">
                     <span>Read-Only Resource Registry:</span>
-                    <span className="text-[#0f172a]">3 registered (3 verified)</span>
+                    <span className="text-[#0f172a]">4 registered (4 verified)</span>
                   </div>
                 </div>
               </div>
@@ -226,7 +227,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
 
             {/* Row 2: Rate Limits & Concurrency */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-xs">
-              <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+              <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                     <Clock className="h-3.5 w-3.5 text-[#2563eb]" />
@@ -252,7 +253,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
+              <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                     <Server className="h-3.5 w-3.5 text-[#0369a1]" />
@@ -280,7 +281,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
             </div>
 
             {/* Section 36 & 37: Execution History & Direct Correlation Indicator */}
-            <div className="p-3.5 rounded-[12px] bg-white border border-[#e2e8f0] space-y-3 font-mono text-xs">
+            <div className="p-3.5 rounded-xl bg-white border border-[#e2e8f0] space-y-3 font-mono text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                   <History className="h-3.5 w-3.5 text-[#2563eb]" />
@@ -360,7 +361,7 @@ export const SystemSafetySummaryCard: React.FC = () => {
             </div>
 
             {/* Section 38: Safety Incident Indicators */}
-            <div className="p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-2 font-mono text-xs">
+            <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-2 font-mono text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-semibold text-[#0f172a] flex items-center gap-1.5">
                   <ShieldAlert className="h-3.5 w-3.5 text-[#15803d]" />

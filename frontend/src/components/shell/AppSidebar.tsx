@@ -202,16 +202,18 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
         )}
 
         {!collapsed ? (
-          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-surface border border-border text-[11px] font-mono-tech text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-status-idle" />
-              v0.1.0-local
+          <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-surface border border-border text-[11px] text-text-secondary">
+            <span className="flex items-center gap-1.5 font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>Mission Control V1</span>
             </span>
-            <span className="text-[10px] text-text-muted uppercase">SANDBOX</span>
+            <span className="text-[10px] font-semibold text-text-muted px-1.5 py-0.5 rounded bg-surface-raised border border-border">
+              PRIVATE
+            </span>
           </div>
         ) : (
           <div className="flex justify-center py-1">
-            <span className="h-2 w-2 rounded-full bg-status-idle" title="v0.1.0-local (SANDBOX)" />
+            <span className="h-2 w-2 rounded-full bg-emerald-500" title="Healthy • Mission Control V1 (PRIVATE)" />
           </div>
         )}
       </div>

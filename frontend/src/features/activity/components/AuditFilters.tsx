@@ -63,7 +63,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
           value={selectedActorType}
           aria-label="Filter by actor type"
           onChange={(e) => onActorTypeChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
           <option value="ALL">All Actor Types</option>
           <option value="USER">User</option>
@@ -77,7 +77,7 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
           value={selectedOutcome}
           aria-label="Filter by outcome"
           onChange={(e) => onOutcomeChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
           <option value="ALL">All Outcomes</option>
           <option value="SUCCESS">Success</option>
@@ -91,9 +91,9 @@ export const AuditFilters: React.FC<AuditFiltersProps> = ({
           value={selectedTimeRange}
           aria-label="Filter by time range"
           onChange={(e) => onTimeRangeChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
-          <option value="ALL">All Prototype Records</option>
+          <option value="ALL">All Records</option>
           <option value="1h">Last 1 hour</option>
           <option value="24h">Last 24 hours</option>
           <option value="7d">Last 7 days</option>

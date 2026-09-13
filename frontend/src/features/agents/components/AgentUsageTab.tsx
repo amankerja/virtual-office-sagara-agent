@@ -27,7 +27,7 @@ export const AgentUsageTab: React.FC<AgentUsageTabProps> = ({ agent }) => {
             ${cost.toFixed(2)}
           </span>
           <span className="text-[11px] text-text-muted mt-1 block font-sans">
-            Calculated from model context rates in local sandbox
+            Calculated from active model context rates
           </span>
         </div>
         <div className="h-10 w-10 rounded-lg bg-interactive/10 border border-interactive/30 flex items-center justify-center text-interactive">

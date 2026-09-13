@@ -30,9 +30,9 @@ export const SkillTable: React.FC<SkillTableProps> = ({
   return (
     <div className="rounded-lg border border-border bg-surface overflow-hidden transition-colors">
       <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs font-mono-tech border-collapse">
+        <table className="w-full text-left text-xs font-sans border-collapse">
           <thead>
-            <tr className="border-b border-border bg-surface-subtle text-text-muted font-semibold uppercase tracking-wider text-[10px]">
+            <tr className="border-b border-border bg-surface-subtle text-text-muted font-medium text-[11px]">
               <th className="py-2.5 px-3">Skill / ID</th>
               <th className="py-2.5 px-3">Category</th>
               <th className="py-2.5 px-3">Registration</th>

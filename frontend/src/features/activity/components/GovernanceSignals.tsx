@@ -37,11 +37,11 @@ export const GovernanceSignals: React.FC<GovernanceSignalsProps> = ({ signals = 
     <div className="p-4 sm:p-5 rounded-lg border border-border bg-surface space-y-3">
       <div className="flex items-center justify-between">
         <div>
-          <h4 className="text-xs font-semibold text-text-primary uppercase tracking-wider">
+          <h4 className="text-sm font-semibold text-text-primary tracking-tight">
             Governance Advisory Signals
           </h4>
           <p className="text-xs text-text-secondary mt-0.5">
-            Non-actionable prototype telemetry alerts identifying potential budget or token anomalies.
+            Operational advisory telemetry alerts identifying potential budget or token consumption anomalies.
           </p>
         </div>
       </div>

@@ -68,7 +68,7 @@ export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({
     return (
       <div className="space-y-3">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-28 rounded-xl bg-surface border border-border animate-pulse p-4" />
+          <div key={i} className="h-28 rounded-lg bg-surface border border-border animate-pulse p-4" />
         ))}
       </div>
     )
@@ -76,7 +76,7 @@ export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({
 
   if (sortedPending.length === 0) {
     return (
-      <div className="p-12 text-center rounded-xl border border-dashed border-border bg-surface text-text-muted text-xs space-y-1">
+      <div className="p-12 text-center rounded-lg border border-dashed border-border bg-surface text-text-muted text-xs space-y-1">
         <div className="font-semibold text-text-primary">No pending approvals</div>
         <p className="text-text-muted">All action boundary checkpoints have been resolved.</p>
       </div>
@@ -107,7 +107,7 @@ export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({
               }
             }}
             className={cn(
-              'group relative flex flex-col p-4 rounded-xl border bg-surface transition-all text-left cursor-pointer',
+              'group relative flex flex-col p-4 rounded-lg border bg-surface transition-all text-left cursor-pointer',
               'hover:border-border-strong hover:shadow-xs focus:outline-hidden focus:ring-2 focus:ring-interactive/40',
               isCriticalOrHigh
                 ? appr.risk === 'CRITICAL'
@@ -189,7 +189,7 @@ export const ApprovalQueue: React.FC<ApprovalQueueProps> = ({
                   type="button"
                   variant="outline"
                   size="xs"
-                  className="h-8 px-3 text-xs font-mono-tech border-border bg-surface-subtle group-hover:border-interactive/40 group-hover:text-interactive"
+                  className="h-8 px-3 text-xs font-medium border-border bg-surface-subtle group-hover:border-interactive/40 group-hover:text-interactive"
                 >
                   Review Request
                   <ArrowRight className="h-3 w-3 ml-1.5" />

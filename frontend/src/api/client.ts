@@ -35,7 +35,11 @@ export class ApiClient {
   constructor(config?: ApiClientConfig) {
     const envUrl = (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_MISSION_CONTROL_API_URL) ||
       (typeof process !== 'undefined' && process.env?.VITE_MISSION_CONTROL_API_URL);
-    this.baseUrl = (config?.baseUrl || envUrl || 'http://localhost:8000').replace(/\/+$/, '');
+    // Same-origin API: Mission Control is served same-origin in production.
+    // Default to '' (same-origin relative paths) instead of hardcoding localhost:8000.
+    // Development may explicitly configure VITE_MISSION_CONTROL_API_URL if needed.
+    const defaultUrl = envUrl || '';
+    this.baseUrl = (config?.baseUrl !== undefined ? config.baseUrl : defaultUrl).replace(/\/+$/, '');
     this.defaultCredentials = config?.credentials;
   }
 

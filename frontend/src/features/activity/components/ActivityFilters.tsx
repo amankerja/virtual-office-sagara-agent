@@ -121,7 +121,7 @@ export const ActivityFilters: React.FC<ActivityFiltersProps> = ({
           value={selectedCategory}
           aria-label="Filter by event category"
           onChange={(e) => onCategoryChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
           <option value="ALL">All Categories</option>
           <option value="TASK">Tasks</option>
@@ -139,7 +139,7 @@ export const ActivityFilters: React.FC<ActivityFiltersProps> = ({
           value={selectedSeverity}
           aria-label="Filter by event severity"
           onChange={(e) => onSeverityChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
           <option value="ALL">All Severities</option>
           <option value="INFO">Info</option>
@@ -153,7 +153,7 @@ export const ActivityFilters: React.FC<ActivityFiltersProps> = ({
           value={selectedAgent}
           aria-label="Filter by agent or actor"
           onChange={(e) => onAgentChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
           <option value="ALL">All Actors</option>
           {agents.map((agent) => (
@@ -168,9 +168,9 @@ export const ActivityFilters: React.FC<ActivityFiltersProps> = ({
           value={selectedTimeRange}
           aria-label="Filter by time range"
           onChange={(e) => onTimeRangeChange(e.target.value)}
-          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-mono-tech"
+          className="h-8 px-2.5 text-xs rounded-md border border-border bg-surface text-text-primary focus:outline-hidden focus:ring-1 focus:ring-interactive/40 cursor-pointer font-sans"
         >
-          <option value="ALL">All Prototype Data</option>
+          <option value="ALL">All Activity</option>
           <option value="1h">Last 1 hour</option>
           <option value="24h">Last 24 hours</option>
           <option value="7d">Last 7 days</option>

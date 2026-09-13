@@ -30,7 +30,7 @@ export const MissionControlLayout: React.FC = () => {
         <GlobalHeader />
 
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 bg-background transition-colors">
-          <div className="mx-auto max-w-7xl w-full">
+          <div className="mx-auto max-w-[1560px] w-full">
             <Outlet />
           </div>
         </main>

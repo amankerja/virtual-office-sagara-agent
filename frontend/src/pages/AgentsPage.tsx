@@ -8,7 +8,6 @@ import {
   List,
   SlidersHorizontal,
   X,
-  Sparkles,
 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
@@ -164,19 +163,9 @@ export const AgentsPage: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Page Header with Prototype Badge */}
       <PageHeader
         title="Agents"
         description="Persistent Sagara specialist profiles, runtime projections, and capability bindings."
-        badge={
-          <Badge
-            variant="outline"
-            className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
-          >
-            <Sparkles className="h-3 w-3" />
-            PROTOTYPE FLEET
-          </Badge>
-        }
       />
 
       {/* Summary Statistics Bar */}

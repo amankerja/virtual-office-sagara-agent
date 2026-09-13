@@ -17,7 +17,7 @@ export const ActionSafetyPage: React.FC = () => {
         description="Mission Control production control boundary: persistent intent lifecycle, HMAC-SHA256 integrity, preflight verification, and tamper-evident audit ledger."
         badge={
           <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-800 rounded-full font-mono-tech text-[10px] px-2.5 py-0.5">
-            EXECUTION LOCKED (SAFE_READ_ONLY LIMITED POLICY V2 — PROMPT 14.9A.7)
+            EXECUTION LOCKED (SAFE_READ_ONLY LIMITED POLICY V3)
           </Badge>
         }
       />

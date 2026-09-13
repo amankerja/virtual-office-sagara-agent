@@ -303,8 +303,8 @@ export const MOCK_APPROVALS: ApprovalProjection[] = [
     risk: 'CRITICAL',
     actionType: 'INFRASTRUCTURE_CHANGE',
     title: 'Simulated Gateway Fault Injection (Failure Test Gate)',
-    description: 'Diagnostic test approval configured to simulate unexpected backend authorization rejection for Section 72 testing.',
-    reasonRequired: 'Testing failure behavior and error recovery in Mission Control frontend prototype.',
+    description: 'Diagnostic test approval configured to simulate unexpected backend authorization rejection for error handling validation.',
+    reasonRequired: 'Testing failure behavior and error recovery in Mission Control operations console.',
     agentId: 'agent-zeta',
     requestedAt: '2026-09-09T05:00:00Z',
     expiresAt: '2026-09-09T18:00:00Z',
@@ -313,7 +313,7 @@ export const MOCK_APPROVALS: ApprovalProjection[] = [
       label: 'mock-failure-simulator.sagara.local',
     },
     preview: {
-      summary: 'Used exclusively to verify Section 72 mock failure and error notification flow.',
+      summary: 'Used exclusively to verify simulated failure and error notification flow.',
       fields: {
         'Failure Mode': 'SIMULATED_HTTP_500',
         'Expected Result': 'Decision was not confirmed. No approval state was changed.',
@@ -324,7 +324,7 @@ export const MOCK_APPROVALS: ApprovalProjection[] = [
       {
         stage: 'Test Gate Created',
         timestamp: '2026-09-09T05:00:00Z',
-        actor: 'Prototype Test Framework',
+        actor: 'Automated Test Framework',
         note: 'Configured for deterministic failure validation',
       },
     ],

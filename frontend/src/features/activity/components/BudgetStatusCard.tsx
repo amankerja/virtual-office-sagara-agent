@@ -111,10 +111,10 @@ export const BudgetStatusCard: React.FC<BudgetStatusCardProps> = ({ budget }) =>
         </div>
       </div>
 
-      {/* Non-actionable Prototype Notice */}
-      <div className="text-[10px] text-text-muted flex items-center gap-1.5 pt-1 border-t border-border/40 font-mono-tech">
+      {/* Telemetry Notice */}
+      <div className="text-[10px] text-text-muted flex items-center gap-1.5 pt-1 border-t border-border/40 font-sans">
         <Info className="h-3 w-3 shrink-0" />
-        <span>Prototype visualization only. No automated billing blocks or production quotas are enforced.</span>
+        <span>Budget telemetry projection. Production execution safety is managed via Execution Policy V3.</span>
       </div>
     </div>
   )

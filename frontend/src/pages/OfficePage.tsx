@@ -235,8 +235,8 @@ export const OfficePage: React.FC = () => {
           title="Virtual Office"
           description="Interactive spatial visualizer of autonomous agent workstations, communication channels, and active collaboration."
           badge={
-            <Badge variant="outline" className="border-border bg-surface text-text-muted font-mono-tech text-[10px]">
-              PROTOTYPE DATA
+            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-sans text-[10px]">
+              LIVE
             </Badge>
           }
         />
@@ -264,9 +264,10 @@ export const OfficePage: React.FC = () => {
         badge={
           <Badge
             variant="outline"
-            className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-mono-tech text-[10px] tracking-wider uppercase"
+            className="border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-sans text-[10px] gap-1"
           >
-            PROTOTYPE DATA
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            LIVE
           </Badge>
         }
         actions={
@@ -362,7 +363,7 @@ export const OfficePage: React.FC = () => {
         </div>
       )}
 
-      {/* Recent prototype activity */}
+      {/* Recent office activity */}
       <OfficeActivityStrip />
 
       {/* Reused Centered Agent Detail Modal (Prompt 11.5 Section 120) */}

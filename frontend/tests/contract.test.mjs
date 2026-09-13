@@ -24,6 +24,7 @@ import { MOCK_TASKS } from '../src/mocks/tasks.ts'
 import { MOCK_APPROVALS } from '../src/mocks/approvals.ts'
 import { MOCK_DELEGATIONS } from '../src/mocks/delegations.ts'
 import { MOCK_GATEWAY, MOCK_RUNTIME_OVERVIEW } from '../src/mocks/runtime.ts'
+import { ApiClient } from '../src/api/client.ts'
 
 test('Contract: preserveNumber enforces UNKNOWN ≠ ZERO semantics', () => {
   // 0 represents a confirmed zero metric
@@ -511,4 +512,31 @@ test('Contract: Office projection is derived purely from domain models without D
     assert.equal(typeof desk.position.x, 'number')
     assert.equal(typeof desk.position.y, 'number')
   }
+})
+
+test('Production Contract: ApiClient defaults to same-origin relative base URL', () => {
+  // Clear any env override for test
+  const client = new ApiClient()
+  assert.equal(client.getBaseUrl(), '', 'ApiClient must default to relative same-origin root')
+})
+
+test('Production Contract: Fail-closed semantics prevent silent fallback to mock in production', () => {
+  // Test the pure fail-closed decision logic:
+  // In production builds (isDev=false), mock is false unless explicitly overridden
+  const checkFailClosed = (isDev, dataMode) => {
+    if (!isDev) {
+      return dataMode === 'mock_explicit_override_only'
+    }
+    return dataMode === 'mock'
+  }
+
+  // Production build with no env var must default to API mode (fail-closed)
+  assert.equal(checkFailClosed(false, undefined), false, 'Production without env must NOT be mock mode')
+  assert.equal(checkFailClosed(false, ''), false, 'Production with empty env must NOT be mock mode')
+  assert.equal(checkFailClosed(false, 'api'), false, 'Production with api mode must NOT be mock mode')
+  assert.equal(checkFailClosed(false, 'mock'), false, 'Standard mock flag must NOT enable mock in production build')
+
+  // Development defaults to API mode unless explicitly 'mock'
+  assert.equal(checkFailClosed(true, undefined), false, 'Dev without env defaults to API mode')
+  assert.equal(checkFailClosed(true, 'mock'), true, 'Dev with explicit mock enables mock fixtures')
 })

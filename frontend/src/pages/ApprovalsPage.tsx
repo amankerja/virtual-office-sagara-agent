@@ -2,8 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { RefreshCw, Sparkles } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { ApprovalSummary } from '@/features/approvals/components/ApprovalSummary'
 import { ApprovalFilters } from '@/features/approvals/components/ApprovalFilters'
 import { ApprovalQueue } from '@/features/approvals/components/ApprovalQueue'
@@ -159,13 +158,10 @@ export const ApprovalsPage: React.FC = () => {
         description="Review and authorize sensitive actions requiring human confirmation."
         badge={
           <div className="flex items-center gap-1.5">
-            <Badge
-              variant="outline"
-              className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
-            >
-              <Sparkles className="h-3 w-3" />
-              PROTOTYPE DATA
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              LIVE
+            </span>
           </div>
         }
         actions={
@@ -173,9 +169,9 @@ export const ApprovalsPage: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => refetchApprovals()}
-            className="text-xs h-9 font-mono-tech border-border bg-surface text-text-primary hover:bg-surface-hover"
+            className="text-xs h-8 border-border bg-surface text-text-primary hover:bg-surface-hover"
           >
-            <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+            <RefreshCw className="h-3.5 w-3.5 mr-1.5 text-text-muted" />
             Refresh
           </Button>
         }

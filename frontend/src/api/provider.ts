@@ -68,20 +68,28 @@ import { MOCK_AUDIT_RECORDS } from '@/mocks/audit'
 import { MOCK_GOVERNANCE_SNAPSHOT } from '@/mocks/governance'
 import { apiClient, ApiError } from './client'
 
-const DATA_MODE = import.meta.env.VITE_DATA_MODE || 'mock'
+// Production Data Mode: Fail closed. API mode by default.
+// Development: Mock ONLY when explicitly requested (e.g. VITE_DATA_MODE === 'mock').
+const isDev = Boolean(import.meta.env.DEV)
+const rawDataMode = import.meta.env.VITE_DATA_MODE
 
 export const isMockMode = (): boolean => {
-  return DATA_MODE === 'mock'
+  // In production builds: Fail closed. Mock mode is never active by default.
+  if (!isDev) {
+    return rawDataMode === 'mock_explicit_override_only'
+  }
+  // In development: Mock ONLY when explicitly configured.
+  return rawDataMode === 'mock'
 }
 
 export function handleApiError(err: unknown): never {
   if (err instanceof ApiError) {
     throw err
   }
-  throw new ApiError(503, 'Mission Control API is not connected.', { original: err })
+  throw new ApiError(503, 'Mission Control telemetry unavailable.', { original: err })
 }
 
-// In-memory prototype state for optimistic / pessimistic testing
+// In-memory fixture state for optimistic / pessimistic testing
 let tasksState: TaskProjection[] = [...MOCK_TASKS]
 let approvalsState: ApprovalProjection[] = [...MOCK_APPROVALS]
 

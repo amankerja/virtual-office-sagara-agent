@@ -14,11 +14,11 @@ export const UpcomingScheduleCard: React.FC = () => {
     .slice(0, 3)
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-4 space-y-3 shadow-xs">
+    <div className="rounded-lg border border-border bg-surface p-4 space-y-3 shadow-xs">
       <div className="flex items-center justify-between border-b border-border/60 pb-2">
         <div className="flex items-center gap-2">
           <CalendarDays className="h-4 w-4 text-interactive" />
-          <h3 className="text-xs font-semibold text-text-primary uppercase tracking-wider font-mono-tech">
+          <h3 className="text-xs font-semibold text-text-primary">
             Upcoming Schedule
           </h3>
         </div>

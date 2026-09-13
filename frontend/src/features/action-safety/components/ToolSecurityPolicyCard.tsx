@@ -34,7 +34,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
     >
       <div className="space-y-6">
         {/* Top Status & Verification Summary */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] text-xs font-mono">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-mono">
           <div>
             <span className="text-[#64748b] block text-[11px]">Production Execution Mode</span>
             <div className="flex items-center gap-1.5 mt-0.5 font-semibold text-[#0f172a]">
@@ -70,10 +70,10 @@ export const ToolSecurityPolicyCard: React.FC = () => {
             <span>Security Guarantees & Resource Scope</span>
           </div>
 
-          <div className="divide-y divide-[#f1f5f9] border border-[#e2e8f0] rounded-[12px] bg-white overflow-hidden text-xs">
+          <div className="divide-y divide-[#f1f5f9] border border-[#e2e8f0] rounded-xl bg-white overflow-hidden text-xs">
             {/* Capability 1: runtime_status */}
             <div className="p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
-              <div className="space-y-1 min-w-[260px]">
+              <div className="space-y-1 min-w-65">
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-[#2563eb]" />
                   <span className="font-bold font-mono text-[#0f172a]">runtime_status</span>
@@ -97,13 +97,13 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-                <div className="bg-[#f1f5f9] px-2 py-1 rounded-[8px] border border-[#e2e8f0] text-[#0f172a]">
+                <div className="bg-[#f1f5f9] px-2 py-1 rounded-lg border border-[#e2e8f0] text-[#0f172a]">
                   Op: inspect_service
                 </div>
-                <div className="bg-[#f1f5f9] px-2 py-1 rounded-[8px] border border-[#e2e8f0] text-[#0f172a]">
+                <div className="bg-[#f1f5f9] px-2 py-1 rounded-lg border border-[#e2e8f0] text-[#0f172a]">
                   Bound: 8KB / 100 lines
                 </div>
-                <div className="bg-[#fee2e2] text-[#b91c1c] px-2 py-1 rounded-[8px] border border-[#fecaca]">
+                <div className="bg-[#fee2e2] text-[#b91c1c] px-2 py-1 rounded-lg border border-[#fecaca]">
                   Mutations: BLOCKED
                 </div>
               </div>
@@ -111,7 +111,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
 
             {/* Capability 2: document_inspection */}
             <div className="p-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-white">
-              <div className="space-y-1 min-w-[260px]">
+              <div className="space-y-1 min-w-65">
                 <div className="flex items-center gap-2">
                   <FileSearch className="h-4 w-4 text-[#2563eb]" />
                   <span className="font-bold font-mono text-[#0f172a]">document_inspection</span>
@@ -135,13 +135,13 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </div>
 
               <div className="flex flex-wrap items-center gap-2 font-mono text-[11px]">
-                <div className="bg-[#f1f5f9] px-2 py-1 rounded-[8px] border border-[#e2e8f0] text-[#0f172a]">
+                <div className="bg-[#f1f5f9] px-2 py-1 rounded-lg border border-[#e2e8f0] text-[#0f172a]">
                   Op: read_text
                 </div>
-                <div className="bg-[#f1f5f9] px-2 py-1 rounded-[8px] border border-[#e2e8f0] text-[#0f172a]">
+                <div className="bg-[#f1f5f9] px-2 py-1 rounded-lg border border-[#e2e8f0] text-[#0f172a]">
                   Bound: 32KB / 500 lines
                 </div>
-                <div className="bg-[#fef9c3] text-[#854d0e] px-2 py-1 rounded-[8px] border border-[#fef08a]">
+                <div className="bg-[#fef9c3] text-[#854d0e] px-2 py-1 rounded-lg border border-[#fef08a]">
                   Redaction: REQUIRED
                 </div>
               </div>
@@ -157,7 +157,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <Terminal className="h-4 w-4 text-[#b91c1c]" />
@@ -172,7 +172,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <Globe className="h-4 w-4 text-[#b91c1c]" />
@@ -187,7 +187,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <Cpu className="h-4 w-4 text-[#b91c1c]" />
@@ -202,7 +202,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <Database className="h-4 w-4 text-[#b91c1c]" />
@@ -217,7 +217,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <Ban className="h-4 w-4 text-[#b91c1c]" />
@@ -232,7 +232,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
               </p>
             </div>
 
-            <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1">
+            <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 font-bold text-[#0f172a]">
                   <ShieldAlert className="h-4 w-4 text-[#b91c1c]" />
@@ -250,7 +250,7 @@ export const ToolSecurityPolicyCard: React.FC = () => {
         </div>
 
         {/* Safety Invariants Notice (Prompt 14.9A Section 94-95) */}
-        <div className="p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] flex items-start gap-3 text-xs">
+        <div className="p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] flex items-start gap-3 text-xs">
           <AlertTriangle className="h-4 w-4 text-[#854d0e] shrink-0 mt-0.5" />
           <div className="space-y-1">
             <span className="font-semibold text-[#0f172a]">

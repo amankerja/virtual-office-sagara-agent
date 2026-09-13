@@ -238,10 +238,10 @@ export const DispatchReviewDialog: React.FC<DispatchReviewDialogProps> = ({
           </div>
         )}
 
-        {/* Prototype Safeguard Notice: Prompt 04 Section 28 */}
+        {/* Policy Safeguard Notice: Production Execution Safety */}
         <div className="p-2.5 rounded-lg bg-surface-subtle border border-border flex items-center gap-2 text-[11px] text-text-muted">
           <Info className="h-3.5 w-3.5 shrink-0 text-interactive" />
-          <span>Prototype action — no production execution or Hermes RPC will be issued.</span>
+          <span>Execution Policy V3 active — dispatch operates under strict safety gates and approval requirements.</span>
         </div>
 
         {/* Footer: Explicit Dispatch Button with Double-Click Protection */}

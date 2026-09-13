@@ -3,9 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { EmptyState } from '@/components/shared/EmptyState'
 import { ErrorState } from '@/components/shared/ErrorState'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Sparkles, Layers } from 'lucide-react'
+import { Layers } from 'lucide-react'
 import { SkillSummary } from '@/features/skills/components/SkillSummary'
 import { SkillHealthDistribution } from '@/features/skills/components/SkillHealthDistribution'
 import { SkillFilters } from '@/features/skills/components/SkillFilters'
@@ -141,7 +140,7 @@ export const SkillsPage: React.FC = () => {
       <div className="py-12">
         <ErrorState
           title="Skills Registry Offline"
-          message="Unable to ingest capability manifest. Ensure prototype mode or Mission Control API is active."
+          message="Unable to ingest capability manifest. Ensure Mission Control API is active."
           onRetry={() => refetch()}
         />
       </div>
@@ -156,13 +155,10 @@ export const SkillsPage: React.FC = () => {
         description="Registered Sagara capabilities, installation state, health, and observed execution evidence."
         badge={
           <div className="flex items-center gap-1.5">
-            <Badge
-              variant="outline"
-              className="border-interactive/30 bg-interactive/10 text-interactive font-mono-tech text-[10px] gap-1"
-            >
-              <Sparkles className="h-3 w-3" />
-              PROTOTYPE DATA
-            </Badge>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              LIVE
+            </span>
           </div>
         }
       />
