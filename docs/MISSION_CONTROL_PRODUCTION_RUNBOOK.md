@@ -51,12 +51,14 @@ sagara-mission-control (FastAPI + Uvicorn @ 127.0.0.1:8000)
 | Component | Identifier / Version | Verification Artifact |
 |---|---|---|
 | **Release Identity** | `MISSION_CONTROL_RELEASE_V1` | Release Manifest |
+| **Mission Control Commit** | `755d53d086049e8192afc4b8f685f46bc34a213a` | Git HEAD on VPS |
 | **Mission Control Backend** | `0.1.0` (FastAPI / Python 3.12) | `backend/pyproject.toml` |
-| **Mission Control Frontend** | `0.0.0` (React 19 / TypeScript 5.9) | `frontend/package.json` |
+| **Mission Control Frontend** | `1.0.0` (React 19 / TypeScript 5.9 / Vite) | `frontend/dist` |
 | **Runtime Contract** | `SAGARA_HERMES_RUNTIME_CONTRACT_V1` | `docs/SAGARA_HERMES_RUNTIME_CONTRACT_V1.md` |
 | **Active Execution Policy** | `PRODUCTION_EXECUTION_POLICY_V3` | SHA-256: `13ef245630dc448208a408db190924119df9bcf1f602f71e0814b62226fbe95e` |
 | **Tool Security Policy** | `TOOL_SECURITY_POLICY_V1` | SHA-256: `9bdd1d54102280e49f1d23a13be404c44bb0f22e2c3f100b8d6aed61e3ec033d` |
-| **Native Sagara Commit** | `babbd61618f6eb3db99109ba24e0d49b2c9b97d7` | `/home/ubuntu/sagara-agent` |
+| **Native Sagara Deployed Commit** | `78cb52c624807fdf7c41d341f2b48c65ffebcfa0` | `/home/ubuntu/sagara-agent` |
+| **Sagara Integration Freeze Baseline** | `babbd61618f6eb3db99109ba24e0d49b2c9b97d7` | Historical Freeze Artifact |
 | **Hermes Gateway Version** | `0.20.6` (`a9c783f21995723c812dcb2f8ae58bc6a4323e2f`) | `/home/ubuntu/.hermes/hermes-agent` |
 | **Service Supervisor** | Systemd User Unit (`sagara-mission-control.service`) | `/home/ubuntu/.config/systemd/user/sagara-mission-control.service` |
 
