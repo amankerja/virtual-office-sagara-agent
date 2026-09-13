@@ -275,7 +275,13 @@ class FinalExecutionPreflightService:
                         f"Tool '{tool_id}' is not an approved capability in ToolSecurityPolicy (UNAUTHORIZED_TOOL)."
                     )
                 else:
-                    if target_profile_id not in cap.enabled_profiles:
+                    # In V2, only sagara-lab was in cap.enabled_profiles.
+                    # In V3, it-support is also authorized as a LIMITED profile under strict profile-resource bounds.
+                    is_profile_authorized = (
+                        target_profile_id in cap.enabled_profiles
+                        or (policy.version >= "PRODUCTION_EXECUTION_POLICY_V3" and target_profile_id in ("sagara-lab", "it-support"))
+                    )
+                    if not is_profile_authorized:
                         blocking_reasons.append(
                             f"SAFE_READ_ONLY is not authorized for profile '{target_profile_id}'. Allowed: {cap.enabled_profiles} (RESOURCE_SCOPE_DENIED)."
                         )
@@ -321,7 +327,7 @@ class FinalExecutionPreflightService:
                             f"Implementation fingerprint drift detected ({fingerprint} != {DOCUMENT_INSPECTION_FINGERPRINT}) (TOOL_IMPLEMENTATION_DRIFT)."
                         )
 
-                    # Logical Resource Registry Validation (Prompt 14.9A.7 Section 15-21)
+                    # Logical Resource Registry Validation (Prompt 14.9A.7 Section 15-21 & Prompt 15.1 Section 8-9)
                     raw_res = intent.payload.get("resource_id") or intent.payload.get("resource") or intent.payload.get("path")
                     if not raw_res:
                         blocking_reasons.append("Document inspection requires logical 'resource_id' in payload (INVALID_ARGUMENTS).")
@@ -343,11 +349,12 @@ class FinalExecutionPreflightService:
                             )
                         else:
                             is_valid, code, resolved_path, reg_obj, msg = ReadOnlyResourceRegistry.resolve_and_validate(
-                                self._conn, raw_res, base_dir
+                                self._conn, raw_res, base_dir, profile_id=target_profile_id
                             )
                             if not is_valid:
                                 blocking_reasons.append(f"Document resource validation failed: {msg} ({code}).")
                             elif not resolved_path or not resolved_path.is_file():
+
                                 blocking_reasons.append(f"Document '{raw_res}' does not exist on disk (RESOURCE_NOT_FOUND).")
                             else:
                                 import hashlib

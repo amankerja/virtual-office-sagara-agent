@@ -320,6 +320,65 @@ def create_canonical_v2_policy() -> ProductionExecutionPolicy:
     return ProductionExecutionPolicy(**raw_dict)
 
 
+def create_canonical_v3_policy() -> ProductionExecutionPolicy:
+    """
+    Canonical Production Execution Policy V3 (Prompt 15.1 Section 3-10).
+    Supersedes V2.
+    Eligible Profiles:
+      - sagara-lab (LIMITED: SAFE_NO_TOOLS + SAFE_READ_ONLY)
+      - it-support (LIMITED: SAFE_NO_TOOLS + SAFE_READ_ONLY)
+      - 6 others: DISABLED (lead, personal, business, marketing, cs, it-coding)
+    Allowed execution modes for it-support:
+      - SAFE_NO_TOOLS: REASONING_ONLY, DRAFT_GENERATION
+      - SAFE_READ_ONLY: READ_ONLY_INSPECTION
+    Allowed tools: runtime_status, document_inspection
+    Max tool invocations per execution: 1.
+    Global concurrency: 1. Max executions per hour: 3.
+    """
+    now_str = "2026-09-13T00:00:00Z"
+
+    v2_policy = create_canonical_v2_policy()
+    profiles: Dict[str, ProfileExecutionRule] = {}
+    for pid, prof_rule in v2_policy.profiles.items():
+        profiles[pid] = prof_rule.model_copy()
+
+    # it-support in V3: second LIMITED profile
+    profiles["it-support"] = ProfileExecutionRule(
+        profile_id="it-support",
+        status="LIMITED",
+        allowed_action_types=["TASK_DISPATCH"],
+        allowed_task_classes=["REASONING_ONLY", "DRAFT_GENERATION", "READ_ONLY_INSPECTION"],
+        allowed_execution_modes=["SAFE_NO_TOOLS", "SAFE_READ_ONLY"],
+        allowed_risk_tiers=["HIGH", "MEDIUM"],
+        require_independent_approval=True,
+        require_safe_mode=True,
+        max_concurrency=1,
+        max_executions_per_hour=3,
+        timeout_seconds=120.0,
+        external_side_effects_allowed=False,
+        disabled_reason=None,
+    )
+
+    raw_dict = {
+        "version": "PRODUCTION_EXECUTION_POLICY_V3",
+        "supersedes_version": "PRODUCTION_EXECUTION_POLICY_V2",
+        "global_execution_enabled": False,
+        "max_global_concurrency": 1,
+        "global_tool_policy": "DENY",
+        "allowed_action_types": ["TASK_DISPATCH"],
+        "profiles": {k: v.model_dump() for k, v in profiles.items()},
+        "tool_security_policy_version": "TOOL_SECURITY_POLICY_V1",
+        "tool_security_policy_hash": "9bdd1d54102280e49f1d23a13be404c44bb0f22e2c3f100b8d6aed61e3ec033d",
+        "allowed_tools": ["runtime_status", "document_inspection"],
+        "max_tool_invocations_per_execution": 1,
+        "created_at": now_str,
+        "description": "Canonical Production Execution Policy V3 — Limited sagara-lab and it-support",
+    }
+    phash = compute_policy_hash(raw_dict)
+    raw_dict["policy_hash"] = phash
+    return ProductionExecutionPolicy(**raw_dict)
+
+
 def diff_policies(old: ProductionExecutionPolicy, new: ProductionExecutionPolicy) -> Dict[str, Any]:
     """Compute exact semantic difference between two execution policies."""
     diff: Dict[str, Any] = {
@@ -358,6 +417,12 @@ def diff_policies(old: ProductionExecutionPolicy, new: ProductionExecutionPolicy
         old_prof = old.profiles.get(pid)
         new_prof = new.profiles.get(pid)
         if old_prof and new_prof:
+            if old_prof.status != new_prof.status:
+                diff["changes"].append({
+                    "field": f"profiles.{pid}.status",
+                    "old": old_prof.status,
+                    "new": new_prof.status,
+                })
             if old_prof.allowed_execution_modes != new_prof.allowed_execution_modes:
                 diff["changes"].append({
                     "field": f"profiles.{pid}.allowed_execution_modes",
@@ -371,4 +436,5 @@ def diff_policies(old: ProductionExecutionPolicy, new: ProductionExecutionPolicy
                     "new": new_prof.allowed_task_classes,
                 })
     return diff
+
 

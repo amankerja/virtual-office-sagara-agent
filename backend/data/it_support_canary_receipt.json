@@ -1,0 +1,15 @@
+{
+  "task_id": "task-it-canary-6c58556a",
+  "intent_id": "act-int-3b6c58386cbd",
+  "authorization_id": "exec-auth-9ace589872db",
+  "attempt_id": "att-836d6b9c9c89a9ce",
+  "receipt_id": "rcpt-0ad0d34bdaa75c77",
+  "receipt_hash": "11670a5926ac1a898662fa79f7157bad2fb5f10764217fc4784c88c5b050f3ec",
+  "requested_profile": "it-support",
+  "actual_profile": "it-support",
+  "hermes_session_id": "20260913_081207_b61b75",
+  "status": "ACKNOWLEDGED",
+  "marker": "IT_SUPPORT_LIMITED_CANARY_OK",
+  "gateway_pid": "436674",
+  "restarts": "0"
+}

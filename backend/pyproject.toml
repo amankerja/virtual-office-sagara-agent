@@ -12,6 +12,10 @@ dependencies = [
     "pydantic-settings>=2.4.0",
 ]
 
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.3.0",

@@ -1,0 +1,17 @@
+{
+  "task_id": "task-it-ro-541561d9",
+  "intent_id": "act-int-a251ddcc9958",
+  "authorization_id": "exec-auth-2eba96f410bd",
+  "attempt_id": "att-49ce2c5a58410f11",
+  "receipt_id": "rcpt-19e1bf5b68506a3a",
+  "receipt_hash": "e0cf0afee7da403ac47787be01940d69f7144a35356796f88e980ab4a3ec2a2b",
+  "requested_profile": "it-support",
+  "actual_profile": "it-support",
+  "tool_id": "runtime_status.inspect_service",
+  "resource": "hermes-gateway.service",
+  "tool_executions_count": 1,
+  "hermes_session_id": "20260913_081415_27f3d5",
+  "status": "ACKNOWLEDGED",
+  "gateway_pid": "436674",
+  "restarts": "0"
+}

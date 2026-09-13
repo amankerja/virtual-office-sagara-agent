@@ -50,8 +50,13 @@ def main():
         idx = args.index("--profile")
         if idx + 1 < len(args):
             profile_name = args[idx + 1]
+    elif "-p" in args:
+        idx = args.index("-p")
+        if idx + 1 < len(args):
+            profile_name = args[idx + 1]
     elif "profiles" in hermes_home:
         profile_name = os.path.basename(hermes_home.rstrip("\\/"))
+
 
     remote_cmd = (
         "set -a; [ -f /home/ubuntu/.hermes/.env ] && . /home/ubuntu/.hermes/.env; set +a; "

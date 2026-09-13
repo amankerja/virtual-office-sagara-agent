@@ -133,6 +133,35 @@ def create_app() -> FastAPI:
     # Mount API V1
     app.include_router(api_v1_router)
 
+    # Mount Pre-built Frontend SPA (Same-Origin Serving per Prompt 15.2 Section 5, 14, 15)
+    from pathlib import Path
+    from fastapi.staticfiles import StaticFiles
+    from fastapi.responses import FileResponse
+
+    dist_path = None
+    if settings.frontend_dist_path:
+        candidate = Path(settings.frontend_dist_path).resolve()
+        if candidate.is_dir():
+            dist_path = candidate
+    else:
+        candidate = (Path(__file__).resolve().parent.parent.parent / "frontend" / "dist").resolve()
+        if candidate.is_dir():
+            dist_path = candidate
+
+    if dist_path and (dist_path / "index.html").is_file():
+        assets_dir = dist_path / "assets"
+        if assets_dir.is_dir():
+            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+
+        @app.get("/{full_path:path}", include_in_schema=False)
+        async def serve_spa(full_path: str):
+            if full_path.startswith(("api", "docs", "redoc", "openapi.json", "health", "ready")):
+                raise StarletteHTTPException(status_code=404, detail="Not Found")
+            target = dist_path / full_path
+            if target.is_file() and not full_path.endswith(".html"):
+                return FileResponse(target)
+            return FileResponse(dist_path / "index.html")
+
     return app
 
 

@@ -70,9 +70,11 @@ class ReadOnlyResourceRegistry:
         conn: sqlite3.Connection,
         resource_id: str,
         base_dir: Path,
+        profile_id: Optional[str] = None,
     ) -> Tuple[bool, Optional[str], Optional[Path], Optional[ReadOnlyResource], str]:
         """
         Resolve logical resource ID to canonical path and validate immutability.
+        Enforces profile-specific resource bounds (Prompt 15.1 Section 8-9).
         Returns (is_valid, denial_code, resolved_path, resource, message).
         """
         resource = cls.get_resource(conn, resource_id)
@@ -81,6 +83,17 @@ class ReadOnlyResourceRegistry:
 
         if not resource.enabled:
             return False, "RESOURCE_REVOKED", None, resource, f"Resource '{resource_id}' has been disabled or revoked (RESOURCE_REVOKED)."
+
+        # Profile-specific resource authorization check (Prompt 15.1 Section 8-9)
+        if profile_id and hasattr(resource, "allowed_profiles") and resource.allowed_profiles:
+            if profile_id not in resource.allowed_profiles:
+                return (
+                    False,
+                    "RESOURCE_SCOPE_DENIED",
+                    None,
+                    resource,
+                    f"Resource '{resource_id}' is not authorized for profile '{profile_id}'. Allowed profiles: {resource.allowed_profiles} (RESOURCE_SCOPE_DENIED)."
+                )
 
         # Systemd service resources don't have filesystem path containment checks
         if resource.resource_type == "SYSTEMD_SERVICE":
@@ -109,6 +122,7 @@ class ReadOnlyResourceRegistry:
                 return False, "FILE_READ_ERROR", resolved, resource, f"Failed to read resource '{resource_id}' for hash verification: {e}"
 
         return True, None, resolved, resource, "Resource validation passed."
+
 
     @classmethod
     def set_resource_enabled(
@@ -160,20 +174,33 @@ class ReadOnlyResourceRegistry:
 
     @classmethod
     def seed_canonical_resources(cls, conn: sqlite3.Connection) -> None:
-        """Seed initial canonical resources if table is empty."""
+        """Seed initial canonical resources if table is empty, and sync profile bindings."""
         cursor = conn.cursor()
+        try:
+            # Check if allowed_profiles column exists, add if missing
+            cursor.execute("PRAGMA table_info(read_only_resources);")
+            cols = [r[1] for r in cursor.fetchall()]
+            if cols and "allowed_profiles" not in cols:
+                conn.execute("ALTER TABLE read_only_resources ADD COLUMN allowed_profiles TEXT;")
+        except Exception:
+            pass
+
         cursor.execute("SELECT COUNT(*) AS cnt FROM read_only_resources;")
         row = cursor.fetchone()
         cnt = (row["cnt"] if isinstance(row, sqlite3.Row) else row[0]) if row else 0
-        if cnt == 0:
-            for r in CANONICAL_INITIAL_RESOURCES:
+
+        for r in CANONICAL_INITIAL_RESOURCES:
+            prof_json = json.dumps(r.allowed_profiles)
+            cursor.execute("SELECT resource_id FROM read_only_resources WHERE resource_id = ?;", (r.resource_id,))
+            existing = cursor.fetchone()
+            if not existing:
                 conn.execute(
                     """
                     INSERT INTO read_only_resources (
                         resource_id, display_name, canonical_path, root_id, resource_type,
                         enabled, classification, max_bytes, max_lines, current_hash,
-                        allow_redaction, owner_policy, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+                        allow_redaction, owner_policy, allowed_profiles, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
                     """,
                     (
                         r.resource_id,
@@ -188,16 +215,35 @@ class ReadOnlyResourceRegistry:
                         r.current_hash,
                         1 if r.allow_redaction else 0,
                         r.owner_policy,
+                        prof_json,
                         r.created_at,
                         r.updated_at,
                     ),
                 )
+            else:
+                try:
+                    conn.execute(
+                        "UPDATE read_only_resources SET allowed_profiles = ? WHERE resource_id = ?;",
+                        (prof_json, r.resource_id),
+                    )
+                except Exception:
+                    pass
 
     @staticmethod
     def _row_to_model(row: Any) -> ReadOnlyResource:
         keys = row.keys() if hasattr(row, "keys") else []
         def g(k, default=None):
             return row[k] if k in keys else default
+
+        raw_profs = g("allowed_profiles")
+        if raw_profs:
+            try:
+                allowed_profs = json.loads(raw_profs) if isinstance(raw_profs, str) else list(raw_profs)
+            except Exception:
+                allowed_profs = ["sagara-lab"]
+        else:
+            init_r = next((r for r in CANONICAL_INITIAL_RESOURCES if r.resource_id == g("resource_id")), None)
+            allowed_profs = list(init_r.allowed_profiles) if init_r else ["sagara-lab"]
 
         return ReadOnlyResource(
             resource_id=g("resource_id"),
@@ -212,6 +258,8 @@ class ReadOnlyResourceRegistry:
             current_hash=g("current_hash"),
             allow_redaction=bool(g("allow_redaction", 1)),
             owner_policy=g("owner_policy", "MISSION_CONTROL"),
+            allowed_profiles=allowed_profs,
             created_at=g("created_at"),
             updated_at=g("updated_at"),
         )
+

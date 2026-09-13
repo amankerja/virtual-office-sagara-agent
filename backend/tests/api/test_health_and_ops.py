@@ -56,7 +56,7 @@ async def test_operations_readiness_endpoint(client):
     data = response.json()
     assert data["infrastructure_ready"] is True
     assert data["execution_armed"] is False
-    assert data["policy_diagnostics"]["active_policy_version"] == "PRODUCTION_EXECUTION_POLICY_V2"
+    assert data["policy_diagnostics"]["active_policy_version"] in ("PRODUCTION_EXECUTION_POLICY_V2", "PRODUCTION_EXECUTION_POLICY_V3")
     assert data["policy_diagnostics"]["tool_policy_version"] == "TOOL_SECURITY_POLICY_V1"
     assert "tool_broker_health" in data
     assert "resource_registry_health" in data

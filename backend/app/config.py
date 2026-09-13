@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     hermes_state_db_path: Optional[str] = None
     host: str = "127.0.0.1"
     port: int = 8000
+    frontend_dist_path: Optional[str] = None
     cors_origins: list[str] = [
         "http://localhost:5173",
         "http://127.0.0.1:5173",
@@ -80,6 +81,8 @@ class Settings(BaseSettings):
                 data["live_canary_enabled"] = os.environ["MISSION_CONTROL_LIVE_CANARY_ENABLED"].lower() in ("true", "1", "yes")
             if not data.get("hermes_binary") and os.environ.get("HERMES_BINARY"):
                 data["hermes_binary"] = os.environ["HERMES_BINARY"]
+            if not data.get("frontend_dist_path") and os.environ.get("FRONTEND_DIST_PATH"):
+                data["frontend_dist_path"] = os.environ["FRONTEND_DIST_PATH"]
         return data
 
 

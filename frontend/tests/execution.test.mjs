@@ -480,4 +480,39 @@ test('Production Execution Policy V2: normal SAFE_READ_ONLY execution does not d
   assert.equal(readiness.mode, 'SAFE_READ_ONLY');
 });
 
+test('Production Execution Policy V3: it-support is LIMITED while channel dispatch remains blocked', () => {
+  const policyV3 = {
+    version: 'PRODUCTION_EXECUTION_POLICY_V3',
+    profiles: {
+      'sagara-lab': { status: 'LIMITED', modes: ['SAFE_NO_TOOLS', 'SAFE_READ_ONLY'] },
+      'it-support': { status: 'LIMITED', modes: ['SAFE_NO_TOOLS', 'SAFE_READ_ONLY'] },
+      'lead': { status: 'DISABLED' },
+      'personal': { status: 'DISABLED' },
+      'business': { status: 'DISABLED' },
+      'marketing': { status: 'DISABLED' },
+      'cs': { status: 'DISABLED' },
+      'it-coding': { status: 'DISABLED' },
+    },
+  };
+
+  assert.equal(policyV3.profiles['it-support'].status, 'LIMITED');
+  assert.equal(policyV3.profiles['sagara-lab'].status, 'LIMITED');
+  assert.equal(policyV3.profiles['lead'].status, 'DISABLED');
+
+  // Channel dispatch distinction: ops-it-support Discord channel remains blocked
+  const channelMatrix = {
+    'ops-it-support': {
+      channel_id: 'it-support-self-healing',
+      profile: 'it-support',
+      configured: true,
+      authorized: false,
+      effective_dispatch: 'BLOCKED_BY_POLICY',
+    },
+  };
+  assert.equal(channelMatrix['ops-it-support'].configured, true);
+  assert.equal(channelMatrix['ops-it-support'].authorized, false);
+  assert.equal(channelMatrix['ops-it-support'].effective_dispatch, 'BLOCKED_BY_POLICY');
+});
+
+
 

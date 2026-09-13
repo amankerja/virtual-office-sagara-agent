@@ -34,6 +34,7 @@ class ReadOnlyResource(BaseModel):
     current_hash: Optional[str] = None
     allow_redaction: bool = True
     owner_policy: str = "MISSION_CONTROL"
+    allowed_profiles: List[str] = Field(default_factory=lambda: ["sagara-lab"])
     created_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
     updated_at: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
@@ -51,6 +52,7 @@ class ReadOnlyResource(BaseModel):
             "has_hash": self.current_hash is not None,
             "allow_redaction": self.allow_redaction,
             "owner_policy": self.owner_policy,
+            "allowed_profiles": self.allowed_profiles,
         }
 
 
@@ -86,6 +88,7 @@ CANONICAL_INITIAL_RESOURCES: List[ReadOnlyResource] = [
         current_hash="de8bd7268f3abb295e36d04c5f31ac80543768acd6e0c871113695d2791f49bb",
         allow_redaction=True,
         owner_policy="MISSION_CONTROL",
+        allowed_profiles=["sagara-lab"],
         created_at="2026-09-12T12:00:00Z",
         updated_at="2026-09-12T12:00:00Z",
     ),
@@ -102,6 +105,7 @@ CANONICAL_INITIAL_RESOURCES: List[ReadOnlyResource] = [
         current_hash=None,
         allow_redaction=True,
         owner_policy="MISSION_CONTROL",
+        allowed_profiles=["sagara-lab"],
         created_at="2026-09-12T12:00:00Z",
         updated_at="2026-09-12T12:00:00Z",
     ),
@@ -118,8 +122,27 @@ CANONICAL_INITIAL_RESOURCES: List[ReadOnlyResource] = [
         current_hash=None,
         allow_redaction=True,
         owner_policy="MISSION_CONTROL",
+        allowed_profiles=["sagara-lab", "it-support"],
         created_at="2026-09-12T12:00:00Z",
         updated_at="2026-09-12T12:00:00Z",
     ),
+    ReadOnlyResource(
+        resource_id="DOC-OPS-RUNBOOK-001",
+        display_name="IT Support Operational Troubleshooting Runbook",
+        canonical_path="docs/PRODUCTION_EXECUTION_OPERATOR_RUNBOOK.md",
+        root_id="docs",
+        resource_type="DOCUMENT",
+        enabled=True,
+        classification="INTERNAL",
+        max_bytes=32768,
+        max_lines=500,
+        current_hash=None,
+        allow_redaction=True,
+        owner_policy="MISSION_CONTROL",
+        allowed_profiles=["it-support"],
+        created_at="2026-09-13T00:00:00Z",
+        updated_at="2026-09-13T00:00:00Z",
+    ),
 ]
+
 

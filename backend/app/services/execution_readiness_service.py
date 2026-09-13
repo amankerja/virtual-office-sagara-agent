@@ -27,6 +27,7 @@ CANONICAL_PROFILES = [
 ]
 
 CANONICAL_V2_HASH = "c5dc6df112e56739f2d96c8ef195bc4711c9631473f92cae064ad88353848ba1"
+CANONICAL_V3_HASH = "13ef245630dc448208a408db190924119df9bcf1f602f71e0814b62226fbe95e"
 CANONICAL_TOOL_POLICY_HASH = "9bdd1d54102280e49f1d23a13be404c44bb0f22e2c3f100b8d6aed61e3ec033d"
 
 
@@ -175,8 +176,8 @@ class ExecutionReadinessService:
             details["canary_gate"] = "MISSION_CONTROL_LIVE_CANARY_ENABLED is false (canary gate locked)."
 
         # 12. Active Production Policy Diagnostics & Drift
-        active_policy_version = "PRODUCTION_EXECUTION_POLICY_V2"
-        active_policy_hash = CANONICAL_V2_HASH
+        active_policy_version = "PRODUCTION_EXECUTION_POLICY_V3"
+        active_policy_hash = CANONICAL_V3_HASH
         policy_drift_status = "READY"
         policy_reason_code = None
         try:
@@ -186,7 +187,8 @@ class ExecutionReadinessService:
             if prow:
                 active_policy_version = prow[0]
                 active_policy_hash = prow[1]
-                if active_policy_hash != CANONICAL_V2_HASH:
+                expected_hash = CANONICAL_V3_HASH if active_policy_version == "PRODUCTION_EXECUTION_POLICY_V3" else CANONICAL_V2_HASH
+                if active_policy_hash != expected_hash:
                     policy_drift_status = "STALE"
                     policy_reason_code = "POLICY_VERSION_STALE"
             components["active_production_policy"] = "READY" if policy_drift_status == "READY" else "DEGRADED"
@@ -194,6 +196,7 @@ class ExecutionReadinessService:
         except Exception:
             components["active_production_policy"] = "READY"
             details["active_production_policy"] = f"{active_policy_version} canonical active."
+
 
         # 13. Tool Security Policy Diagnostics & Drift
         tool_policy_version = "TOOL_SECURITY_POLICY_V1"

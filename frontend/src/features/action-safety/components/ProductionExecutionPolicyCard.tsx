@@ -95,7 +95,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
     >
       <div className="space-y-6 font-sans">
         {/* Top Summary Bar - Policy Version Separations & Lock Status */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3.5 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] text-xs font-mono">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-3.5 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] text-xs font-mono">
           <div>
             <span className="text-[#64748b] block text-[11px]">Active Production Policy</span>
             <div className="flex items-center gap-1.5 mt-0.5 font-semibold text-[#0f172a]">
@@ -149,7 +149,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
             {/* Mode 1: SAFE_NO_TOOLS */}
-            <div className="p-3.5 rounded-[12px] bg-white border border-[#e2e8f0] space-y-2">
+            <div className="p-3.5 rounded-xl bg-white border border-[#e2e8f0] space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#15803d]" />
@@ -162,14 +162,14 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
               <p className="text-[11px] text-[#64748b] font-sans">
                 Permitted Task Classes: <span className="font-mono font-semibold text-[#0f172a]">REASONING_ONLY</span>, <span className="font-mono font-semibold text-[#0f172a]">DRAFT_GENERATION</span>.
               </p>
-              <div className="flex items-center gap-2 text-[11px] text-[#64748b] bg-[#f8fafc] p-2 rounded-[8px] border border-[#f1f5f9]">
+              <div className="flex items-center gap-2 text-[11px] text-[#64748b] bg-[#f8fafc] p-2 rounded-lg border border-[#f1f5f9]">
                 <Ban className="h-3.5 w-3.5 text-[#b91c1c] shrink-0" />
                 <span>Zero tools authorized under this mode. Strict global tool deny.</span>
               </div>
             </div>
 
             {/* Mode 2: SAFE_READ_ONLY */}
-            <div className="p-3.5 rounded-[12px] bg-white border border-[#e2e8f0] space-y-2">
+            <div className="p-3.5 rounded-xl bg-white border border-[#e2e8f0] space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#0369a1]" />
@@ -182,7 +182,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
               <p className="text-[11px] text-[#64748b] font-sans">
                 Permitted Task Class: <span className="font-mono font-semibold text-[#0f172a]">READ_ONLY_INSPECTION</span>. Multi-tool tasks denied.
               </p>
-              <div className="flex items-center gap-2 text-[11px] text-[#64748b] bg-[#f8fafc] p-2 rounded-[8px] border border-[#f1f5f9]">
+              <div className="flex items-center gap-2 text-[11px] text-[#64748b] bg-[#f8fafc] p-2 rounded-lg border border-[#f1f5f9]">
                 <Lock className="h-3.5 w-3.5 text-[#0369a1] shrink-0" />
                 <span>Single-tool budget: Exactly 1 read-only tool invocation per execution.</span>
               </div>
@@ -192,7 +192,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
           {/* Approved Read-Only Tools Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs font-mono">
             {/* Tool 1: runtime_status */}
-            <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-1.5">
+            <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Activity className="h-4 w-4 text-[#2563eb]" />
@@ -206,14 +206,14 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
               <div className="text-[11px] text-[#64748b] space-y-1 font-sans">
                 <div>Operation: <span className="font-mono font-semibold text-[#0f172a]">inspect_service</span></div>
                 <div>Fixed Service: <span className="font-mono font-semibold text-[#0f172a]">hermes-gateway.service</span></div>
-                <div className="text-[10px] text-[#0369a1] bg-white p-1.5 rounded-[8px] border border-[#e2e8f0]">
+                <div className="text-[10px] text-[#0369a1] bg-white p-1.5 rounded-lg border border-[#e2e8f0]">
                   No freeform service parameter permitted. Preflight binds to policy-defined unit.
                 </div>
               </div>
             </div>
 
             {/* Tool 2: document_inspection */}
-            <div className="p-3 rounded-[12px] bg-[#f8fafc] border border-[#e2e8f0] space-y-1.5">
+            <div className="p-3 rounded-xl bg-[#f8fafc] border border-[#e2e8f0] space-y-1.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <FileText className="h-4 w-4 text-[#2563eb]" />
@@ -227,7 +227,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
               <div className="text-[11px] text-[#64748b] space-y-1 font-sans">
                 <div>Operation: <span className="font-mono font-semibold text-[#0f172a]">read_text</span></div>
                 <div>Target Resolution: <span className="font-mono font-semibold text-[#0f172a]">Logical Resource Registry</span></div>
-                <div className="text-[10px] text-[#0369a1] bg-white p-1.5 rounded-[8px] border border-[#e2e8f0]">
+                <div className="text-[10px] text-[#0369a1] bg-white p-1.5 rounded-lg border border-[#e2e8f0]">
                   No freeform file paths. Resolves strictly through server-side canonical registry.
                 </div>
               </div>
@@ -247,7 +247,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
             </span>
           </div>
 
-          <div className="border border-[#e2e8f0] rounded-[12px] bg-white overflow-hidden text-xs">
+          <div className="border border-[#e2e8f0] rounded-xl bg-white overflow-hidden text-xs">
             <div className="p-3 bg-[#f8fafc] border-b border-[#e2e8f0] flex flex-col md:flex-row md:items-center justify-between gap-2">
               <div className="space-y-0.5">
                 <span className="font-semibold text-[#0f172a]">Registered Logical Resources (Safe Metadata Only)</span>
@@ -265,7 +265,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
                   id="resource-selector"
                   value={selectedResourceId}
                   onChange={(e) => setSelectedResourceId(e.target.value)}
-                  className="font-mono text-xs bg-white border border-[#e2e8f0] rounded-[8px] px-2.5 py-1 text-[#0f172a] focus:outline-none focus:border-[#2563eb]"
+                  className="font-mono text-xs bg-white border border-[#e2e8f0] rounded-lg px-2.5 py-1 text-[#0f172a] focus:outline-none focus:border-[#2563eb]"
                 >
                   {resources.map((res) => (
                     <option key={res.resource_id} value={res.resource_id}>
@@ -353,7 +353,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
             <span>Policy Status & Allowed Modes</span>
           </div>
 
-          <div className="divide-y divide-[#f1f5f9] border border-[#e2e8f0] rounded-[12px] bg-white overflow-hidden text-xs">
+          <div className="divide-y divide-[#f1f5f9] border border-[#e2e8f0] rounded-xl bg-white overflow-hidden text-xs">
             {CANONICAL_PROFILES_ORDER.map((profileId) => {
               const rule = policy?.profiles?.[profileId];
               const isLimited = rule?.status === 'LIMITED';
@@ -365,7 +365,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
                     isLimited ? 'bg-[#f8fafc]/60' : 'bg-white'
                   }`}
                 >
-                  <div className="space-y-1 min-w-[200px]">
+                  <div className="space-y-1 min-w-50">
                     <div className="flex items-center gap-2">
                       <span className="font-bold font-mono text-[#0f172a]">{profileId}</span>
                       {isLimited ? (
@@ -388,20 +388,20 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-3 font-mono text-[11px] text-[#0f172a]">
                     {isLimited ? (
                       <>
-                        <div className="flex items-center gap-1 bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-[8px] border border-[#bbf7d0]">
+                        <div className="flex items-center gap-1 bg-[#dcfce7] text-[#15803d] px-2 py-0.5 rounded-lg border border-[#bbf7d0]">
                           <CheckCircle2 className="h-3 w-3" />
                           <span>REASONING / DRAFT / INSPECTION</span>
                         </div>
-                        <div className="bg-[#e0f2fe] text-[#0369a1] px-2 py-0.5 rounded-[8px] border border-[#bae6fd]">
+                        <div className="bg-[#e0f2fe] text-[#0369a1] px-2 py-0.5 rounded-lg border border-[#bae6fd]">
                           Modes: SAFE_NO_TOOLS + SAFE_READ_ONLY
                         </div>
-                        <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-[8px] border border-[#e2e8f0] text-[#64748b]">
+                        <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-lg border border-[#e2e8f0] text-[#64748b]">
                           Concurrency: 1
                         </div>
-                        <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-[8px] border border-[#e2e8f0] text-[#64748b]">
+                        <div className="bg-[#f1f5f9] px-2 py-0.5 rounded-lg border border-[#e2e8f0] text-[#64748b]">
                           Rate: 3/hr
                         </div>
-                        <div className="bg-[#fef9c3] text-[#854d0e] px-2 py-0.5 rounded-[8px] border border-[#fef08a]">
+                        <div className="bg-[#fef9c3] text-[#854d0e] px-2 py-0.5 rounded-lg border border-[#fef08a]">
                           Approval: REQUIRED
                         </div>
                       </>
@@ -420,7 +420,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
 
         {/* Historical Policy Retention & Safety Guardrails */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-          <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1.5">
+          <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1.5">
             <div className="flex items-center gap-1.5 font-semibold text-[#0f172a]">
               <Shield className="h-4 w-4 text-[#2563eb]" />
               <span>Policy Evolution & V1 Historical Retention</span>
@@ -433,7 +433,7 @@ export const ProductionExecutionPolicyCard: React.FC = () => {
             </ul>
           </div>
 
-          <div className="p-3 rounded-[12px] bg-white border border-[#e2e8f0] space-y-1.5">
+          <div className="p-3 rounded-xl bg-white border border-[#e2e8f0] space-y-1.5">
             <div className="flex items-center gap-1.5 font-semibold text-[#0f172a]">
               <FileCode className="h-4 w-4 text-[#0369a1]" />
               <span>Strict Execution Boundaries</span>
