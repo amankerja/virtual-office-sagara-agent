@@ -1,0 +1,28 @@
+# ==============================================================================
+# Sagara Mission Control — Cloudflare Tunnel Ingress Configuration Template
+# Path: /etc/cloudflared/config.yml OR /home/ubuntu/.cloudflared/config.yml
+# Permissions: chmod 0600 config.yml (Protected filesystem location)
+# ==============================================================================
+
+# Unique Tunnel UUID generated via: cloudflared tunnel create sagara-mission-control
+tunnel: <TUNNEL_UUID_OR_NAME>
+
+# Path to the protected credentials file (chmod 0600, NEVER committed to Git)
+credentials-file: /etc/cloudflared/<TUNNEL_UUID>.json
+
+# Ingress Rules: Narrow, fail-closed matching
+ingress:
+  # 1. Authoritative Mission Control Hostname
+  # Routes strictly to local loopback listener. Origin remains private.
+  - hostname: ${MISSION_CONTROL_DOMAIN}
+    service: http://127.0.0.1:8000
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: false
+      keepAliveConnections: 100
+      keepAliveTimeout: 90s
+      tcpKeepAlive: 30s
+
+  # 2. Strict Default Deny / 404 for any unmatched hostnames
+  # Prevents catch-all routing to Mission Control loopback
+  - service: http_status:404

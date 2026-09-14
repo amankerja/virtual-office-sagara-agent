@@ -1,0 +1,39 @@
+# ==============================================================================
+# Sagara Mission Control — Fallback Ingress Architecture (Caddy Reverse Proxy)
+# Use ONLY if Cloudflare Tunnel cannot be utilized and explicitly approved.
+# Invariants: Automatic HTTPS, Trusted Auth Boundary, 127.0.0.1:8000 Origin
+# ==============================================================================
+
+{$MISSION_CONTROL_DOMAIN:control.example.com} {
+    # Automatic TLS certificate via Let's Encrypt / ZeroSSL
+    tls {$OPERATOR_EMAIL:admin@example.com}
+
+    # Security Headers
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        X-Robots-Tag "noindex, nofollow, noarchive"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        -Server
+    }
+
+    # Trusted Identity Authentication Boundary (OIDC / SSO via forward_auth or mTLS)
+    # Example using forward_auth to an external trusted identity provider (Authelia / Authentik):
+    # forward_auth authelia:9091 {
+    #     uri /api/verify?rd=https://auth.example.com/
+    #     copy_headers Remote-User Remote-Groups Remote-Name
+    # }
+
+    # Reverse proxy to private loopback backend (Port 8000 remains strictly loopback)
+    reverse_proxy 127.0.0.1:8000 {
+        header_up Host {host}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+
+        # Authoritative identity injection when authenticated by reverse proxy
+        # header_up X-Operator-ID {header.Remote-User}
+        # header_up X-Auth-Source "trusted_proxy"
+    }
+}

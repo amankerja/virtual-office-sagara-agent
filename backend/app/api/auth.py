@@ -113,6 +113,7 @@ def get_current_principal(
     x_operator_role: Optional[str] = Header(None, alias="X-Operator-Role"),
     x_operator_name: Optional[str] = Header(None, alias="X-Operator-Name"),
     x_auth_source: Optional[str] = Header(None, alias="X-Auth-Source"),
+    cf_access_email: Optional[str] = Header(None, alias="Cf-Access-Authenticated-User-Email"),
 ) -> OperatorPrincipal:
     """
     Derive authenticated operator principal with strict fail-closed production semantics.
@@ -134,12 +135,15 @@ def get_current_principal(
         x_operator_name = None
     if not isinstance(x_auth_source, str):
         x_auth_source = None
+    if not isinstance(cf_access_email, str):
+        cf_access_email = None
 
     effective_roles_header = x_operator_roles or x_operator_role
+    effective_operator_id = x_operator_id or cf_access_email
 
     # In production, enforce trusted auth proxy boundary
     if not is_dev:
-        if x_auth_source == "dev_provider" or (x_operator_id and x_operator_id.startswith("dev-")):
+        if x_auth_source == "dev_provider" or (effective_operator_id and effective_operator_id.startswith("dev-")):
             raise AppError(
                 status_code=403,
                 code="AUTHORIZATION_UNAVAILABLE",
@@ -181,7 +185,7 @@ def get_current_principal(
             )
 
         # If real auth identity is not supplied via trusted proxy:
-        if not x_operator_id:
+        if not effective_operator_id:
             raise AppError(
                 status_code=403,
                 code="AUTHORIZATION_UNAVAILABLE",
@@ -197,8 +201,8 @@ def get_current_principal(
             perms.update(DEFAULT_ROLE_PERMISSIONS.get("viewer", []))
 
         return OperatorPrincipal(
-            id=x_operator_id,
-            display_name=x_operator_name or x_operator_id,
+            id=effective_operator_id,
+            display_name=x_operator_name or effective_operator_id,
             roles=roles,
             permissions=sorted(list(perms)),
             authentication_strength="trusted_proxy",
@@ -206,15 +210,15 @@ def get_current_principal(
         )
 
     # In development mode:
-    if x_operator_id:
+    if effective_operator_id:
         roles = [r.strip() for r in (effective_roles_header or "operator,approver,admin").split(",") if r.strip()]
         perms = set()
         for r in roles:
             if r in DEFAULT_ROLE_PERMISSIONS:
                 perms.update(DEFAULT_ROLE_PERMISSIONS[r])
         return OperatorPrincipal(
-            id=x_operator_id,
-            display_name=x_operator_name or x_operator_id,
+            id=effective_operator_id,
+            display_name=x_operator_name or effective_operator_id,
             roles=roles,
             permissions=sorted(list(perms)) or ["action.request", "action.approve", "execution.execute"],
             authentication_strength="development",

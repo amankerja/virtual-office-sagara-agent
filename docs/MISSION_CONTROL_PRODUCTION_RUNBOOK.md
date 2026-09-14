@@ -66,22 +66,72 @@ sagara-mission-control (FastAPI + Uvicorn @ 127.0.0.1:8000)
 
 ## 3. Operator Access & Boundary Control
 
-### Access Model: `PRIVATE_ONLY` (`SSH_TUNNEL_ONLY`)
-Because the production VPS does not have a validated public TLS reverse proxy with proven trusted identity header injection, **Public Internet Exposure is Strictly Prohibited** (`PUBLIC_ACCESS: BLOCKED_PENDING_TRUSTED_AUTH`).
+### 3.1 Access Architectures: Trusted Web & Break-Glass
 
-To access the Mission Control interface safely:
+Mission Control supports two complementary operator access paths:
 
-```bash
-# From operator workstation: Establish encrypted local port forwarding
-ssh -N -L 8000:127.0.0.1:8000 sagara
+```text
+Path A (Normal Operations — Trusted Web Access):
+Operator Client (Browser)
+       │
+       ▼ [Public HTTPS / Strict TLS 1.3]
+Cloudflare Edge + Cloudflare Access (Identity Boundary: OTP / IdP)
+       │
+       ▼ [Encrypted Outbound Tunnel: cloudflared]
+127.0.0.1:8000 (Private Loopback Listener on VM-17-49-ubuntu)
 
-# Navigate in browser:
-http://127.0.0.1:8000/
+Path B (Break-Glass Maintenance — SSH Port Forwarding):
+Operator Workstation
+       │
+       ▼ [Encrypted SSH Tunnel: -L 8000:127.0.0.1:8000]
+127.0.0.1:8000 (Private Loopback Listener on VM-17-49-ubuntu)
 ```
 
-### Ingress Header Security
-- Any incoming client attempt to supply untrusted identity headers (such as spoofed `X-Operator-Id` or `X-Operator-Role`) from unauthorized networks is dropped.
-- In private tunnel mode, identity defaults to authenticated operator context with audited server-side session signing.
+### 3.2 Ingress Security Invariants
+1. **Loopback Origin Isolation:** Mission Control uvicorn process binds strictly to `127.0.0.1:8000`. Port 8000 is never exposed on `0.0.0.0` or `[::]`.
+2. **Zero Inbound Port Openings:** Cloudflare Tunnel operates entirely via outbound TLS connections from the VPS. No public inbound ports (80, 443, 8000) are opened on the VPS firewall.
+3. **Edge-Terminated Identity:** Cloudflare Access enforces `DEFAULT DENY`. Only identities explicitly present in `AUTHORIZED_OPERATOR_EMAILS` receive session tokens.
+4. **Header Anti-Spoofing:** Backend rejects incoming identity headers (`X-Operator-*`, `Cf-Access-Authenticated-User-Email`) unless the connecting client IP matches `MISSION_CONTROL_TRUSTED_PROXY_CIDRS`. Direct external header injection fails closed with `403 AUTHORIZATION_DENIED`.
+5. **Execution Gate Decoupled:** Successful login verifies *operator identity* but does NOT unlock execution. Execution remains strictly `LOCKED` with `ACTIVE_WINDOWS=0`.
+
+### 3.3 Normal Access Procedure (Trusted Web)
+1. Open authorized domain in browser: `https://${MISSION_CONTROL_DOMAIN}`
+2. Complete Cloudflare Access identity verification (One-Time PIN sent to authorized email, or SSO IdP login).
+3. The Mission Control dashboard loads over same-origin HTTPS with active realtime telemetry.
+
+### 3.4 Break-Glass Procedure (Local SSH Tunnel)
+If Cloudflare is experiencing an outage, DNS is degraded, or Access policies lock out an operator:
+```bash
+# 1. Establish encrypted local port forward
+ssh -N -L 8000:127.0.0.1:8000 sagara
+
+# 2. Open local browser
+http://127.0.0.1:8000/
+```
+*Note:* The break-glass SSH tunnel is intentionally independent of Cloudflare and requires SSH key authentication.
+
+### 3.5 Managing Operators (Add / Revoke)
+Operator identity management is entirely externalized to the Cloudflare Access layer. **Zero Mission Control source code or database edits are required.**
+- **Adding an Operator:** In Cloudflare Zero Trust Dashboard → Access → Applications → `Sagara Mission Control` → Policies → Edit `Operator Allowlist` → Add the new operator email address.
+- **Revoking an Operator:** Remove the operator email address from the Allowlist policy. Active sessions are revoked at token expiration or can be terminated immediately via Cloudflare Zero Trust User Sessions.
+
+### 3.6 Inspecting Ingress & Tunnel Health
+```bash
+# Check cloudflared systemd service status
+sudo systemctl status cloudflared-mission-control.service
+
+# View recent tunnel logs
+sudo journalctl -u cloudflared-mission-control.service -n 50 --no-pager
+
+# Verify Mission Control local listener is responding
+curl -s http://127.0.0.1:8000/health
+```
+
+### 3.7 Ingress Failure Independence
+`cloudflared` operates as an isolated ingress daemon. If `cloudflared` crashes, restarts, or loses internet connectivity:
+- `sagara-mission-control.service` remains running.
+- `hermes-gateway.service` (PID=149218) and `9router.service` continue running without interruption.
+- The operator can immediately fall back to the Break-Glass SSH tunnel without restarting any services.
 
 ---
 

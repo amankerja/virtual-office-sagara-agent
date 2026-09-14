@@ -211,3 +211,65 @@ def test_read_only_principal_sanitization():
     assert data["id"] == "op-101"
     assert data["source"] == "trusted_proxy"
 
+
+def test_cloudflare_access_email_rejected_from_untrusted_client(monkeypatch):
+    """Negative Test: Untrusted external IP cannot assert Cf-Access-Authenticated-User-Email."""
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "trusted_auth_proxy_enabled", True)
+    monkeypatch.setattr(settings, "trusted_proxy_cidrs", ["127.0.0.1/32"])
+
+    req = MagicMock()
+    req.client.host = "198.51.100.99"
+
+    with pytest.raises(AppError) as exc_info:
+        get_current_principal(
+            request=req,
+            cf_access_email="spoofed-operator@example.com",
+        )
+    assert exc_info.value.status_code == 403
+    assert exc_info.value.code == "AUTHORIZATION_DENIED"
+
+
+def test_cloudflare_access_email_accepted_from_trusted_proxy(monkeypatch):
+    """Positive Test: Authoritative Cloudflare Access email forwarded via trusted proxy loopback is accepted as operator ID."""
+    monkeypatch.setattr(settings, "environment", "production")
+    monkeypatch.setattr(settings, "trusted_auth_proxy_enabled", True)
+    monkeypatch.setattr(settings, "trusted_proxy_cidrs", ["127.0.0.1/32"])
+
+    req = MagicMock()
+    req.client.host = "127.0.0.1"
+
+    principal = get_current_principal(
+        request=req,
+        cf_access_email="authorized-operator@example.com",
+    )
+    assert principal.id == "authorized-operator@example.com"
+    assert principal.roles == ["operator"]
+    assert principal.source == "trusted_proxy"
+    # Crucial: operator role cannot execute tasks
+    assert "execution.execute" not in principal.permissions
+    assert "execution.lock.manage" not in principal.permissions
+
+
+def test_cloudflare_access_auth_does_not_unlock_execution():
+    """Invariance: Authentication NEVER mutates execution safety flags."""
+    assert settings.execution_enabled is False
+    assert settings.live_canary_enabled is False
+
+
+def test_http_security_headers_present():
+    """Verify production security headers (X-Robots-Tag, nosniff, DENY, Referrer-Policy)."""
+    from starlette.testclient import TestClient
+    from app.main import create_app
+
+    app = create_app()
+    with TestClient(app) as client:
+        res = client.get("/health")
+        assert res.status_code == 200
+        assert res.headers.get("x-content-type-options") == "nosniff"
+        assert res.headers.get("x-frame-options") == "DENY"
+        assert res.headers.get("x-robots-tag") == "noindex, nofollow, noarchive"
+        assert res.headers.get("referrer-policy") == "strict-origin-when-cross-origin"
+        assert res.headers.get("x-permitted-cross-domain-policies") == "none"
+
+

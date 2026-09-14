@@ -59,15 +59,40 @@ export const SettingsPage: React.FC = () => {
         >
           <div className="space-y-3 text-xs">
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Environment Mode:</span>
+              <span className="text-text-muted">Access:</span>
               <span className="font-medium text-text-primary px-2 py-0.5 rounded bg-surface-subtle border border-border">
-                PRODUCTION
+                {typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'Trusted Web' : 'Private (SSH Tunnel)'}
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">
-              <span className="text-text-muted">Access Tier:</span>
-              <span className="text-text-primary px-2 py-0.5 rounded bg-surface-subtle border border-border">
-                Private Access
+              <span className="text-text-muted">Domain / Ingress Host:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary">
+                {typeof window !== 'undefined' ? window.location.host : '127.0.0.1:8000'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Transport:</span>
+              <span className="font-mono-tech text-[11px] text-text-primary">
+                {typeof window !== 'undefined' ? window.location.protocol.toUpperCase().replace(':', '') : 'HTTP'}
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Authentication:</span>
+              <span className="text-emerald-600 dark:text-emerald-400 font-medium">
+                Protected
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Origin:</span>
+              <span className="font-mono-tech text-[11px] text-text-secondary">
+                Private (127.0.0.1:8000)
+              </span>
+            </div>
+            <div className="flex justify-between items-center py-2 border-b border-border">
+              <span className="text-text-muted">Execution:</span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 font-semibold text-[10px]">
+                <Lock className="h-3 w-3" />
+                LOCKED
               </span>
             </div>
             <div className="flex justify-between items-center py-2 border-b border-border">

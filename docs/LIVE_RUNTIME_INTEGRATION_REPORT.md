@@ -76,13 +76,24 @@ Dynamic invocation of `core.registry.profile.ProfileRegistry.load("/home/ubuntu/
 | Component | Identifier | Status |
 |---|---|---|
 | **Mission Control Release** | `1.0.0` (V1 Production) | LIVE |
-| **Mission Control Commit** | `755d53d086049e8192afc4b8f685f46bc34a213a` | DEPLOYED |
-| **Deployed Sagara Commit** | `78cb52c624807fdf7c41d341f2b48c65ffebcfa0` | VERIFIED |
+| **Mission Control Commit (HEAD & origin/main)** | `1c06797f3970abcf556ea186701439edc00449fe` | RECONCILED & DEPLOYED |
+| **Deployed Sagara Commit (HEAD & origin/main)** | `bb2996a33aaa3b479e9aa4eb62bdfbecdec8ce2a` | VERIFIED & LIVE |
+| **Sagara Parent Verified Baseline** | `78cb52c624807fdf7c41d341f2b48c65ffebcfa0` | VERIFIED (Tag: `TELEGRAM_CONTROL_CENTER_LIVE_VERIFIED`) |
 | **Historical Integration Freeze Baseline** | `babbd61618f6eb3db99109ba24e0d49b2c9b97d7` | MATCHED |
 | **Hermes Runtime Version** | `0.20.6` | LIVE |
 | **Runtime Contract** | `SAGARA_HERMES_RUNTIME_CONTRACT_V1` | COMPLIANT |
 | **Active Execution Policy** | `PRODUCTION_EXECUTION_POLICY_V3` | LOCKED |
 | **Policy Deterministic Hash** | `13ef245630dc448208a408db190924119df9bcf1f602f71e0814b62226fbe95e` | VERIFIED |
+
+### 5.1 Source Reconciliation Details
+- **Mission Control Lineage**:
+  - `755d53d086049e8192afc4b8f685f46bc34a213a`: Initial live integration deployment.
+  - `8ca2db7f6318803156a20032601b7bd77b5c58b0` / `d23dccacd71f5b768681b96f234aabcbdcb9b09d`: Documentation & PnP discovery architecture commit. `8ca2db7` was created locally and pushed to GitHub; `d23dcca` was generated on the VPS with identical file content but differing committer metadata.
+  - `1c06797f3970abcf556ea186701439edc00449fe`: Virtual Office 3D native fullscreen API and continuous WASD navigation. Pushed to `origin/main` and reconciled on the VPS. `MISSION_CONTROL_HEAD == MISSION_CONTROL_ORIGIN_MAIN`.
+- **Sagara Agent Lineage**:
+  - `78cb52c624807fdf7c41d341f2b48c65ffebcfa0`: Tagged `TELEGRAM_CONTROL_CENTER_LIVE_VERIFIED` in GitHub `amankerja/sagara-agent.git`.
+  - `bb2996a33aaa3b479e9aa4eb62bdfbecdec8ce2a`: Current `main` HEAD on both VPS and GitHub (`origin/main`), tagged `SAGARA_MODEL_ROUTER_LIVE_VERIFIED`. Exact match (`git diff origin/main..HEAD` is empty).
+  - Uncommitted local workspace items in `/home/ubuntu/sagara-agent` correspond to live runtime state (`.usage.json`), profile bundled manifests, and experimental deep search modules preserved without mutating native runtime.
 
 ---
 

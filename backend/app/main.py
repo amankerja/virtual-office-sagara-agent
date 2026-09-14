@@ -90,9 +90,16 @@ def create_app() -> FastAPI:
         duration_ms = (time.perf_counter() - start_time) * 1000.0
         response.headers["X-Correlation-ID"] = corr_id
 
-        # Sane local security headers
+        # Sane local and ingress security headers
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-Robots-Tag"] = "noindex, nofollow, noarchive"
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        response.headers["X-Permitted-Cross-Domain-Policies"] = "none"
+
+        # HSTS enforcement when proxied over HTTPS
+        if request.headers.get("x-forwarded-proto") == "https" or request.url.scheme == "https":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
 
         logger.info(
             f"{request.method} {request.url.path} -> {response.status_code} ({duration_ms:.2f}ms)",
