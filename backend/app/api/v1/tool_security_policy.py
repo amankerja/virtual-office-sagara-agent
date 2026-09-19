@@ -16,6 +16,7 @@ router = APIRouter(prefix="/tool-security-policy", tags=["Tool Security Policy (
 
 
 @router.get("", response_model=ToolSecurityPolicy)
+@router.get("/rules", response_model=ToolSecurityPolicy)
 async def get_tool_security_policy(
     conn: sqlite3.Connection = Depends(get_db_connection),
 ):

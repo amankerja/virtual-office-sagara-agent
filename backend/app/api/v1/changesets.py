@@ -106,3 +106,20 @@ async def stage_configuration_changeset(
         status="ATTACHED_TO_INTENT" if payload.create_action_intent else "DRAFT",
         action_intent=action_intent,
     )
+
+
+@router.get("", response_model=list[dict[str, Any]])
+async def list_changesets() -> list[dict[str, Any]]:
+    conn = get_db_connection()
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='configuration_change_sets';")
+        if not cursor.fetchone():
+            return []
+        cursor.execute("SELECT * FROM configuration_change_sets ORDER BY created_at DESC;")
+        rows = cursor.fetchall()
+        return [dict(r) for r in rows]
+    except Exception:
+        return []
+    finally:
+        conn.close()

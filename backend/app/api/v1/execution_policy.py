@@ -46,6 +46,7 @@ class ChangeSetResponseDto(BaseModel):
 
 
 @router.get("", response_model=ProductionExecutionPolicy)
+@router.get("/rules", response_model=ProductionExecutionPolicy)
 async def get_active_execution_policy(
     conn: sqlite3.Connection = Depends(get_db_connection),
 ):
