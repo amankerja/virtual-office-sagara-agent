@@ -127,6 +127,63 @@ class SagaraJobRepository:
 
         return jobs
 
+    def _sync_read_hermes_cron_jobs(self) -> list[TaskDto]:
+        cron_files = [
+            Path.home() / ".hermes" / "cron" / "jobs.json",
+        ]
+        profiles_dir = Path.home() / ".hermes" / "profiles"
+        if profiles_dir.is_dir():
+            for p in profiles_dir.iterdir():
+                cf = p / "cron" / "jobs.json"
+                if cf.is_file():
+                    cron_files.append(cf)
+
+        tasks: list[TaskDto] = []
+        for cf in cron_files:
+            if not cf.is_file():
+                continue
+            try:
+                data = json.loads(cf.read_text("utf-8"))
+                for job in data.get("jobs", []):
+                    jid = f"cron-{job.get('id')}"
+                    name = job.get("name") or job.get("prompt") or job.get("script") or "Scheduled Cron Job"
+                    sched = job.get("schedule_display") or job.get("schedule", {}).get("display", "Scheduled")
+                    state = "RUNNING" if job.get("enabled") and job.get("state") == "running" else ("COMPLETED" if not job.get("enabled") else "READY")
+                    if job.get("last_status") == "error":
+                        state = "FAILED"
+
+                    assigned_agent = None
+                    if "origin" in job and isinstance(job["origin"], dict):
+                        chat_name = job["origin"].get("chat_name", "")
+                        for p_name in ["business", "cs", "exportir-handal", "it-coding", "it-support", "lead", "marketing", "personal", "sagara-lab"]:
+                            if p_name in chat_name.lower():
+                                assigned_agent = p_name
+                                break
+
+                    last_err = job.get("last_error")
+                    failure_dto = TaskFailureDto(code="CRON_JOB_ERROR", message=str(last_err)) if last_err else None
+                    result_dto = TaskResultDto(summary=f"Schedule: {sched} | Next run: {job.get('next_run_at', 'N/A')}")
+
+                    tasks.append(
+                        TaskDto(
+                            id=jid,
+                            title=name,
+                            description=f"Hermes Cronjob: {sched}. Target: {job.get('deliver', 'local')}",
+                            state=state,
+                            priority="MEDIUM",
+                            created_at=job.get("created_at", datetime.now(timezone.utc).isoformat()),
+                            updated_at=job.get("last_run_at") or job.get("created_at") or datetime.now(timezone.utc).isoformat(),
+                            assigned_agent_id=assigned_agent or "lead",
+                            requested_skills=job.get("skills") or None,
+                            failure=failure_dto,
+                            result=result_dto,
+                        )
+                    )
+            except Exception as e:
+                logger.debug(f"Failed to read Hermes cron file {cf}: {e}")
+
+        return tasks
+
     async def list_tasks(
         self,
         state: Optional[str] = None,
@@ -136,7 +193,8 @@ class SagaraJobRepository:
         limit: int = 50,
     ) -> list[TaskDto]:
         native_jobs = await asyncio.to_thread(self._sync_read_native_jobs)
-        combined = list(self._local_tasks.values()) + native_jobs
+        cron_jobs = await asyncio.to_thread(self._sync_read_hermes_cron_jobs)
+        combined = list(self._local_tasks.values()) + native_jobs + cron_jobs
 
         results = combined
         if state and state != "ALL":

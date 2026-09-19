@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { AlertTriangle, ShieldCheck, Trash2, Lock } from 'lucide-react'
+import { AlertTriangle, ShieldCheck, Trash2 } from 'lucide-react'
 import { ModalShell } from '@/components/modal/ModalShell'
 import { DetailHeader } from '@/components/modal/DetailHeader'
 import { Button } from '@/components/ui/button'
@@ -20,10 +20,49 @@ export const ConfigurationChangesModal: React.FC<ConfigurationChangesModalProps>
   const { draftChanges, discardAllDrafts, discardProfileDraft } = useDraftStore()
   const [confirmDiscard, setConfirmDiscard] = useState(false)
 
+  const [isApplying, setIsApplying] = useState(false)
+  const [applySuccess, setApplySuccess] = useState(false)
+
   const handleDiscardAll = () => {
     discardAllDrafts()
     setConfirmDiscard(false)
     onClose()
+  }
+
+  const handleApplyToProduction = async () => {
+    setIsApplying(true)
+    try {
+      for (const [profileId, changes] of byProfile.entries()) {
+        const agent = agents.find((a) => a.id === profileId)
+        let currentSkills = agent?.skills ? agent.skills.map((s) => s.id) : []
+
+        for (const ch of changes) {
+          if (ch.action === 'ADD_SKILL' && !currentSkills.includes(ch.targetValue)) {
+            currentSkills.push(ch.targetValue)
+          } else if (ch.action === 'REMOVE_SKILL') {
+            currentSkills = currentSkills.filter((id) => id !== ch.targetValue)
+          }
+        }
+
+        await fetch(`/api/v1/profiles/${profileId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ allowed_skills: currentSkills }),
+        })
+      }
+
+      discardAllDrafts()
+      setApplySuccess(true)
+      setTimeout(() => {
+        setApplySuccess(false)
+        onClose()
+        window.location.reload()
+      }, 1000)
+    } catch (e) {
+      console.error('Failed to apply profile changes:', e)
+    } finally {
+      setIsApplying(false)
+    }
   }
 
   // Group changes by profile
@@ -173,20 +212,21 @@ export const ConfigurationChangesModal: React.FC<ConfigurationChangesModalProps>
             Close
           </Button>
 
-          {/* Apply to Production: Intentionally Disabled */}
-          <div className="relative group">
-            <Button
-              size="xs"
-              disabled
-              className="opacity-50 cursor-not-allowed bg-surface border border-border text-text-muted h-8 text-xs font-mono-tech gap-1.5"
-            >
-              <Lock className="h-3 w-3" />
-              Apply to Production
-            </Button>
-            <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-64 p-2 bg-surface-overlay border border-border rounded text-[10px] font-mono-tech text-text-muted shadow-lg z-50">
-              Requires Production Approval Integration. Sagara file mutations are disabled in current phase.
-            </div>
-          </div>
+          <Button
+            size="xs"
+            disabled={draftChanges.length === 0 || isApplying}
+            onClick={handleApplyToProduction}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white h-8 text-xs font-mono-tech gap-1.5"
+          >
+            {applySuccess ? (
+              <ShieldCheck className="h-3.5 w-3.5 text-white" />
+            ) : isApplying ? (
+              <span className="animate-spin h-3.5 w-3.5 border-2 border-white border-t-transparent rounded-full" />
+            ) : (
+              <ShieldCheck className="h-3.5 w-3.5" />
+            )}
+            {applySuccess ? 'Applied Successfully!' : isApplying ? 'Applying...' : 'Apply to Production'}
+          </Button>
         </div>
       </div>
     </ModalShell>

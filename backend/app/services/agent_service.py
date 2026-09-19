@@ -232,12 +232,28 @@ class AgentProjectionService:
                 model=curr_model,
             )
 
+            # Build agent skills array from allowed_skills and skill catalog
+            agent_skills: list[dict[str, Any]] = []
+            if p.allowed_skills:
+                skills_by_id = {s.id.lower(): s for s in skills}
+                for sid in p.allowed_skills:
+                    s_obj = skills_by_id.get(sid.lower())
+                    agent_skills.append({
+                        "id": sid,
+                        "name": s_obj.name if s_obj else sid,
+                        "category": s_obj.category if s_obj else "general",
+                        "health": s_obj.health if s_obj else "UNKNOWN",
+                        "evidence": "Registered Skill",
+                        "description": s_obj.description if s_obj else None,
+                    })
+
             agent = AgentDto(
                 id=p.id,
                 definition=definition,
                 runtime=runtime,
                 capabilities=capabilities,
                 usage=agent_usage,
+                skills=agent_skills if agent_skills else None,
             )
             agents.append(agent)
 

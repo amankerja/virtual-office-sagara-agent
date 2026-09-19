@@ -102,9 +102,8 @@ export class RealtimeClient {
     let base = this.configuredUrl;
     if (!base) {
       const isHttps = typeof window !== 'undefined' && window.location.protocol === 'https:';
-      const host = typeof window !== 'undefined' ? window.location.hostname : '127.0.0.1';
-      const port = '8000'; // Default backend port
-      base = `${isHttps ? 'wss' : 'ws'}://${host}:${port}/api/v1/realtime/ws`;
+      const host = typeof window !== 'undefined' ? window.location.host : '127.0.0.1:8000';
+      base = `${isHttps ? 'wss' : 'ws'}://${host}/api/v1/realtime/ws`;
     } else {
       base = base.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
       if (!base.endsWith('/realtime/ws')) {

@@ -19,7 +19,11 @@ export const MissionControlLayout: React.FC = () => {
 
       {/* Mobile Navigation Sheet */}
       <Sheet open={isMobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-        <SheetContent side="left" className="p-0 w-72 max-w-[85vw] bg-surface-subtle border-r border-border">
+        <SheetContent
+          side="left"
+          showCloseButton={false}
+          className="p-0 w-[280px] max-w-[85vw] bg-surface/98 backdrop-blur-md border-r border-border rounded-r-2xl shadow-2xl overflow-hidden"
+        >
           <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <AppSidebar isMobile={true} />
         </SheetContent>
@@ -29,7 +33,7 @@ export const MissionControlLayout: React.FC = () => {
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-hidden">
         <GlobalHeader />
 
-        <main className="flex-1 overflow-y-auto overflow-x-hidden p-4 md:p-6 lg:p-8 bg-background transition-colors">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3 sm:p-4 md:p-6 lg:p-8 bg-background transition-colors">
           <div className="mx-auto max-w-[1560px] w-full">
             <Outlet />
           </div>

@@ -1,4 +1,4 @@
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field
 
 AgentState = Literal[
@@ -72,3 +72,4 @@ class AgentDto(BaseModel):
     runtime: AgentRuntimeDto
     capabilities: AgentCapabilitiesDto
     usage: Optional[AgentUsageDto] = None
+    skills: Optional[list[dict[str, Any]]] = None

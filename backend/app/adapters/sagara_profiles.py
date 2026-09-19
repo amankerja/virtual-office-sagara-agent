@@ -256,3 +256,26 @@ class SagaraProfileCatalogAdapter:
             if p.id == profile_id:
                 return p.model_copy(deep=True)
         return None
+
+    async def update_profile(self, profile_id: str, updates: dict[str, Any]) -> Optional[ProfileDto]:
+        validated_root = validate_sagara_project_root(self._raw_project_root)
+        profile_yaml = validated_root / "profiles" / profile_id / "profile.yaml"
+        if not profile_yaml.is_file():
+            profile_yaml = validated_root / "profiles" / profile_id / "config.yaml"
+        if not profile_yaml.is_file():
+            return None
+
+        import yaml
+        content = yaml.safe_load(profile_yaml.read_text("utf-8")) or {}
+        if "name" in updates and updates["name"] is not None:
+            content["name"] = updates["name"]
+        if "description" in updates:
+            content["description"] = updates["description"]
+        if "enabled" in updates and updates["enabled"] is not None:
+            content["enabled"] = updates["enabled"]
+        if "allowed_skills" in updates and updates["allowed_skills"] is not None:
+            content["allowed_skills"] = updates["allowed_skills"]
+
+        profile_yaml.write_text(yaml.safe_dump(content, sort_keys=False), encoding="utf-8")
+        self._cached_profiles = None
+        return await self.get_profile(profile_id)

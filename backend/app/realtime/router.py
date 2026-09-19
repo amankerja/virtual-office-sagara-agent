@@ -21,7 +21,11 @@ def is_allowed_origin(origin: Optional[str]) -> bool:
         return True
     if "*" in settings.cors_origins:
         return True
-    return origin in settings.cors_origins
+    if origin in settings.cors_origins:
+        return True
+    if "alkaralintas.site" in origin or "localhost" in origin or "127.0.0.1" in origin:
+        return True
+    return False
 
 
 @realtime_router.websocket("/realtime/ws")

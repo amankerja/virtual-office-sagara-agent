@@ -18,6 +18,7 @@ from app.repositories.memory.audit_repo import InMemoryAuditRepository
 from app.repositories.memory.governance_repo import InMemoryGovernanceRepository
 from app.repositories.memory.idempotency import InMemoryIdempotencyStore, idempotency_store
 from app.repositories.memory.task_repo import InMemoryTaskRepository
+from app.adapters.sagara_jobs import SagaraJobRepository
 from app.services.activity_service import ActivityService
 from app.services.agent_service import AgentProjectionService
 from app.services.approval_service import ApprovalService
@@ -50,7 +51,7 @@ from app.services.executor import (
 from app.services.task_dispatch_coordinator import TaskDispatchCoordinator
 
 # Singleton instances for local lifecycle
-_task_repo = InMemoryTaskRepository()
+_task_repo = SagaraJobRepository()
 _approval_repo = InMemoryApprovalRepository()
 _activity_repo = InMemoryActivityRepository()
 _audit_repo = InMemoryAuditRepository()

@@ -184,6 +184,58 @@ class SagaraSkillCatalogAdapter:
                     )
                 )
 
+        # Supplementary discovery from Hermes skills, Sagara Agent skills, and user profiles
+        existing_ids = {d.id.lower() for d in dtos}
+        scan_dirs = [
+            Path("/home/ubuntu/.hermes/skills"),
+            validated_root / "skills",
+            Path("/home/ubuntu/.hermes/profiles"),
+        ]
+
+        import re
+        import yaml
+
+        for base in scan_dirs:
+            if not base.exists():
+                continue
+            for p in base.rglob("SKILL.md"):
+                try:
+                    content = p.read_text("utf-8", errors="ignore")
+                    m = re.search(r"^---\s*\n(.*?)\n---", content, re.DOTALL)
+                    name = None
+                    desc = None
+                    category = p.parent.parent.name if p.parent.parent != base else p.parent.name
+                    if m:
+                        data = yaml.safe_load(m.group(1)) or {}
+                        if isinstance(data, dict):
+                            name = data.get("name")
+                            desc = data.get("description")
+                            if data.get("category"):
+                                category = str(data.get("category"))
+                    if not name:
+                        name = p.parent.name
+                    sid = str(name).lower().replace(" ", "-")
+
+                    if sid and sid not in existing_ids:
+                        existing_ids.add(sid)
+                        dtos.append(
+                            SkillDto(
+                                id=sid,
+                                name=str(name),
+                                category=str(category or "general"),
+                                description=str(desc) if desc else None,
+                                version="1.0.0",
+                                registration="REGISTERED",
+                                installation="UNKNOWN",
+                                health="UNKNOWN",
+                                execution="NOT_OBSERVED",
+                                owner_pid=None,
+                                last_executed_at=None,
+                            )
+                        )
+                except Exception as e:
+                    logger.debug(f"Failed to parse skill file {p}: {e}")
+
         # Deterministic ordering: sorted by name (case-insensitive) then ID (Section 15)
         dtos.sort(key=lambda s: (s.name.lower(), s.id))
         logger.info(f"Sagara skill catalog loaded: {len(dtos)} skills")

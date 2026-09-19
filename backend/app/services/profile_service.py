@@ -16,3 +16,10 @@ class ProfileService:
         if not profile:
             raise ResourceNotFoundError(f"Profile with ID '{profile_id}' was not found.")
         return profile
+
+    async def update_profile(self, profile_id: str, updates: dict) -> ProfileDto:
+        if hasattr(self._catalog, "update_profile"):
+            updated = await self._catalog.update_profile(profile_id, updates)
+            if updated:
+                return updated
+        return await self.get_profile(profile_id)

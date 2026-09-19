@@ -4,6 +4,7 @@ import uuid
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
@@ -74,6 +75,9 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
         expose_headers=["ETag", "X-Correlation-ID", "Idempotency-Key"],
     )
+
+    # Compression middleware
+    app.add_middleware(GZipMiddleware, minimum_size=1000)
 
     # Correlation ID and Request Timing Middleware
     @app.middleware("http")
@@ -159,7 +163,13 @@ def create_app() -> FastAPI:
     if dist_path and (dist_path / "index.html").is_file():
         assets_dir = dist_path / "assets"
         if assets_dir.is_dir():
-            app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="frontend_assets")
+            class CachedStaticFiles(StaticFiles):
+                async def get_response(self, path: str, scope):
+                    response = await super().get_response(path, scope)
+                    response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+                    return response
+
+            app.mount("/assets", CachedStaticFiles(directory=str(assets_dir)), name="frontend_assets")
 
         @app.get("/{full_path:path}", include_in_schema=False)
         async def serve_spa(full_path: str):
@@ -167,8 +177,12 @@ def create_app() -> FastAPI:
                 raise StarletteHTTPException(status_code=404, detail="Not Found")
             target = dist_path / full_path
             if target.is_file() and not full_path.endswith(".html"):
-                return FileResponse(target)
-            return FileResponse(dist_path / "index.html")
+                res = FileResponse(target)
+                res.headers["Cache-Control"] = "public, max-age=86400"
+                return res
+            res = FileResponse(dist_path / "index.html")
+            res.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+            return res
 
     return app
 

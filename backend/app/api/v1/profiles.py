@@ -43,3 +43,12 @@ async def get_profile_by_id(
     service: ProfileService = Depends(get_profile_service),
 ) -> ProfileDto:
     return await service.get_profile(profile_id)
+
+
+@router.put("/{profile_id}", response_model=ProfileDto)
+async def update_profile(
+    profile_id: str,
+    updates: dict,
+    service: ProfileService = Depends(get_profile_service),
+) -> ProfileDto:
+    return await service.update_profile(profile_id, updates)
