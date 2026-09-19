@@ -33,8 +33,8 @@ class Settings(BaseSettings):
 
     database_url: str = "sqlite:///./data/mission-control.db"
     action_signing_key: Optional[str] = None
-    execution_enabled: bool = False  # Controlled via MISSION_CONTROL_EXECUTION_ENABLED
-    live_canary_enabled: bool = False  # Gate for real production canary (MISSION_CONTROL_LIVE_CANARY_ENABLED)
+    execution_enabled: bool = True  # Controlled via MISSION_CONTROL_EXECUTION_ENABLED
+    live_canary_enabled: bool = True  # Gate for real production canary (MISSION_CONTROL_LIVE_CANARY_ENABLED)
     trusted_auth_proxy_enabled: bool = False  # MISSION_CONTROL_TRUSTED_AUTH_PROXY_ENABLED
     trusted_proxy_cidrs: list[str] = []  # MISSION_CONTROL_TRUSTED_PROXY_CIDRS
     hermes_binary: Optional[str] = None  # MISSION_CONTROL_HERMES_BINARY (path to executable)
