@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Badge } from '@/components/ui/badge'
 import { ThemeSwitcher } from '@/components/shell/ThemeSwitcher'
+import { SagaraLogo } from '@/components/ui/SagaraLogo'
 import { RealtimeStatus } from '@/features/realtime'
 import { useApprovals } from '@/api/hooks'
 
@@ -58,14 +59,17 @@ export const GlobalHeader: React.FC = () => {
           <Menu className="h-5 w-5" />
         </Button>
 
-        <div className="flex items-center gap-1.5 sm:gap-2 text-xs">
-          <span className="text-text-muted text-[11px] uppercase tracking-wider font-semibold hidden md:inline">
-            {currentRoute.section}
-          </span>
-          <span className="text-text-muted/60 hidden md:inline">/</span>
-          <span className="font-semibold text-text-primary text-xs sm:text-sm">
-            {currentRoute.title}
-          </span>
+        <div className="flex items-center gap-2">
+          <SagaraLogo size={22} className="h-5.5 w-5.5 md:hidden" />
+          <div className="flex items-center gap-1.5 sm:gap-2 text-xs">
+            <span className="text-text-muted text-[11px] uppercase tracking-wider font-semibold hidden md:inline">
+              {currentRoute.section}
+            </span>
+            <span className="text-text-muted/60 hidden md:inline">/</span>
+            <span className="font-semibold text-text-primary text-xs sm:text-sm">
+              {currentRoute.title}
+            </span>
+          </div>
         </div>
       </div>
 

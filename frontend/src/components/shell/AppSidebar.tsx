@@ -14,13 +14,13 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
-  Terminal,
   X,
 } from 'lucide-react'
 import { useUIStore } from '@/stores/ui-store'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { ThemeSwitcher } from '@/components/shell/ThemeSwitcher'
+import { SagaraLogo } from '@/components/ui/SagaraLogo'
 import { cn } from '@/lib/utils'
 import { useGatewayTelemetry } from '@/api/hooks'
 
@@ -103,16 +103,16 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
       {/* Brand Header */}
       <div className="flex h-14 items-center justify-between px-3.5 border-b border-border">
         <div className="flex items-center gap-2.5 overflow-hidden">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-interactive/10 border border-interactive/30 text-interactive">
-            <Terminal className="h-4 w-4" />
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-interactive/10 border border-interactive/30">
+            <SagaraLogo size={24} className="h-6 w-6" />
           </div>
           {!collapsed && (
             <div className="flex flex-col truncate">
-              <span className="text-xs font-semibold text-text-primary tracking-wider uppercase">
-                Sagara
+              <span className="text-xs font-bold text-text-primary tracking-wider uppercase">
+                Sagara Agentic
               </span>
               <span className="text-[10px] text-text-muted tracking-tight font-mono-tech">
-                Mission Control
+                Virtual Office & Control
               </span>
             </div>
           )}
@@ -219,7 +219,7 @@ export const AppSidebar: React.FC<AppSidebarProps> = ({ isMobile = false }) => {
           <div className="flex items-center justify-between px-2.5 py-1.5 rounded-md bg-surface border border-border text-[11px] text-text-secondary">
             <span className="flex items-center gap-1.5 font-medium">
               <span className={cn('h-1.5 w-1.5 rounded-full', dotColor)} />
-              <span>Mission Control V1</span>
+              <span>Sagara Agentic V1</span>
             </span>
             <span className="text-[10px] font-semibold text-text-muted px-1.5 py-0.5 rounded bg-surface-raised border border-border">
               PRIVATE
