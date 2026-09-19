@@ -86,6 +86,39 @@ class SqliteAuditRepository:
         finally:
             conn.close()
 
+    async def get_audit_record(self, audit_id: str) -> Optional[AuditRecordDto]:
+        conn = self._get_connection()
+        try:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM audit_ledger WHERE event_id = ? LIMIT 1;", (audit_id,))
+            r = cursor.fetchone()
+            if not r:
+                return None
+            return AuditRecordDto(
+                id=r["event_id"],
+                timestamp=r["timestamp"],
+                actor=EntityReference(
+                    type=r["actor_type"],
+                    id=r["actor_id"],
+                    label=r["actor_label"],
+                ),
+                action=r["action"],
+                target=EntityReference(
+                    type=r["resource_type"],
+                    id=r["resource_id"],
+                    label=r["resource_label"],
+                ),
+                outcome=r["outcome"] if r["outcome"] in ("SUCCESS", "DENIED", "FAILED") else "SUCCESS",
+                reason=r["reason"],
+                correlation_id=r["correlation_id"],
+                related=RelatedEntities(
+                    approval_id=r["intent_id"] or None,
+                    task_id=r["resource_id"] if r["resource_type"] == "TASK" else None,
+                ),
+            )
+        finally:
+            conn.close()
+
     async def record_audit(
         self,
         record: AuditRecordDto,

@@ -25,3 +25,8 @@ class AuditService:
 
     async def record_audit(self, record: AuditRecordDto) -> AuditRecordDto:
         return await self._repo.record_audit(record)
+
+    async def get_audit_record(self, audit_id: str) -> Optional[AuditRecordDto]:
+        if hasattr(self._repo, "get_audit_record"):
+            return await self._repo.get_audit_record(audit_id)
+        return None

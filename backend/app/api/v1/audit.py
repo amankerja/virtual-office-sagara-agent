@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from app.api.dependencies import get_audit_service
 from app.schemas.audit import AuditRecordDto
 from app.services.audit_service import AuditService
@@ -23,3 +23,14 @@ async def list_audit_records(
         cursor=cursor,
         limit=limit,
     )
+
+
+@router.get("/{audit_id}", response_model=AuditRecordDto)
+async def get_audit_record_by_id(
+    audit_id: str,
+    service: AuditService = Depends(get_audit_service),
+) -> AuditRecordDto:
+    record = await service.get_audit_record(audit_id)
+    if not record:
+        raise HTTPException(status_code=404, detail=f"Audit record '{audit_id}' not found")
+    return record

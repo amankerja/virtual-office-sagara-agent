@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 import json
 import logging
 import os
+import subprocess
 from pathlib import Path
 import sqlite3
 from typing import Any, Optional
@@ -220,9 +221,12 @@ class SagaraJobRepository:
         if task_id in self._local_tasks:
             return self._local_tasks[task_id].model_copy(deep=True)
 
+        clean_id = task_id.replace("cron-", "")
         native_jobs = await asyncio.to_thread(self._sync_read_native_jobs)
-        for t in native_jobs:
-            if t.id == task_id:
+        cron_jobs = await asyncio.to_thread(self._sync_read_hermes_cron_jobs)
+        all_jobs = native_jobs + cron_jobs
+        for t in all_jobs:
+            if t.id == task_id or t.id == f"cron-{task_id}" or t.id.replace("cron-", "") == clean_id:
                 return t.model_copy(deep=True)
         return None
 
@@ -279,7 +283,16 @@ class SagaraJobRepository:
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         task.state = "RUNNING"
         task.updated_at = now
-        self._local_tasks[task_id] = task
+        self._local_tasks[task.id] = task
+
+        clean_id = task_id.replace("cron-", "")
+        def _run_cron():
+            try:
+                subprocess.run(["hermes", "cron", "run", clean_id], timeout=30, capture_output=True)
+            except Exception as e:
+                logger.error(f"Failed to dispatch cron task {clean_id}: {e}")
+
+        asyncio.get_event_loop().run_in_executor(None, _run_cron)
         return task.model_copy(deep=True)
 
     async def cancel_task(self, task_id: str) -> TaskDto:
@@ -289,5 +302,29 @@ class SagaraJobRepository:
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         task.state = "CANCELLED"
         task.updated_at = now
-        self._local_tasks[task_id] = task
+        self._local_tasks[task.id] = task
+
+        clean_id = task_id.replace("cron-", "")
+        def _pause_cron():
+            try:
+                subprocess.run(["hermes", "cron", "pause", clean_id], timeout=15, capture_output=True)
+            except Exception as e:
+                logger.error(f"Failed to pause cron task {clean_id}: {e}")
+
+        asyncio.get_event_loop().run_in_executor(None, _pause_cron)
         return task.model_copy(deep=True)
+
+    async def delete_task(self, task_id: str) -> bool:
+        if task_id in self._local_tasks:
+            del self._local_tasks[task_id]
+        
+        clean_id = task_id.replace("cron-", "")
+        def _rm_cron():
+            try:
+                res = subprocess.run(["hermes", "cron", "remove", clean_id], timeout=15, capture_output=True)
+                return res.returncode == 0
+            except Exception as e:
+                logger.error(f"Failed to remove cron task {clean_id}: {e}")
+                return False
+
+        return await asyncio.to_thread(_rm_cron)

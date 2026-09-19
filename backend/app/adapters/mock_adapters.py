@@ -120,3 +120,17 @@ class MockRuntimeAdapter:
 
     async def list_events(self, limit: int = 100) -> list[RuntimeEventDto]:
         return [e.model_copy(deep=True) for e in self._events[:limit]]
+
+    async def get_runtime_usage(self) -> dict:
+        return {
+            "totalApiCalls": 51,
+            "inputTokens": 215500,
+            "outputTokens": 22310,
+            "reasoningTokens": 2400,
+            "cacheTokens": 117400,
+            "estimatedCostUsd": 0.93,
+            "actualCostUsd": 0.904,
+            "byAgent": [],
+            "byModel": [],
+            "byProvider": [],
+        }

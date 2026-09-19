@@ -1022,6 +1022,60 @@ export const dataProvider = {
       handleApiError(err)
     }
   },
+
+  deleteTask: async (id: string): Promise<boolean> => {
+    if (isMockMode()) return true
+    try {
+      const res = await apiClient.delete<{ success: boolean }>(`/api/v1/tasks/${id}`)
+      return res.success
+    } catch (err) {
+      handleApiError(err)
+      return false
+    }
+  },
+
+  cancelTask: async (id: string): Promise<boolean> => {
+    if (isMockMode()) return true
+    try {
+      await apiClient.post(`/api/v1/tasks/${id}/cancel`)
+      return true
+    } catch (err) {
+      handleApiError(err)
+      return false
+    }
+  },
+
+  killSession: async (id: string): Promise<boolean> => {
+    if (isMockMode()) return true
+    try {
+      const res = await apiClient.post<{ success: boolean }>(`/api/v1/sessions/${id}/kill`)
+      return res.success
+    } catch (err) {
+      handleApiError(err)
+      return false
+    }
+  },
+
+  deleteSession: async (id: string): Promise<boolean> => {
+    if (isMockMode()) return true
+    try {
+      const res = await apiClient.delete<{ success: boolean }>(`/api/v1/sessions/${id}`)
+      return res.success
+    } catch (err) {
+      handleApiError(err)
+      return false
+    }
+  },
+
+  clearSystemCache: async (): Promise<{ success: boolean; cleared_files: number; mb_freed: number; message: string }> => {
+    if (isMockMode()) return { success: true, cleared_files: 0, mb_freed: 0, message: 'Mock cache cleared' }
+    try {
+      return await apiClient.post('/api/v1/system/cache/clear')
+    } catch (err) {
+      handleApiError(err)
+      return { success: false, cleared_files: 0, mb_freed: 0, message: 'Cache clear failed' }
+    }
+  },
 }
 
 

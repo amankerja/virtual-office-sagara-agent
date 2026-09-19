@@ -293,3 +293,43 @@ class SessionReader:
 
         return await self._db.execute_read(_read_accounting)
 
+    async def kill_session(self, session_id: str) -> bool:
+        def _write(conn: sqlite3.Connection) -> bool:
+            now = time.time()
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';")
+            if not cur.fetchone():
+                return False
+            cur.execute(
+                "UPDATE sessions SET ended_at = ?, end_reason = 'killed', archived = 1 WHERE id = ?;",
+                (now, session_id),
+            )
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='session_turn_leases';")
+            if cur.fetchone():
+                cur.execute("DELETE FROM session_turn_leases WHERE conversation_id = ?;", (session_id,))
+            conn.commit()
+            return True
+
+        return await self._db.execute_write(_write)
+
+    async def delete_session(self, session_id: str) -> bool:
+        def _write(conn: sqlite3.Connection) -> bool:
+            cur = conn.cursor()
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions';")
+            if not cur.fetchone():
+                return False
+            cur.execute("DELETE FROM sessions WHERE id = ?;", (session_id,))
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='messages';")
+            if cur.fetchone():
+                cur.execute("DELETE FROM messages WHERE session_id = ?;", (session_id,))
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='session_turn_leases';")
+            if cur.fetchone():
+                cur.execute("DELETE FROM session_turn_leases WHERE conversation_id = ?;", (session_id,))
+            cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='session_model_usage';")
+            if cur.fetchone():
+                cur.execute("DELETE FROM session_model_usage WHERE session_id = ?;", (session_id,))
+            conn.commit()
+            return True
+
+        return await self._db.execute_write(_write)
+

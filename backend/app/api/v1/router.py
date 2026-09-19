@@ -22,6 +22,7 @@ from app.api.v1 import (
     changesets,
     tool_security_policy,
     operations,
+    system,
 )
 from app.config import settings
 from app.realtime.router import realtime_router
@@ -63,3 +64,4 @@ api_v1_router.include_router(execution_lock.router)
 api_v1_router.include_router(execution_policy.router)
 api_v1_router.include_router(tool_security_policy.router)
 api_v1_router.include_router(operations.router)
+api_v1_router.include_router(system.router)

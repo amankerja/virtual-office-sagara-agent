@@ -162,3 +162,8 @@ class TaskService:
         )
 
         return task
+
+    async def delete_task(self, task_id: str, correlation_id: Optional[str] = None) -> bool:
+        if hasattr(self._task_repo, "delete_task"):
+            return await self._task_repo.delete_task(task_id)
+        return False

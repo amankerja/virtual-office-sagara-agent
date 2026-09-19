@@ -88,3 +88,29 @@ class RuntimeService:
 
     async def list_events(self, limit: int = 100) -> list[RuntimeEventDto]:
         return await self._reader.list_events(limit=limit)
+
+    async def get_usage(self) -> dict:
+        if hasattr(self._reader, "get_runtime_usage"):
+            return await self._reader.get_runtime_usage()
+        return {
+            "totalApiCalls": 0,
+            "inputTokens": 0,
+            "outputTokens": 0,
+            "reasoningTokens": 0,
+            "cacheTokens": 0,
+            "estimatedCostUsd": 0.0,
+            "actualCostUsd": None,
+            "byAgent": [],
+            "byModel": [],
+            "byProvider": [],
+        }
+
+    async def kill_session(self, session_id: str) -> bool:
+        if hasattr(self._reader, "session_reader") and hasattr(self._reader.session_reader, "kill_session"):
+            return await self._reader.session_reader.kill_session(session_id)
+        return False
+
+    async def delete_session(self, session_id: str) -> bool:
+        if hasattr(self._reader, "session_reader") and hasattr(self._reader.session_reader, "delete_session"):
+            return await self._reader.session_reader.delete_session(session_id)
+        return False

@@ -79,6 +79,19 @@ class HermesReadOnlyDatabase:
         """Asynchronously executes a read query in a background thread."""
         return await asyncio.to_thread(self.execute_read_sync, query_fn)
 
+    def execute_write_sync(self, query_fn: Callable[[sqlite3.Connection], T]) -> T:
+        """Executes a write query function using a short-lived read-write connection."""
+        if not self.db_path or not os.path.exists(self.db_path):
+            raise RuntimeUnavailableError(message="Database path invalid")
+        conn = sqlite3.connect(self.db_path)
+        conn.row_factory = sqlite3.Row
+        with contextlib.closing(conn):
+            return query_fn(conn)
+
+    async def execute_write(self, query_fn: Callable[[sqlite3.Connection], T]) -> T:
+        """Asynchronously executes a write query in a background thread."""
+        return await asyncio.to_thread(self.execute_write_sync, query_fn)
+
     async def check_capabilities(self) -> dict[str, bool]:
         """Discovers presence of relevant runtime tables."""
         def _check(conn: sqlite3.Connection) -> dict[str, bool]:

@@ -201,3 +201,6 @@ class HermesSqliteRuntimeAdapter:
 
     async def list_events(self, limit: int = 100) -> list[RuntimeEventDto]:
         return await self.event_reader.list_events(limit=limit)
+
+    async def get_runtime_usage(self) -> dict:
+        return await self.usage_reader.get_runtime_usage_overview()

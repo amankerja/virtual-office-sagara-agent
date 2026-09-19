@@ -142,3 +142,13 @@ async def cancel_task(
         await store.save_response(idempotency_key, f"cancel_{task_id}", payload_hash, cancelled.model_dump())
 
     return cancelled
+
+
+@router.delete("/{task_id}", response_model=dict[str, bool])
+async def delete_task(
+    task_id: str,
+    correlation_id: str = Depends(get_correlation_id),
+    service: TaskService = Depends(get_task_service),
+) -> dict[str, bool]:
+    success = await service.delete_task(task_id, correlation_id=correlation_id)
+    return {"success": success}

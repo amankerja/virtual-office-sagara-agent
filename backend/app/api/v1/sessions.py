@@ -24,3 +24,21 @@ async def get_session_by_id(
     service: RuntimeService = Depends(get_runtime_service),
 ) -> SessionDto:
     return await service.get_session(session_id)
+
+
+@router.post("/{session_id}/kill", response_model=dict[str, bool])
+async def kill_session(
+    session_id: str,
+    service: RuntimeService = Depends(get_runtime_service),
+) -> dict[str, bool]:
+    success = await service.kill_session(session_id)
+    return {"success": success}
+
+
+@router.delete("/{session_id}", response_model=dict[str, bool])
+async def delete_session(
+    session_id: str,
+    service: RuntimeService = Depends(get_runtime_service),
+) -> dict[str, bool]:
+    success = await service.delete_session(session_id)
+    return {"success": success}

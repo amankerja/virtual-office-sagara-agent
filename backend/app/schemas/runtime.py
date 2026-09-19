@@ -139,6 +139,34 @@ class GatewayDto(BaseModel):
     platforms: Optional[dict[str, Any]] = None
 
 
+class UsageMetricBreakdownDto(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    name: str
+    apiCalls: Optional[int] = None
+    inputTokens: Optional[int] = None
+    outputTokens: Optional[int] = None
+    reasoningTokens: Optional[int] = None
+    cacheTokens: Optional[int] = None
+    estimatedCostUsd: Optional[float] = None
+    actualCostUsd: Optional[float] = None
+
+
+class RuntimeUsageOverviewDto(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+
+    totalApiCalls: Optional[int] = None
+    inputTokens: Optional[int] = None
+    outputTokens: Optional[int] = None
+    reasoningTokens: Optional[int] = None
+    cacheTokens: Optional[int] = None
+    estimatedCostUsd: Optional[float] = None
+    actualCostUsd: Optional[float] = None
+    byAgent: list[UsageMetricBreakdownDto] = []
+    byModel: list[UsageMetricBreakdownDto] = []
+    byProvider: list[UsageMetricBreakdownDto] = []
+
+
 class RuntimeEventDto(BaseModel):
     model_config = ConfigDict(extra="ignore")
 

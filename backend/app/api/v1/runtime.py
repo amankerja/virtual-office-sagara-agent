@@ -6,6 +6,7 @@ from app.schemas.runtime import (
     ReleaseMetadataDto,
     RuntimeEventDto,
     RuntimeOverviewDto,
+    RuntimeUsageOverviewDto,
     ServiceHealthDto,
     SourceDiscoveryStatusDto,
     VpsHealthDto,
@@ -70,3 +71,11 @@ async def list_runtime_events(
     service: RuntimeService = Depends(get_runtime_service),
 ) -> list[RuntimeEventDto]:
     return await service.list_events(limit=limit)
+
+
+@router.get("/usage", response_model=RuntimeUsageOverviewDto)
+async def get_runtime_usage(
+    service: RuntimeService = Depends(get_runtime_service),
+) -> RuntimeUsageOverviewDto:
+    raw = await service.get_usage()
+    return RuntimeUsageOverviewDto(**raw)
