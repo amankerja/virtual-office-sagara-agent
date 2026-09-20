@@ -259,6 +259,14 @@ class SagaraJobRepository:
         if not task:
             raise KeyError(f"Task {task_id} not found")
 
+        if expected_revision is not None and task.revision is not None:
+            if expected_revision != task.revision:
+                from app.api.errors import ConflictError
+                raise ConflictError(
+                    code="RESOURCE_CONFLICT",
+                    message=f"Conflict updating task: expected revision {expected_revision}, current revision is {task.revision}.",
+                )
+
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
         if input_dto.title is not None:
             task.title = input_dto.title
@@ -272,6 +280,7 @@ class SagaraJobRepository:
             task.assigned_agent_id = input_dto.assigned_agent_id
         if input_dto.requested_skills is not None:
             task.requested_skills = input_dto.requested_skills
+        task.revision = (task.revision or 1) + 1
         task.updated_at = now
         self._local_tasks[task_id] = task
         return task.model_copy(deep=True)
@@ -280,8 +289,14 @@ class SagaraJobRepository:
         task = await self.get_task(task_id)
         if not task:
             raise KeyError(f"Task {task_id} not found")
+        if task.state in ["DISPATCHING", "RUNNING"]:
+            from app.api.errors import ConflictError
+            raise ConflictError(
+                code="TASK_ALREADY_DISPATCHED",
+                message=f"Task {task_id} is already in state '{task.state}'.",
+            )
         now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-        task.state = "RUNNING"
+        task.state = "DISPATCHING"
         task.updated_at = now
         self._local_tasks[task.id] = task
 

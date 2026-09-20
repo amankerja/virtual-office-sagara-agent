@@ -1,11 +1,11 @@
 id: lead
-name: Lead Coordinator
-role: Operations Lead
-description: Sagara Agent fleet coordinator and task delegator.
+name: Sagara Lead Orchestrator
+role: Lead Autonomous Coordinator
+description: Autonomous mission delegation and workflow scheduling.
 enabled: true
-memory_namespace: mem-lead
-allowed_skills:
-  - skill-hermes-agent
-  - skill-systematic-debugging
+memory_namespace: profile:lead
+allowed_skills: []
 configuration_state: COMPLETE
-model_tier: sonnet
+allowed_domains:
+  - global
+permissions_policy: default

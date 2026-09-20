@@ -1,8 +1,11 @@
 id: retired-bot
-name: Retired Legacy Agent
-role: Decommissioned
-description: Archived agent from previous architecture generation.
+name: Retired Bot
+role: Legacy System
+description: Deprecated bot instance.
 enabled: false
-memory_namespace: mem-retired
+memory_namespace: profile:retired-bot
 allowed_skills: []
-configuration_state: COMPLETE
+configuration_state: INCOMPLETE
+allowed_domains:
+  - global
+permissions_policy: default

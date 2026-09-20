@@ -19,6 +19,7 @@ from app.repositories.memory.governance_repo import InMemoryGovernanceRepository
 from app.repositories.memory.idempotency import InMemoryIdempotencyStore, idempotency_store
 from app.repositories.memory.task_repo import InMemoryTaskRepository
 from app.adapters.sagara_jobs import SagaraJobRepository
+from app.adapters.sagara_governance import SagaraHermesGovernanceRepository
 from app.services.activity_service import ActivityService
 from app.services.agent_service import AgentProjectionService
 from app.services.approval_service import ApprovalService
@@ -54,11 +55,11 @@ from app.services.task_dispatch_coordinator import TaskDispatchCoordinator
 _task_repo = SagaraJobRepository()
 _approval_repo = InMemoryApprovalRepository()
 _activity_repo = InMemoryActivityRepository()
-_audit_repo = InMemoryAuditRepository()
 _sqlite_audit_repo = SqliteAuditRepository()
+_audit_repo = _sqlite_audit_repo
 _persistent_idempotency_store = PersistentIdempotencyStore()
 _authorization_service = AuthorizationService()
-_governance_repo = InMemoryGovernanceRepository()
+_governance_repo = SagaraHermesGovernanceRepository()
 _artifact_repo = InMemoryArtifactRepository()
 
 _profile_adapter = None

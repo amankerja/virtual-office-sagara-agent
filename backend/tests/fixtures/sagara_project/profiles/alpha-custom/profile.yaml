@@ -1,9 +1,12 @@
-id: dyn-custom-98765
+id: alpha-custom
 name: Custom Research Agent
 role: Deep Research
 description: Non-standard profile ID for testing dynamic ID handling.
 enabled: true
-memory_namespace: mem-custom-98765
+memory_namespace: profile:alpha-custom
 allowed_skills:
   - skill-hermes-agent
 configuration_state: COMPLETE
+allowed_domains:
+  - global
+permissions_policy: default

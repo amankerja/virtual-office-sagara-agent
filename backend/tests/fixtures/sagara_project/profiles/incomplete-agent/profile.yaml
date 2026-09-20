@@ -1,5 +1,11 @@
 id: incomplete-agent
 name: Incomplete Agent
-# Role and description missing, allowed_skills null
-enabled: true
+role: Staging
+description: Unconfigured profile.
+enabled: false
+memory_namespace: profile:incomplete-agent
+allowed_skills: []
 configuration_state: INCOMPLETE
+allowed_domains:
+  - global
+permissions_policy: default

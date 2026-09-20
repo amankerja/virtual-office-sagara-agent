@@ -1,11 +1,11 @@
 id: marketing
 name: Marketing Specialist
 role: Growth & Content
-description: Multichannel campaign and creative generation.
+description: Social media posting and campaign analysis.
 enabled: true
-memory_namespace: mem-marketing
-allowed_skills:
-  - skill-baoyu-infographic
-  - skill-unregistered-external
+memory_namespace: profile:marketing
+allowed_skills: []
 configuration_state: COMPLETE
-model_tier: sonnet
+allowed_domains:
+  - global
+permissions_policy: default

@@ -17,6 +17,7 @@ router = APIRouter(prefix="/runtime", tags=["Runtime"])
 
 
 @router.get("", response_model=RuntimeOverviewDto)
+@router.get("/overview", response_model=RuntimeOverviewDto)
 async def get_runtime_overview(
     service: RuntimeService = Depends(get_runtime_service),
 ) -> RuntimeOverviewDto:

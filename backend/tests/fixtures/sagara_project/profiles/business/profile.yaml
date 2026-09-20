@@ -3,6 +3,9 @@ name: Business Analyst
 role: Strategy & Analytics
 description: Executive summaries and financial reviews.
 enabled: true
-memory_namespace: mem-business
+memory_namespace: profile:business
 allowed_skills: []
 configuration_state: COMPLETE
+allowed_domains:
+  - global
+permissions_policy: default
