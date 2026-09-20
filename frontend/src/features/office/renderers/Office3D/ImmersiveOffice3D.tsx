@@ -150,6 +150,12 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
     }
   }, [focusedAgentId])
 
+  useEffect(() => {
+    if (focusedAgentId) {
+      setRawIsFollowing(true)
+    }
+  }, [focusedAgentId])
+
   const handleExitFollow = useCallback(() => {
     setRawIsFollowing(false)
     setActivePreset({ ...CAMERA_PRESETS.overview })

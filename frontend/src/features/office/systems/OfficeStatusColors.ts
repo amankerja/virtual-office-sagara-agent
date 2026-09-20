@@ -17,13 +17,13 @@ export interface DeskStatusAccent {
 
 const DESK_STATUS_DARK: Record<AgentStatus, DeskStatusAccent> = {
   ACTIVE: {
-    color: '#f97316', // Orange 500 (Bekerja = Orange)
-    emissive: '#ea580c',
-    glow: 'rgba(249, 115, 22, 0.45)',
-    label: 'BEKERJA (ACTIVE)',
+    color: '#10b981', // Emerald 500 (Active = Green)
+    emissive: '#059669',
+    glow: 'rgba(16, 185, 129, 0.45)',
+    label: 'ACTIVE',
   },
   RECENTLY_ACTIVE: {
-    color: '#10b981', // Emerald green (Free / Ready = Hijau)
+    color: '#10b981', // Emerald green (Free / Ready = Green)
     emissive: '#059669',
     glow: 'rgba(16, 185, 129, 0.35)',
     label: 'BEBAS (FREE)',
@@ -74,13 +74,13 @@ const DESK_STATUS_DARK: Record<AgentStatus, DeskStatusAccent> = {
 
 const DESK_STATUS_LIGHT: Record<AgentStatus, DeskStatusAccent> = {
   ACTIVE: {
-    color: '#ea580c', // Orange 600 (Bekerja = Orange)
-    emissive: '#c2410c',
-    glow: 'rgba(234, 88, 12, 0.35)',
-    label: 'BEKERJA (ACTIVE)',
+    color: '#16a34a', // Green 600 (Active = Green)
+    emissive: '#15803d',
+    glow: 'rgba(22, 163, 74, 0.35)',
+    label: 'ACTIVE',
   },
   RECENTLY_ACTIVE: {
-    color: '#16a34a', // Green 600 (Free / Ready = Hijau)
+    color: '#16a34a', // Green 600 (Free / Ready = Green)
     emissive: '#15803d',
     glow: 'rgba(22, 163, 74, 0.25)',
     label: 'BEBAS (FREE)',
