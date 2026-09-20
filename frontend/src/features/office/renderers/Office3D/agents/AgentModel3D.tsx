@@ -227,14 +227,15 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftArmRef.current) leftArmRef.current.rotation.x = -Math.sin(t * 12) * 0.4
         if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * 12) * 0.4
       } else if (cycleT >= 66 && cycleT < 84) {
-        // Sleeping in Rest Pod (Lying down flat in capsule bed)
-        outerGroupRef.current.position.set(relSleep[0], relSleep[1], relSleep[2])
-        outerGroupRef.current.rotation.set(-Math.PI / 2, 0, 0) // Lying flat
-        if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 0.9) * 0.025
-        if (leftArmRef.current) leftArmRef.current.rotation.x = 0
-        if (rightArmRef.current) rightArmRef.current.rotation.x = 0
-        if (leftLegRef.current) leftLegRef.current.rotation.x = 0
-        if (rightLegRef.current) rightLegRef.current.rotation.x = 0
+        // Resting / Seated comfortably on edge of Rest Pod bed
+        outerGroupRef.current.position.set(relSleep[0], 0.36, relSleep[2])
+        outerGroupRef.current.rotation.set(0, Math.PI / 2, 0) // Seated upright facing room
+        if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 1.1) * 0.015
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -0.15
+        if (rightArmRef.current) rightArmRef.current.rotation.x = -0.15
+        if (headRef.current) headRef.current.rotation.y = Math.sin(t * 0.8) * 0.08
+        if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55 // Seated leg bend
+        if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
       } else {
         // Walking back to Desk (Obstacle-Aware Indoor Waypoint Navigation)
         const progress = (cycleT - 84) / 6

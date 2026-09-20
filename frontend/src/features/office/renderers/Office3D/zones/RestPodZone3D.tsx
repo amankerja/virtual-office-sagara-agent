@@ -78,13 +78,13 @@ export const RestPodZone3D: React.FC<RestPodZone3DProps> = ({
       <Plant3D isDark={isDark} position={[-3.6, 0, 2.4]} scale={1.0} />
 
       {/* ── Architectural Signage ── */}
-      <group position={[0, 1.80, -3.0]}>
-        <RoundedBox args={[2.6, 0.28, 0.025]} radius={0.05} smoothness={4}>
+      <group position={[0, 2.15, -3.8]}>
+        <RoundedBox args={[2.4, 0.22, 0.025]} radius={0.04} smoothness={4}>
           <SharedMaterial color={p.officeMetal} roughness={0.4} metalness={0.3} />
         </RoundedBox>
         <Text
           position={[0, 0, 0.015]}
-          fontSize={0.11}
+          fontSize={0.09}
           color={isDark ? OFFICE_DETAIL_COLORS.textLight : OFFICE_DETAIL_COLORS.textDark}
           anchorX="center"
           anchorY="middle"
