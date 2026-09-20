@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { Text } from '@react-three/drei'
+import { Text, RoundedBox } from '@react-three/drei'
 import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
 import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
 import { Plant3D } from '../furniture/Plant3D'
@@ -38,17 +38,16 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
         />
       </mesh>
 
-      {/* ── Coffee Bar Counter ── */}
-      <mesh position={[-2.2, 0.45, -1.8]} castShadow receiveShadow>
-        <SharedGeometry kind="box" args={[3.2, 0.90, 0.90]} />
+      {/* ── Coffee Bar Counter (Smooth Rounded Edges) ── */}
+      <RoundedBox position={[-2.2, 0.45, -1.8]} args={[3.2, 0.90, 0.90]} radius={0.12} smoothness={4} castShadow receiveShadow>
         <SharedMaterial color={counterColor} roughness={0.4} metalness={0.1} />
-      </mesh>
+      </RoundedBox>
 
       {/* Espresso Machine */}
-      <mesh position={[-3.0, 0.96, -1.8]} castShadow>
-        <SharedGeometry kind="box" args={[0.55, 0.38, 0.42]} />
+      <RoundedBox position={[-3.0, 0.96, -1.8]} args={[0.55, 0.38, 0.42]} radius={0.06} smoothness={4} castShadow>
         <SharedMaterial color={p.officeMetal} roughness={0.2} metalness={0.8} />
-      </mesh>
+      </RoundedBox>
+
       {/* Espresso Steam / LED Indicator */}
       <mesh position={[-3.0, 1.18, -1.8]}>
         <SharedGeometry kind="cylinder" args={[0.04, 0.04, 0.06, 12]} />
@@ -67,10 +66,9 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
       </mesh>
 
       {/* Snack & Drink Fridge */}
-      <mesh position={[-3.6, 0.90, -0.2]} castShadow>
-        <SharedGeometry kind="box" args={[0.85, 1.80, 0.85]} />
+      <RoundedBox position={[-3.6, 0.90, -0.2]} args={[0.85, 1.80, 0.85]} radius={0.08} smoothness={4} castShadow>
         <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
-      </mesh>
+      </RoundedBox>
       {/* Glass Door */}
       <mesh position={[-3.16, 0.90, -0.2]}>
         <SharedGeometry kind="plane" args={[0.02, 1.60]} />
@@ -95,7 +93,7 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
 
       {/* Lounge Chairs around cafe table */}
       {[0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2].map((angle, i) => (
-        <mesh
+        <group
           key={i}
           position={[
             1.8 + Math.sin(angle) * 1.25,
@@ -104,9 +102,10 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
           ]}
           rotation={[0, angle, 0]}
         >
-          <SharedGeometry kind="box" args={[0.48, 0.52, 0.48]} />
-          <SharedMaterial color={p.officeAccentAmber} roughness={0.6} />
-        </mesh>
+          <RoundedBox args={[0.48, 0.52, 0.48]} radius={0.10} smoothness={4}>
+            <SharedMaterial color={p.officeAccentAmber} roughness={0.6} />
+          </RoundedBox>
+        </group>
       ))}
 
       {/* Plant */}
