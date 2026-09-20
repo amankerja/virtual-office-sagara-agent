@@ -128,6 +128,61 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         7.5 - position[2],
       ]
 
+      const corridorDoor: [number, number, number] = [14.0 - position[0], 0, 1.5 - position[2]]
+      const annexDoor: [number, number, number]    = [17.8 - position[0], 0, 1.5 - position[2]]
+
+      const getIndoorPath = (p: number, pathType: 'toPantry' | 'toSleep' | 'toDesk'): { pos: [number, number, number]; yaw: number } => {
+        let x = 0, z = 0, dirX = 0, dirZ = 0
+        if (pathType === 'toPantry') {
+          if (p < 0.4) {
+            const subP = p / 0.4
+            x = corridorDoor[0] * subP
+            z = corridorDoor[2] * subP
+            dirX = corridorDoor[0]
+            dirZ = corridorDoor[2]
+          } else if (p < 0.7) {
+            const subP = (p - 0.4) / 0.3
+            x = corridorDoor[0] + (annexDoor[0] - corridorDoor[0]) * subP
+            z = corridorDoor[2] + (annexDoor[2] - corridorDoor[2]) * subP
+            dirX = annexDoor[0] - corridorDoor[0]
+            dirZ = annexDoor[2] - corridorDoor[2]
+          } else {
+            const subP = (p - 0.7) / 0.3
+            x = annexDoor[0] + (relPantry[0] - annexDoor[0]) * subP
+            z = annexDoor[2] + (relPantry[2] - annexDoor[2]) * subP
+            dirX = relPantry[0] - annexDoor[0]
+            dirZ = relPantry[2] - annexDoor[2]
+          }
+        } else if (pathType === 'toSleep') {
+          x = relPantry[0] + (relSleep[0] - relPantry[0]) * p
+          z = relPantry[2] + (relSleep[2] - relPantry[2]) * p
+          dirX = relSleep[0] - relPantry[0]
+          dirZ = relSleep[2] - relPantry[2]
+        } else {
+          if (p < 0.35) {
+            const subP = p / 0.35
+            x = relSleep[0] + (annexDoor[0] - relSleep[0]) * subP
+            z = relSleep[2] + (annexDoor[2] - relSleep[2]) * subP
+            dirX = annexDoor[0] - relSleep[0]
+            dirZ = annexDoor[2] - relSleep[2]
+          } else if (p < 0.65) {
+            const subP = (p - 0.35) / 0.3
+            x = annexDoor[0] + (corridorDoor[0] - annexDoor[0]) * subP
+            z = annexDoor[2] + (corridorDoor[2] - annexDoor[2]) * subP
+            dirX = corridorDoor[0] - annexDoor[0]
+            dirZ = corridorDoor[2] - annexDoor[2]
+          } else {
+            const subP = (p - 0.65) / 0.35
+            x = corridorDoor[0] * (1 - subP)
+            z = corridorDoor[2] * (1 - subP)
+            dirX = -corridorDoor[0]
+            dirZ = -corridorDoor[2]
+          }
+        }
+        const yaw = Math.atan2(dirX, dirZ)
+        return { pos: [x, 0, z], yaw }
+      }
+
       if (cycleT < 30) {
         // At Desk (Seated / Idle)
         outerGroupRef.current.position.set(0, 0, 0)
@@ -139,12 +194,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
         if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
       } else if (cycleT >= 30 && cycleT < 38) {
-        // Walking from Desk to Pantry
+        // Walking from Desk to Pantry (Strict Indoor Waypoint Navigation)
         const progress = (cycleT - 30) / 8
-        const curX = relPantry[0] * progress
-        const curZ = relPantry[2] * progress
-        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
-        outerGroupRef.current.rotation.set(0, Math.atan2(relPantry[0], relPantry[2]), 0)
+        const waypoint = getIndoorPath(progress, 'toPantry')
+        outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
+        outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
         if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
         if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
@@ -161,12 +215,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftLegRef.current) leftLegRef.current.rotation.x = 0
         if (rightLegRef.current) rightLegRef.current.rotation.x = 0
       } else if (cycleT >= 58 && cycleT < 66) {
-        // Walking from Pantry to Rest Pods / Kamar Tidur
+        // Walking from Pantry to Rest Pods / Kamar Tidur (Inside Annex Floor)
         const progress = (cycleT - 58) / 8
-        const curX = relPantry[0] + (relSleep[0] - relPantry[0]) * progress
-        const curZ = relPantry[2] + (relSleep[2] - relPantry[2]) * progress
-        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
-        outerGroupRef.current.rotation.set(0, Math.atan2(relSleep[0] - relPantry[0], relSleep[2] - relPantry[2]), 0)
+        const waypoint = getIndoorPath(progress, 'toSleep')
+        outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
+        outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
         if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
         if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
@@ -182,12 +235,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftLegRef.current) leftLegRef.current.rotation.x = 0
         if (rightLegRef.current) rightLegRef.current.rotation.x = 0
       } else {
-        // Walking back to Desk
+        // Walking back to Desk (Strict Indoor Waypoint Navigation)
         const progress = (cycleT - 84) / 6
-        const curX = relSleep[0] * (1 - progress)
-        const curZ = relSleep[2] * (1 - progress)
-        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
-        outerGroupRef.current.rotation.set(0, Math.atan2(-relSleep[0], -relSleep[2]), 0)
+        const waypoint = getIndoorPath(progress, 'toDesk')
+        outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
+        outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
         if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
         if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
