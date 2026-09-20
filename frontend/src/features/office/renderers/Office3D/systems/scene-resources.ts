@@ -57,6 +57,7 @@ export function generateWoodFloorTexture(): THREE.CanvasTexture {
     const plankHeight = 32
     const plankColors = ['#a67c52', '#8b5e3c', '#9c6f46', '#b88a5c', '#7c5030']
 
+    // 1. Draw horizontal wood planks with grain variation
     for (let y = 0; y < 512; y += plankHeight) {
       const color = plankColors[Math.floor(y / plankHeight) % plankColors.length]
       ctx.fillStyle = color
@@ -76,6 +77,18 @@ export function generateWoodFloorTexture(): THREE.CanvasTexture {
         ctx.fillRect(0, gy, 512, 1)
       }
     }
+
+    // 2. Bake Architectural Floor Tile Grid Lines directly into Canvas Texture (NO Z-FIGHTING)
+    ctx.strokeStyle = 'rgba(30, 20, 10, 0.28)'
+    ctx.lineWidth = 3
+    // Vertical tile grid lines
+    ctx.beginPath()
+    ctx.moveTo(256, 0); ctx.lineTo(256, 512)
+    ctx.stroke()
+    // Horizontal tile grid lines
+    ctx.beginPath()
+    ctx.moveTo(0, 256); ctx.lineTo(512, 256)
+    ctx.stroke()
   }
   const texture = new THREE.CanvasTexture(canvas)
   texture.wrapS = THREE.RepeatWrapping

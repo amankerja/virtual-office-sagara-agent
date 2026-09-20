@@ -22,7 +22,7 @@ export const OfficeLighting: React.FC<OfficeLightingProps> = ({ quality = 'balan
       <directionalLight
         position={[18, 22, 16]}
         color="#fff0d6"
-        intensity={isDark ? 2.3 : 2.7}
+        intensity={isDark ? 2.1 : 2.4}
         castShadow={cfg.shadows}
         shadow-mapSize-width={size}
         shadow-mapSize-height={size}

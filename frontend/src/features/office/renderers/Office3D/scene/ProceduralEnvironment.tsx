@@ -11,9 +11,9 @@ export function ProceduralEnvironment({ isDark }: { isDark: boolean }) {
     const previous = { environment: scene.environment, intensity: scene.environmentIntensity, fog: scene.fog }
     const restore = () => { scene.environment = getRoomEnvironment(gl) }
     restore()
-    scene.environmentIntensity = isDark ? 0.55 : 0.70
+    scene.environmentIntensity = isDark ? 0.38 : 0.50
     scene.fog = new THREE.FogExp2(getOfficePalette(isDark).officeFogColor, isDark ? 0.010 : 0.008)
-    gl.toneMappingExposure = isDark ? 1.12 : 1.18
+    gl.toneMappingExposure = isDark ? 0.98 : 1.02
     const lost = () => { releaseRoomEnvironment(gl) }
     gl.domElement.addEventListener('webglcontextlost', lost)
     gl.domElement.addEventListener('webglcontextrestored', restore)

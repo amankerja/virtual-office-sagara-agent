@@ -1,6 +1,5 @@
-import { GRID_GEOMETRY, WALL_GEOMETRY, WALL_CAP_GEOMETRY, FLOOR_GEOMETRY, WALL_BASE_SHADOW_GEOMETRY } from './architecture-geometry'
+import { WALL_GEOMETRY, WALL_CAP_GEOMETRY, FLOOR_GEOMETRY, WALL_BASE_SHADOW_GEOMETRY } from './architecture-geometry'
 import { surfaceNoise, woodFloorTexture } from '../systems/scene-resources'
-import * as THREE from 'three'
 import { RoundedBox } from '@react-three/drei'
 import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
 /**
@@ -25,9 +24,6 @@ interface Environment3DProps {
 export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
 
-  // Tile grid color
-  const gridColor = p.officeMetal
-
   return (
     <group>
       {/* ══ 1. UNIFIED SEAMLESS BUILDING COMPLEX SLAB ══ */}
@@ -44,10 +40,16 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       </mesh>
 
       {/* ══ 2. DISTINCT FLOORING ZONES (Lantai Bangunan Utama vs Annex) ══ */}
-      {/* 2A. Main Office Interior Floor */}
-      <mesh position={[0, 0.008, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <SharedGeometry kind="plane" args={[30.4, 22.4]} />
-        <SharedMaterial color={p.officeFloor} roughness={0.75} metalness={0.02} />
+      {/* 2A. Primary Main Office Wood Floor (Single Non-Overlapping Mesh) */}
+      <mesh geometry={FLOOR_GEOMETRY} receiveShadow dispose={null}>
+        <SharedMaterial
+          kind="physical"
+          color="#a67c52"
+          map={woodFloorTexture}
+          roughness={0.48}
+          metalness={0.02}
+          clearcoat={0.02}
+        />
       </mesh>
 
       {/* 2B. Recreation Annex Interior Floor (Pantry & Kamar Tidur) */}
@@ -74,25 +76,17 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
         <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
 
-      {/* ══ 2. Primary Interior Floor (Warm Varnished Wood Grain) ══ */}
-      <mesh geometry={FLOOR_GEOMETRY} receiveShadow dispose={null}>
-        <SharedMaterial
-          kind="physical"
-          color="#a67c52"
-          map={woodFloorTexture}
-          roughness={0.42}
-          metalness={0.02}
-          clearcoat={0.05}
-        />
-      </mesh>
-
-      <mesh geometry={GRID_GEOMETRY} dispose={null}>
-        <SharedMaterial kind="basic" color={gridColor} transparent opacity={0.18} />
-      </mesh>
-
-      {/* Wall Base Ambient Occlusion Skirting Shadows */}
+      {/* Wall Base Ambient Occlusion Skirting Shadows (Polygon Offset polygonOffsetFactor={-1}) */}
       <mesh geometry={WALL_BASE_SHADOW_GEOMETRY} dispose={null}>
-        <SharedMaterial kind="basic" color="#000000" transparent opacity={0.35} />
+        <SharedMaterial
+          kind="basic"
+          color="#000000"
+          transparent
+          opacity={0.25}
+          polygonOffset
+          polygonOffsetFactor={-1}
+          polygonOffsetUnits={-1}
+        />
       </mesh>
 
       {/* Central Corridor accent (darker runway strip) */}
@@ -185,16 +179,6 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       <mesh position={[17.5, 1.25, 4.60]}>
         <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
         <SharedMaterial kind="physical" color="#e0f2fe" transmission={0.92} roughness={0.05} thickness={0.3} ior={1.5} transparent opacity={0.85} />
-      </mesh>
-
-      {/* ══ 5B. Sunlight Shafts / God Rays (Warm Light Volume Strips) ══ */}
-      <mesh position={[6.0, 1.6, -3.5]} rotation={[0.65, 0.35, -0.15]}>
-        <SharedGeometry kind="plane" args={[16.0, 9.0]} />
-        <SharedMaterial kind="basic" color="#fff4d6" transparent opacity={isDark ? 0.05 : 0.08} side={THREE.DoubleSide} />
-      </mesh>
-      <mesh position={[18.0, 1.6, 2.5]} rotation={[0.65, 0.35, -0.15]}>
-        <SharedGeometry kind="plane" args={[8.0, 6.0]} />
-        <SharedMaterial kind="basic" color="#fff4d6" transparent opacity={isDark ? 0.04 : 0.07} side={THREE.DoubleSide} />
       </mesh>
 
       {/* ══ 6. Clean Internal Glass Partitions ══ */}
