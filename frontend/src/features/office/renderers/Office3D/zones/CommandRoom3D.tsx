@@ -116,7 +116,7 @@ export const CommandRoom3D: React.FC<CommandRoom3DProps> = ({
           anchorY="middle"
           letterSpacing={0.10}
         >
-          SAGARA COMMAND CENTER
+          SAGARA AGENTIC COMMAND CENTER
         </Text>
         <Text
           position={[0, 0.36, 0.055]}

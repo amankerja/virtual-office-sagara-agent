@@ -35,6 +35,34 @@ export const ConferenceTable3D: React.FC<ConferenceTable3DProps> = ({
          />
       </mesh>
 
+      {/* Holographic Projection Hub (Center Floor/Table Disk) */}
+      <group position={[0, 0.905, 0]}>
+        <mesh rotation={[-Math.PI / 2, 0, 0]}>
+          <SharedGeometry kind="circle" args={[0.35, 32]} />
+          <SharedMaterial kind="basic" color={OFFICE_DETAIL_COLORS.brandCyan} transparent opacity={0.45} />
+        </mesh>
+        <mesh position={[0, 0.15, 0]}>
+          <SharedGeometry kind="cylinder" args={[0.18, 0.28, 0.30, 24]} />
+          <SharedMaterial kind="basic" color={OFFICE_DETAIL_COLORS.brandCyan} transparent opacity={0.15} />
+        </mesh>
+      </group>
+
+      {/* Conference Room Laptops */}
+      {[-1.2, 0, 1.2].map((x, i) => (
+        <React.Fragment key={i}>
+          {/* Top Laptop */}
+          <mesh position={[x, 0.90, -0.55]} rotation={[0, 0, 0]}>
+            <SharedGeometry kind="box" args={[0.32, 0.012, 0.22]} />
+            <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.8} />
+          </mesh>
+          {/* Bottom Laptop */}
+          <mesh position={[x, 0.90, 0.55]} rotation={[0, Math.PI, 0]}>
+            <SharedGeometry kind="box" args={[0.32, 0.012, 0.22]} />
+            <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.8} />
+          </mesh>
+        </React.Fragment>
+      ))}
+
       {/* Dual Pedestal Bases */}
       <mesh position={[-1.2, 0.42, 0]} castShadow>
         <SharedGeometry kind="box" args={[0.3, 0.84, 1.0]} />
