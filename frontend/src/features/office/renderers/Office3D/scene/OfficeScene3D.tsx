@@ -18,6 +18,7 @@ import { ArtifactVault3D } from '../zones/ArtifactVault3D'
 import { ConferenceTable3D } from '../furniture/ConferenceTable3D'
 import { PantryZone3D } from '../zones/PantryZone3D'
 import { RestPodZone3D } from '../zones/RestPodZone3D'
+import { GameLounge3D } from '../zones/GameLounge3D'
 import type { OfficeSceneProjection, OfficeDeskProjection } from '@/features/office/types/office'
 import type { GraphicsQuality } from '../types'
 
@@ -141,10 +142,13 @@ export const OfficeScene3D: React.FC<OfficeScene3DProps> = ({
       <ConferenceTable3D position={[0, 0, 4.2]} isDark={isDark} />
 
       {/* 10. Pantry & Coffee Breakroom — Separate Annex Building (Upper Wing) */}
-      <PantryZone3D position={[22.5, 0, -2.5]} isDark={isDark} />
+      <PantryZone3D position={[22.5, 0, -4.5]} isDark={isDark} />
 
-      {/* 11. Rest Pods & Bedrooms (Kamar Tidur) — Separate Annex Building (Lower Wing) */}
-      <RestPodZone3D position={[22.5, 0, 8.5]} isDark={isDark} />
+      {/* 11. Rest Pods & Bedrooms (Kamar Tidur) — Separate Annex Building (Middle Wing) */}
+      <RestPodZone3D position={[22.5, 0, 4.5]} isDark={isDark} />
+
+      {/* 12. Recreation Game Lounge (Billiards & Entertainment) — Separate Annex Building (Lower Wing) */}
+      <GameLounge3D position={[22.5, 0, 12.5]} isDark={isDark} />
     </group>
     </FurnitureInstances>
     </OfficeQualityContext>
