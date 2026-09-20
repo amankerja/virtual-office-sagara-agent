@@ -147,10 +147,48 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
         <SharedMaterial color={p.officeMetal} roughness={0.36} metalness={0.62} />
       </mesh>
 
-      {/* ══ 6. Internal Glass Partitions ══ */}
-      {/* Command Room separator glass */}
-      <mesh position={[-4.2, 0.75, -4.5]}>
-        <SharedGeometry kind="box" args={[0.07, 1.5, 7.5]} />
+      {/* ══ 5. GRAND SEAMLESS BUILDING CONNECTOR (Jembatan Koridor Kaca Melayang) ══ */}
+      {/* Grand Arch Portal Gate at Main Office East Exit */}
+      <group position={[15.2, 1.4, 3.0]}>
+        {/* Frame Columns */}
+        <mesh position={[0, 0, -1.65]}>
+          <SharedGeometry kind="box" args={[0.22, 2.8, 0.15]} />
+          <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+        </mesh>
+        <mesh position={[0, 0, 1.65]}>
+          <SharedGeometry kind="box" args={[0.22, 2.8, 0.15]} />
+          <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+        </mesh>
+        {/* Lintel Header */}
+        <mesh position={[0, 1.4, 0]}>
+          <SharedGeometry kind="box" args={[0.22, 0.35, 3.45]} />
+          <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+        </mesh>
+        {/* Illuminated Neon Arch Sign */}
+        <Text position={[0.12, 1.4, 0]} rotation={[0, Math.PI / 2, 0]} fontSize={0.13} color={p.officeBrandPrimary} anchorX="center" anchorY="middle" letterSpacing={0.12}>
+          RECREATION ANNEX ➔
+        </Text>
+      </group>
+
+      {/* Corridor Glass Walls (North & South) */}
+      <mesh position={[17.5, 1.25, 1.40]}>
+        <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
+        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.4} transparent roughness={0.1} />
+      </mesh>
+      <mesh position={[17.5, 1.25, 4.60]}>
+        <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
+        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.4} transparent roughness={0.1} />
+      </mesh>
+      {/* Corridor Roof Structure */}
+      <mesh position={[17.5, 2.55, 3.0]}>
+        <SharedGeometry kind="box" args={[4.7, 0.08, 3.26]} />
+        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+      </mesh>
+
+      {/* ══ 6. Clean Internal Glass Partitions (No Desk Collisions) ══ */}
+      {/* Command Room separator glass (North-West) */}
+      <mesh position={[-4.2, 0.75, -5.5]}>
+        <SharedGeometry kind="box" args={[0.07, 1.5, 5.5]} />
         <SharedMaterial kind="physical" color={p.officeGlass}
           transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
           opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
@@ -161,13 +199,13 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
          />
       </mesh>
       {/* Command Room glass frame top */}
-      <RoundedBox position={[-4.2, 1.52, -4.5]} args={[0.12, 0.06, 7.5]} radius={0.02} smoothness={2} bevelSegments={2}>
+      <RoundedBox position={[-4.2, 1.52, -5.5]} args={[0.12, 0.06, 5.5]} radius={0.02} smoothness={2} bevelSegments={2}>
         <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6}  />
       </RoundedBox>
 
-      {/* Server Room security glass */}
-      <mesh position={[4.2, 0.75, -4.5]}>
-        <SharedGeometry kind="box" args={[0.07, 1.5, 7.5]} />
+      {/* Server Room security glass (North-East) */}
+      <mesh position={[4.2, 0.75, -5.5]}>
+        <SharedGeometry kind="box" args={[0.07, 1.5, 5.5]} />
         <SharedMaterial kind="physical" color={p.officeGlass}
           transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
           opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
@@ -178,40 +216,8 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
          />
       </mesh>
       {/* Server Room glass frame top */}
-      <RoundedBox position={[4.2, 1.52, -4.5]} args={[0.12, 0.06, 7.5]} radius={0.02} smoothness={2} bevelSegments={2}>
+      <RoundedBox position={[4.2, 1.52, -5.5]} args={[0.12, 0.06, 5.5]} radius={0.02} smoothness={2} bevelSegments={2}>
         <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6}  />
-      </RoundedBox>
-
-      {/* Pantry Room glass partition */}
-      <mesh position={[-4.2, 0.75, 9.2]}>
-        <SharedGeometry kind="box" args={[0.07, 1.5, 6.2]} />
-        <SharedMaterial kind="physical" color={p.officeGlass}
-          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
-          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
-          transparent
-          roughness={0.14}
-          metalness={0.1}
-          thickness={0.07}
-         />
-      </mesh>
-      <RoundedBox position={[-4.2, 1.52, 9.2]} args={[0.12, 0.06, 6.2]} radius={0.02} smoothness={2} bevelSegments={2}>
-        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
-      </RoundedBox>
-
-      {/* Rest Pods / Bedroom glass partition */}
-      <mesh position={[4.2, 0.75, 9.2]}>
-        <SharedGeometry kind="box" args={[0.07, 1.5, 6.2]} />
-        <SharedMaterial kind="physical" color={p.officeGlass}
-          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
-          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
-          transparent
-          roughness={0.14}
-          metalness={0.1}
-          thickness={0.07}
-         />
-      </mesh>
-      <RoundedBox position={[4.2, 1.52, 9.2]} args={[0.12, 0.06, 6.2]} radius={0.02} smoothness={2} bevelSegments={2}>
-        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
       </RoundedBox>
 
       {/* Artifact Vault rear glass wall */}
