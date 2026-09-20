@@ -57,16 +57,16 @@ export const SpecialistZone3D: React.FC<SpecialistZone3DProps> = ({
     <group position={originPosition}>
       {/* ── Zone Floor Pad ── */}
       {desks.length > 0 && (
-        <mesh position={[0, 0.017, 1.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-          <SharedGeometry kind="plane" args={[10.5, 11]} />
+        <mesh position={[0, 0.017, 3.1]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+          <SharedGeometry kind="plane" args={[10.8, 10.2]} />
           <SharedMaterial color={floorColor} roughness={0.80}  />
         </mesh>
       )}
 
       {/* Zone accent strip (front edge) */}
       {desks.length > 0 && (
-        <mesh position={[0, 0.022, 6.5]}>
-          <SharedGeometry kind="box" args={[10.5, 0.016, 0.055]} />
+        <mesh position={[0, 0.022, 8.2]}>
+          <SharedGeometry kind="box" args={[10.8, 0.016, 0.055]} />
           <SharedMaterial color={accentColor}
             emissive={accentColor}
             emissiveIntensity={isDark ? 0.20 : 0.06}
@@ -140,7 +140,7 @@ export const SpecialistZone3D: React.FC<SpecialistZone3DProps> = ({
               <TemporaryWorker3D
                 key={worker.id}
                 worker={worker}
-                position={[(wIdx + 1) * 1.65, 0, 0.5]}
+                position={[wIdx % 2 === 0 ? -1.05 : 1.05, 0, 0.45]}
                 onSelectDelegation={onSelectDelegation}
               />
             ))}
