@@ -24,10 +24,10 @@ export const WALL_GEOMETRY = mergeBoxes([
   [.3, 0.6, 3.0, 15.2, 2.5, 1.5],
 
   // ── Annex Building Perimeter Walls ──
-  // Annex West Wall (North Segment)
-  [.3, 2.8, 9.5, 17.25, 1.4, -1.75],
-  // Annex West Wall (South Segment)
-  [.3, 2.8, 6.5, 17.25, 1.4, 9.25],
+  // Annex West Wall (North Segment) — spans z=-6.5 to 0
+  [.3, 2.8, 6.5, 17.25, 1.4, -3.25],
+  // Annex West Wall (South Segment) — spans z=3.0 to 12.5
+  [.3, 2.8, 9.5, 17.25, 1.4, 7.75],
   // Annex West Skyway Lintel Header
   [.3, 0.6, 3.0, 17.25, 2.5, 1.5],
   // Annex East Wall

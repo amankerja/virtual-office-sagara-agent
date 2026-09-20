@@ -117,8 +117,8 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         4.5 - position[2],
       ]
 
-      const wp1: [number, number, number] = [0, 0, 3.0 - position[2]]
-      const wp2: [number, number, number] = [22.5 - position[0], 0, 3.0 - position[2]]
+      const wp1: [number, number, number] = [0, 0, 1.5 - position[2]]
+      const wp2: [number, number, number] = [22.5 - position[0], 0, 1.5 - position[2]]
 
       if (cycleT < 30) {
         // Seated at Desk

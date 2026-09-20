@@ -59,19 +59,19 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       </mesh>
 
       {/* ══ 3. MAIN INDOOR HIGHWAY / HALLWAY AISLE (Jalan Utama Berbeda Warna) ══ */}
-      {/* Main East-West Highway Aisle Carpet (Runner from Main Office across Connector into Annex) */}
-      <mesh position={[6.5, 0.015, 3.0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      {/* Main East-West Highway Aisle Carpet (Runner from Main Office across Connector into Annex at Z=1.5) */}
+      <mesh position={[6.5, 0.015, 1.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <SharedGeometry kind="plane" args={[43.0, 3.2]} />
         <SharedMaterial color={isDark ? '#1e1b4b' : '#dbeafe'} roughness={0.55} metalness={0.25} />
       </mesh>
 
       {/* Glowing LED Border Trim Strip North for Main Highway */}
-      <mesh position={[6.5, 0.018, 1.40]}>
+      <mesh position={[6.5, 0.018, -0.10]}>
         <SharedGeometry kind="box" args={[43.0, 0.012, 0.06]} />
         <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
       {/* Glowing LED Border Trim Strip South for Main Highway */}
-      <mesh position={[6.5, 0.018, 4.60]}>
+      <mesh position={[6.5, 0.018, 3.10]}>
         <SharedGeometry kind="box" args={[43.0, 0.012, 0.06]} />
         <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
@@ -150,7 +150,7 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
       {/* ══ 5. GRAND SEAMLESS BUILDING CONNECTOR (Jembatan Koridor Kaca Melayang) ══ */}
       {/* Grand Arch Portal Gate at Main Office East Exit */}
-      <group position={[15.2, 1.4, 3.0]}>
+      <group position={[15.2, 1.4, 1.5]}>
         {/* Frame Columns */}
         <mesh position={[0, 0, -1.65]}>
           <SharedGeometry kind="box" args={[0.22, 2.8, 0.15]} />
@@ -172,11 +172,11 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       </group>
 
       {/* Corridor Glass Walls (North & South) */}
-      <mesh position={[17.5, 1.25, 1.40]}>
+      <mesh position={[17.5, 1.25, -0.10]}>
         <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
         <SharedMaterial kind="physical" color="#e0f2fe" transmission={0.92} roughness={0.05} thickness={0.3} ior={1.5} transparent opacity={0.85} />
       </mesh>
-      <mesh position={[17.5, 1.25, 4.60]}>
+      <mesh position={[17.5, 1.25, 3.10]}>
         <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
         <SharedMaterial kind="physical" color="#e0f2fe" transmission={0.92} roughness={0.05} thickness={0.3} ior={1.5} transparent opacity={0.85} />
       </mesh>
