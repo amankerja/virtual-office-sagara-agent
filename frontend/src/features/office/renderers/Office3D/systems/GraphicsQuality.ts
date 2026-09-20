@@ -108,7 +108,7 @@ export function getQualityConfig(quality: GraphicsQuality): QualityConfig {
         showDecorations: true,
         detailLevel: 'balanced',
         contactShadows: true,
-        postProcessing: false,
+        postProcessing: true,
       }
   }
 }

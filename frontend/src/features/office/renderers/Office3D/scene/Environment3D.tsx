@@ -1,4 +1,4 @@
-import { GRID_GEOMETRY, WALL_GEOMETRY, WALL_CAP_GEOMETRY, FLOOR_GEOMETRY } from './architecture-geometry'
+import { GRID_GEOMETRY, WALL_GEOMETRY, WALL_CAP_GEOMETRY, FLOOR_GEOMETRY, WALL_BASE_SHADOW_GEOMETRY } from './architecture-geometry'
 import { surfaceNoise } from '../systems/scene-resources'
 import { RoundedBox } from '@react-three/drei'
 import { useOfficeQuality } from '../systems/OfficeQualityContext'
@@ -85,7 +85,12 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       </mesh>
 
       <mesh geometry={GRID_GEOMETRY} dispose={null}>
-        <SharedMaterial kind="basic" color={gridColor} transparent opacity={0.12} />
+        <SharedMaterial kind="basic" color={gridColor} transparent opacity={0.18} />
+      </mesh>
+
+      {/* Wall Base Ambient Occlusion Skirting Shadows */}
+      <mesh geometry={WALL_BASE_SHADOW_GEOMETRY} dispose={null}>
+        <SharedMaterial kind="basic" color="#000000" transparent opacity={0.35} />
       </mesh>
 
       {/* Central Corridor accent (darker runway strip) */}

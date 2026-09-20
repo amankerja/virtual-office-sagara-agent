@@ -51,6 +51,21 @@ export const CameraController: React.FC<CameraControllerProps> = ({
     }
   }, [])
 
+  const isInitialIntroDone = useRef(false)
+
+  // Initial Cinematic Intro Dolly-Out Effect
+  useEffect(() => {
+    if (!isInitialIntroDone.current && !isReducedMotion.current) {
+      // Start camera closer at Command Room
+      camera.position.set(4, 9, 10)
+      if (controlsRef.current) {
+        controlsRef.current.target.set(-3, 1, -1)
+        controlsRef.current.update()
+      }
+      isInitialIntroDone.current = true
+    }
+  }, [camera])
+
   // When preset or follow target changes, update desired positions
   useEffect(() => {
     if (manuallyExitedFollow.current && !followTarget) {

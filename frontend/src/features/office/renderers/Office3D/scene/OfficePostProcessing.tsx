@@ -1,11 +1,28 @@
 import { Bloom, EffectComposer, ToneMapping, Vignette } from '@react-three/postprocessing'
 import { ToneMappingMode } from 'postprocessing'
+import type { GraphicsQuality } from '../types'
 
-export default function OfficePostProcessing() {
-  return <EffectComposer multisampling={2} enableNormalPass={false}>
-    <Bloom intensity={0.12} luminanceThreshold={1} luminanceSmoothing={0.15} mipmapBlur resolutionScale={0.5} />
-    {/* Composer disables renderer tone mapping; restore ACES in the effect chain. */}
-    <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
-    <Vignette eskil={false} offset={0.2} darkness={0.16} />
-  </EffectComposer>
+interface OfficePostProcessingProps {
+  quality?: GraphicsQuality
+}
+
+export default function OfficePostProcessing({ quality = 'balanced' }: OfficePostProcessingProps) {
+  const isUltra = quality === 'ultra'
+
+  return (
+    <EffectComposer multisampling={isUltra ? 2 : 1} enableNormalPass={false}>
+      {/* Bloom filter tuned per quality tier */}
+      <Bloom
+        intensity={isUltra ? 0.22 : 0.10}
+        luminanceThreshold={isUltra ? 0.82 : 0.88}
+        luminanceSmoothing={0.20}
+        mipmapBlur
+        resolutionScale={isUltra ? 0.75 : 0.50}
+      />
+      {/* ACES Filmic Tone Mapping restored in post-processing pipeline */}
+      <ToneMapping mode={ToneMappingMode.ACES_FILMIC} />
+      {/* Vignette depth framing */}
+      <Vignette eskil={false} offset={isUltra ? 0.20 : 0.30} darkness={isUltra ? 0.22 : 0.10} />
+    </EffectComposer>
+  )
 }

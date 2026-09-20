@@ -15,10 +15,10 @@ export const CAMERA_PRESETS: Record<string, OfficeCameraPreset> = {
   overview: {
     id: 'overview',
     label: 'Overview',
-    // Slight west bias to frame command room prominently on entry
-    position: [20, 27, 25],
-    target: [-1, 0.5, -1],
-    fov: 40,
+    // Lowered elevation & closer distance for realistic proportion on first-load
+    position: [14, 18, 17],
+    target: [1, 0.5, 0],
+    fov: 42,
   },
   command: {
     id: 'command',

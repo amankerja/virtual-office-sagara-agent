@@ -319,7 +319,7 @@ export const ImmersiveOffice3D: React.FC<ImmersiveOffice3DProps> = ({
             if (effectiveQuality !== 'low') setCeiling(downgradeQuality(effectiveQuality))
           }} />
         {qualityCfg.postProcessing && !compact && <React.Suspense fallback={null}>
-          <OfficePostProcessing />
+          <OfficePostProcessing quality={effectiveQuality} />
         </React.Suspense>}
       </Canvas>
 

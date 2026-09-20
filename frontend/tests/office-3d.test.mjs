@@ -59,7 +59,7 @@ test('runtime quality never exceeds request, performance ceiling, or touch-devic
   assert.equal(downgradeQuality('balanced'),'low')
   assert.equal(downgradeQuality('low'),'low')
   assert.equal(getQualityConfig('low').contactShadows,false)
-  assert.equal(getQualityConfig('balanced').postProcessing,false)
+  assert.equal(getQualityConfig('balanced').postProcessing,true)
 })
 
 const createMockAgent = (state, id = 'agent-01') => ({
