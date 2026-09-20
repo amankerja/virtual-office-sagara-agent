@@ -207,6 +207,7 @@ export const CommandRoom3D: React.FC<CommandRoom3DProps> = ({
             agent={desk.agent}
             zone={desk.zone ?? 'COMMAND'}
             position={[0, 0, 1.0]}
+            homeWorldPosition={[0, 0, 1.5]}
             isSelected={isSelected}
             isHovered={isHovered}
             onSelect={onSelectAgent}

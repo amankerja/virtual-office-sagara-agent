@@ -21,6 +21,7 @@ interface AgentModel3DProps {
   elapsedSeconds?: number
   zone?: OfficeZoneType
   position: [number, number, number]
+  homeWorldPosition?: [number, number, number]
   rotationY?: number
   isSelected?: boolean
   isHovered?: boolean
@@ -71,6 +72,7 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
   elapsedSeconds,
   zone = 'SPECIALIST',
   position,
+  homeWorldPosition,
   rotationY = 0,
   isSelected = false,
   isHovered = false,
@@ -79,6 +81,10 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
   isDark = true,
 }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
+  const homePos: [number, number, number] = useMemo(
+    () => homeWorldPosition ?? [position[0], position[1], position[2]],
+    [homeWorldPosition, position]
+  )
   const profileColor = useMemo(
     () => getProfileJacketColor(agent.id || agent.definition.role || zone, isDark, 0),
     [agent.id, agent.definition.role, zone, isDark]
@@ -159,29 +165,29 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
     const MEETING_SPOT_Z = -2.5
 
     const relPantry: [number, number, number] = [
-      22.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
+      22.5 + ((agentSeed % 3) - 1) * 1.1 - homePos[0],
       0,
-      -4.5 + ((agentSeed % 2) * 0.8) - position[2],
+      -4.5 + ((agentSeed % 2) * 0.8) - homePos[2],
     ]
     const relSleep: [number, number, number] = [
-      22.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
+      22.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - homePos[0],
       0.36,
-      4.5 - position[2],
+      4.5 - homePos[2],
     ]
     const relMeeting: [number, number, number] = [
-      MEETING_SPOT_X + ((agentSeed % 2) - 0.5) * 1.2 - position[0],
+      MEETING_SPOT_X + ((agentSeed % 2) - 0.5) * 1.2 - homePos[0],
       0,
-      MEETING_SPOT_Z + (((agentSeed >> 1) % 2) - 0.5) * 1.2 - position[2],
+      MEETING_SPOT_Z + (((agentSeed >> 1) % 2) - 0.5) * 1.2 - homePos[2],
     ]
 
-    const wp1: [number, number, number] = [0, 0, 1.5 - position[2]]
-    const wp2: [number, number, number] = [22.5 - position[0], 0, 1.5 - position[2]]
+    const wp1: [number, number, number] = [0 - homePos[0], 0, 1.5 - homePos[2]]
+    const wp2: [number, number, number] = [22.5 - homePos[0], 0, 1.5 - homePos[2]]
 
     const setClampedTarget = (relX: number, relY: number, relZ: number) => {
-      const absX = position[0] + relX
-      const absZ = position[2] + relZ
+      const absX = homePos[0] + relX
+      const absZ = homePos[2] + relZ
       const [safeAbsX, safeAbsZ] = clampToFloorBounds(absX, absZ)
-      targetPos.current.set(safeAbsX - position[0], relY, safeAbsZ - position[2])
+      targetPos.current.set(safeAbsX - homePos[0], relY, safeAbsZ - homePos[2])
     }
 
     let isSleepingAtPod = false

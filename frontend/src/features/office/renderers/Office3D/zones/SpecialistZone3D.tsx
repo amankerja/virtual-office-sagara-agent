@@ -130,6 +130,7 @@ export const SpecialistZone3D: React.FC<SpecialistZone3DProps> = ({
               agent={desk.agent}
               zone={desk.zone}
               position={[0, 0, 0.75]}
+              homeWorldPosition={[originPosition[0] + posX, 0, originPosition[2] + posZ + 0.75]}
               isSelected={isSelected}
               isHovered={isHovered}
               onSelect={onSelectAgent}
