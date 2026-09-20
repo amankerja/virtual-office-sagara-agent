@@ -55,7 +55,10 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
   isDark = true,
 }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
-  const profileColor = useMemo(() => getProfileJacketColor(zone, isDark, 0), [zone, isDark])
+  const profileColor = useMemo(
+    () => getProfileJacketColor(agent.id || agent.definition.role || zone, isDark, 0),
+    [agent.id, agent.definition.role, zone, isDark]
+  )
   const accent = profileColor
   const state: AgentStatus = agent.runtime.state
 

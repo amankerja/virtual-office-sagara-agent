@@ -17,22 +17,22 @@ export interface DeskStatusAccent {
 
 const DESK_STATUS_DARK: Record<AgentStatus, DeskStatusAccent> = {
   ACTIVE: {
-    color: '#10b981', // Emerald green
-    emissive: '#059669',
-    glow: 'rgba(16, 185, 129, 0.45)',
-    label: 'ACTIVE',
+    color: '#f97316', // Orange 500 (Bekerja = Orange)
+    emissive: '#ea580c',
+    glow: 'rgba(249, 115, 22, 0.45)',
+    label: 'BEKERJA (ACTIVE)',
   },
   RECENTLY_ACTIVE: {
-    color: '#10b981',
+    color: '#10b981', // Emerald green (Free / Ready = Hijau)
     emissive: '#059669',
     glow: 'rgba(16, 185, 129, 0.35)',
-    label: 'RECENT',
+    label: 'BEBAS (FREE)',
   },
   IDLE: {
-    color: '#64748b', // Slate 500
+    color: '#64748b', // Slate 500 (Idle = Abu-abu)
     emissive: '#334155',
     glow: 'rgba(100, 116, 139, 0.25)',
-    label: 'IDLE',
+    label: 'IDLE (ABU-ABU)',
   },
   AWAITING_APPROVAL: {
     color: '#f59e0b', // Amber 500
@@ -53,7 +53,7 @@ const DESK_STATUS_DARK: Record<AgentStatus, DeskStatusAccent> = {
     label: 'ERROR',
   },
   OFFLINE: {
-    color: '#334155', // Slate 700
+    color: '#334155', // Slate 700 (Offline = Dark Abu-abu)
     emissive: '#1e293b',
     glow: 'rgba(51, 65, 85, 0.20)',
     label: 'OFFLINE',
@@ -74,22 +74,22 @@ const DESK_STATUS_DARK: Record<AgentStatus, DeskStatusAccent> = {
 
 const DESK_STATUS_LIGHT: Record<AgentStatus, DeskStatusAccent> = {
   ACTIVE: {
-    color: '#16a34a', // Green 600
-    emissive: '#15803d',
-    glow: 'rgba(22, 163, 74, 0.35)',
-    label: 'ACTIVE',
+    color: '#ea580c', // Orange 600 (Bekerja = Orange)
+    emissive: '#c2410c',
+    glow: 'rgba(234, 88, 12, 0.35)',
+    label: 'BEKERJA (ACTIVE)',
   },
   RECENTLY_ACTIVE: {
-    color: '#16a34a',
+    color: '#16a34a', // Green 600 (Free / Ready = Hijau)
     emissive: '#15803d',
     glow: 'rgba(22, 163, 74, 0.25)',
-    label: 'RECENT',
+    label: 'BEBAS (FREE)',
   },
   IDLE: {
-    color: '#94a3b8', // Slate 400
+    color: '#94a3b8', // Slate 400 (Idle = Abu-abu)
     emissive: '#64748b',
     glow: 'rgba(148, 163, 184, 0.20)',
-    label: 'IDLE',
+    label: 'IDLE (ABU-ABU)',
   },
   AWAITING_APPROVAL: {
     color: '#d97706', // Amber 600
@@ -160,13 +160,37 @@ const PROFILE_JACKET_SHADES_LIGHT: Record<OfficeZoneType, [string, string, strin
   SPECIALIST: ['#7c3aed', '#8b5cf6', '#6d28d9'],
 }
 
+const PROFILE_EXPLICIT_COLORS: Record<string, string> = {
+  // Keyed by profile ID or role keyword
+  'sagara-lead': '#2563eb',    // Royal Sapphire Blue
+  'lead': '#2563eb',
+  'it-coding': '#06b6d4',      // Electric Cyan
+  'coding': '#06b6d4',
+  'it-support': '#7c3aed',     // Deep Purple / Violet
+  'support': '#7c3aed',
+  'cs': '#059669',             // Emerald Green
+  'customer': '#059669',
+  'marketing': '#ec4899',      // Vibrant Pink / Magenta
+  'business': '#d97706',       // Amber / Gold
+  'risk-manager': '#dc2626',   // Crimson Red
+  'risk': '#dc2626',
+  'career': '#ea580c',         // Terracotta Orange
+  'personal': '#4f46e5',       // Indigo
+}
+
 export function getProfileJacketColor(
-  zone: OfficeZoneType = 'SPECIALIST',
+  zoneOrRole: string = 'SPECIALIST',
   isDark: boolean = true,
   variantIndex: number = 0
 ): string {
+  const key = zoneOrRole.toLowerCase()
+  for (const [pKey, color] of Object.entries(PROFILE_EXPLICIT_COLORS)) {
+    if (key.includes(pKey)) return color
+  }
+
   const table = isDark ? PROFILE_JACKET_SHADES_DARK : PROFILE_JACKET_SHADES_LIGHT
-  const shades = table[zone] || table.SPECIALIST
+  const zoneKey = (zoneOrRole in table ? zoneOrRole : 'SPECIALIST') as OfficeZoneType
+  const shades = table[zoneKey] || table.SPECIALIST
   const idx = Math.abs(variantIndex) % shades.length
   return shades[idx]
 }
