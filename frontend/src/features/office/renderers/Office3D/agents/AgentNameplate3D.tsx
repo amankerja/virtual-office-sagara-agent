@@ -51,22 +51,22 @@ export const AgentNameplate3D: React.FC<AgentNameplate3DProps> = ({
   name,
   role,
   state,
-  position = [0, 2.10, 0],
+  position = [0, 2.25, 0],
   isSelected = false,
   isHovered = false,
 }) => {
   const statusColor  = STATE_COLOR[state] ?? '#64748b'
   const statusLabel  = STATE_LABEL[state] ?? state
 
-  // Truncate long names
-  const displayName = name.length > 16 ? `${name.slice(0, 14)}…` : name
-  const displayRole = role ? (role.length > 22 ? `${role.slice(0, 20)}…` : role) : ''
+  // Truncate long names cleanly
+  const displayName = name.length > 15 ? `${name.slice(0, 13)}…` : name
+  const displayRole = role ? (role.length > 20 ? `${role.slice(0, 18)}…` : role) : ''
 
   const showRole = isSelected || isHovered
 
-  // Panel size varies if role is shown
-  const panelH  = showRole ? 0.62 : 0.50
-  const panelW  = 1.80
+  // Sleeker pill panel proportions
+  const panelH  = showRole ? 0.52 : 0.38
+  const panelW  = 1.48
 
   // Border color
   const borderColor = isSelected ? '#2563eb' : isHovered ? '#38bdf8' : '#1e3a5f'

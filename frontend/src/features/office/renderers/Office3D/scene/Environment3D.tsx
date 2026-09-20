@@ -158,6 +158,38 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
         <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6}  />
       </RoundedBox>
 
+      {/* Pantry Room glass partition */}
+      <mesh position={[-4.2, 0.75, 9.2]}>
+        <SharedGeometry kind="box" args={[0.07, 1.5, 6.2]} />
+        <SharedMaterial kind="physical" color={p.officeGlass}
+          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
+          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
+          transparent
+          roughness={0.14}
+          metalness={0.1}
+          thickness={0.07}
+         />
+      </mesh>
+      <RoundedBox position={[-4.2, 1.52, 9.2]} args={[0.12, 0.06, 6.2]} radius={0.02} smoothness={2} bevelSegments={2}>
+        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
+      </RoundedBox>
+
+      {/* Rest Pods / Bedroom glass partition */}
+      <mesh position={[4.2, 0.75, 9.2]}>
+        <SharedGeometry kind="box" args={[0.07, 1.5, 6.2]} />
+        <SharedMaterial kind="physical" color={p.officeGlass}
+          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
+          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
+          transparent
+          roughness={0.14}
+          metalness={0.1}
+          thickness={0.07}
+         />
+      </mesh>
+      <RoundedBox position={[4.2, 1.52, 9.2]} args={[0.12, 0.06, 6.2]} radius={0.02} smoothness={2} bevelSegments={2}>
+        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
+      </RoundedBox>
+
       {/* Artifact Vault rear glass wall */}
       <mesh position={[0, 0.75, -9.2]}>
         <SharedGeometry kind="box" args={[5.5, 1.5, 0.07]} />
