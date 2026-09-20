@@ -156,7 +156,7 @@ export const OfficeControls: React.FC<OfficeControlsProps> = ({
                 <span>Quality: {quality.toUpperCase()}</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
+            <DropdownMenuContent align="start" className="w-60 bg-surface-raised dark:bg-slate-900 border-border text-text-primary opacity-100 shadow-2xl">
               <DropdownMenuLabel className="text-xs font-mono-tech uppercase">
                 Graphics Quality Preset
               </DropdownMenuLabel>
