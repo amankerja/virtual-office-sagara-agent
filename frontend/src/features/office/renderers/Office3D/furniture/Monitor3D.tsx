@@ -14,12 +14,14 @@ import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
  */
 import React, { useMemo } from 'react'
 import type { AgentStatus } from '@/types/agent'
+import type { OfficeBehaviorState } from '@/features/office/animation/behavior'
 import { getOfficePalette } from '../systems/OfficePalette'
 
 interface Monitor3DProps {
   position: [number, number, number]
   rotationY?: number
   state?: AgentStatus
+  behavior?: OfficeBehaviorState
   variant?: 'standard' | 'command' | 'career' | 'marketing'
   isDark?: boolean
 }
@@ -107,13 +109,31 @@ export const Monitor3D: React.FC<Monitor3DProps> = ({
   position,
   rotationY = 0,
   state = 'IDLE',
+  behavior,
   variant = 'standard',
   isDark = true,
 }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
 
-  // State-driven screen color
+  // State- or behavior-driven screen color
   const { screenColor, emissive, emissiveIntensity } = useMemo(() => {
+    if (behavior) {
+      if (behavior.startsWith('WORK_') || behavior === 'THINKING' || behavior === 'CONFIGURING') {
+        return { screenColor: p.officeScreenActive, emissive: p.officeAccentCyan, emissiveIntensity: 0.75 }
+      }
+      if (behavior === 'WAITING_APPROVAL') {
+        return { screenColor: p.officeScreenApproval, emissive: p.officeAccentAmber, emissiveIntensity: 0.60 }
+      }
+      if (behavior === 'TROUBLESHOOTING' || behavior === 'ERROR_REVIEW') {
+        return { screenColor: p.officeScreenError, emissive: p.officeAccentRed, emissiveIntensity: 0.65 }
+      }
+      if (behavior === 'OFFLINE_AWAY') {
+        return { screenColor: OFFICE_DETAIL_COLORS.screenOff, emissive: OFFICE_DETAIL_COLORS.black, emissiveIntensity: 0 }
+      }
+      // IDLE / BREAK -> dimmed screensaver
+      return { screenColor: p.officeScreenIdle, emissive: p.officeAccentCyan, emissiveIntensity: 0.18 }
+    }
+
     switch (state) {
       case 'ACTIVE':
         return { screenColor: p.officeScreenActive, emissive: p.officeAccentCyan, emissiveIntensity: 0.65 }
@@ -127,7 +147,7 @@ export const Monitor3D: React.FC<Monitor3DProps> = ({
       default:
         return { screenColor: p.officeScreenIdle, emissive: p.officeAccentCyan, emissiveIntensity: 0.18 }
     }
-  }, [state, p])
+  }, [behavior, state, p])
 
   const isCommand   = variant === 'command'
   const isMarketing = variant === 'marketing'

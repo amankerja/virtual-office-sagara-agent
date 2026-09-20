@@ -3,13 +3,22 @@ import { useFrame } from '@react-three/fiber'
 import * as THREE from 'three'
 import { Html, RoundedBox } from '@react-three/drei'
 import type { AgentProjection, AgentStatus } from '@/types/agent'
+import type { TaskProjection } from '@/types/task'
+import type { DelegationProjection } from '@/types/runtime'
+import type { ApprovalProjection } from '@/types/approval'
 import type { OfficeZoneType } from '@/features/office/types/office'
+import { resolveOfficeBehavior, type OfficeBehaviorState } from '@/features/office/animation/behavior'
 import { AgentNameplate3D } from './AgentNameplate3D'
 import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
 import { getProfileJacketColor } from '@/features/office/systems/OfficeStatusColors'
 
 interface AgentModel3DProps {
   agent: AgentProjection
+  task?: TaskProjection
+  delegations?: DelegationProjection[]
+  approvals?: ApprovalProjection[]
+  collaborating?: boolean
+  elapsedSeconds?: number
   zone?: OfficeZoneType
   position: [number, number, number]
   rotationY?: number
@@ -29,6 +38,11 @@ const JOINT_GEO   = new THREE.SphereGeometry(0.065, 12, 12)
 
 export const AgentModel3D: React.FC<AgentModel3DProps> = ({
   agent,
+  task,
+  delegations,
+  approvals,
+  collaborating = false,
+  elapsedSeconds,
   zone = 'SPECIALIST',
   position,
   rotationY = 0,
@@ -87,46 +101,73 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
     const t = clock.getElapsedTime()
     if (!outerGroupRef.current) return
 
-    // ── 1. Hover & Selection Scale Damping ──
+    // ── 1. Resolve Dynamic Behavior State ──
+    const sec = elapsedSeconds ?? t
+    const behavior: OfficeBehaviorState = resolveOfficeBehavior({
+      agent,
+      task,
+      delegations,
+      approvals,
+      collaborating,
+      elapsedSeconds: sec,
+    })
+
+    // ── 2. Hover & Selection Scale Damping ──
     const desiredScale = isSelected ? 1.06 : isHovered ? 1.04 : 1.0
     scaleMultiplier.current = THREE.MathUtils.damp(scaleMultiplier.current, desiredScale, 12, delta)
     if (innerScaleRef.current) {
       innerScaleRef.current.scale.set(bodyScaleW * scaleMultiplier.current, bodyScaleH * scaleMultiplier.current, bodyScaleW * scaleMultiplier.current)
     }
 
-    // ── 2. Visor Pulse Micro-Motion ──
-    if (visorMatRef.current && !isOffline) {
-      const pulse = 0.55 + Math.sin(t * 3.5 + agentSeed) * 0.20
-      visorMatRef.current.emissiveIntensity = pulse
-    }
-
     // ── 3. Waypoint Navigation & Damped Movement ──
-    if (state === 'ACTIVE') {
+    const isWorkAtDesk =
+      behavior.startsWith('WORK_') && behavior !== 'WORK_COLLABORATING' ||
+      behavior === 'THINKING' ||
+      behavior === 'CONFIGURING' ||
+      behavior === 'WAITING_APPROVAL' ||
+      behavior === 'TROUBLESHOOTING' ||
+      behavior === 'ERROR_REVIEW'
+
+    const relPantry: [number, number, number] = [
+      22.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
+      0,
+      -4.5 + ((agentSeed % 2) * 0.8) - position[2],
+    ]
+    const relSleep: [number, number, number] = [
+      22.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
+      0.36,
+      4.5 - position[2],
+    ]
+    const relMeeting: [number, number, number] = [
+      15.0 + ((agentSeed % 2) - 0.5) * 1.5 - position[0],
+      0,
+      1.5 + (((agentSeed >> 1) % 2) - 0.5) * 1.5 - position[2],
+    ]
+
+    const wp1: [number, number, number] = [0, 0, 1.5 - position[2]]
+    const wp2: [number, number, number] = [22.5 - position[0], 0, 1.5 - position[2]]
+
+    let isSleepingAtPod = false
+
+    if (isWorkAtDesk) {
+      // Immediate return / wake up to desk when task / work is active
       targetPos.current.set(0, 0, 0)
       targetYaw.current = 0
-    } else if (state === 'IDLE' || state === 'RECENTLY_ACTIVE') {
-      const cycleT = (t + (agentSeed % 90)) % 90
-      const relPantry: [number, number, number] = [
-        22.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
-        0,
-        -4.5 + ((agentSeed % 2) * 0.8) - position[2],
-      ]
-      const relSleep: [number, number, number] = [
-        22.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
-        0.36,
-        4.5 - position[2],
-      ]
+    } else if (behavior === 'WORK_COLLABORATING') {
+      // Gather at Shared Meeting Lounge / Connector Portal & face partner
+      targetPos.current.set(relMeeting[0], 0, relMeeting[2])
+      targetYaw.current = Math.PI / 4
+    } else {
+      // Free / Idle time cycle (Pantry -> Rest Pod Bed -> Desk)
+      const cycleT = (t + (agentSeed % 120)) % 120
 
-      const wp1: [number, number, number] = [0, 0, 1.5 - position[2]]
-      const wp2: [number, number, number] = [22.5 - position[0], 0, 1.5 - position[2]]
-
-      if (cycleT < 30) {
+      if (cycleT < 45) {
         // Seated at Desk
         targetPos.current.set(0, 0, 0)
         targetYaw.current = 0
-      } else if (cycleT >= 30 && cycleT < 38) {
+      } else if (cycleT >= 45 && cycleT < 55) {
         // Walking to Pantry
-        const p = (cycleT - 30) / 8
+        const p = (cycleT - 45) / 10
         const easeP = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
         let x = 0, z = 0, dx = 0, dz = 0
         if (easeP < 0.25) {
@@ -141,25 +182,26 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         }
         targetPos.current.set(x, 0, z)
         targetYaw.current = Math.atan2(dx, dz)
-      } else if (cycleT >= 38 && cycleT < 58) {
+      } else if (cycleT >= 55 && cycleT < 75) {
         // Standing at Pantry
         targetPos.current.set(relPantry[0], 0, relPantry[2])
         targetYaw.current = Math.PI / 4
-      } else if (cycleT >= 58 && cycleT < 66) {
+      } else if (cycleT >= 75 && cycleT < 85) {
         // Walking to Rest Pod
-        const p = (cycleT - 58) / 8
+        const p = (cycleT - 75) / 10
         const easeP = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
         const x = relPantry[0] + (relSleep[0] - relPantry[0]) * easeP
         const z = relPantry[2] + (relSleep[2] - relPantry[2]) * easeP
         targetPos.current.set(x, 0, z)
         targetYaw.current = Math.atan2(relSleep[0] - relPantry[0], relSleep[2] - relPantry[2])
-      } else if (cycleT >= 66 && cycleT < 84) {
-        // Seated at Rest Pod Bed
+      } else if (cycleT >= 85 && cycleT < 110) {
+        // Truly Free -> Reclined Sleeping at Rest Pod Bed
         targetPos.current.set(relSleep[0], 0.36, relSleep[2])
         targetYaw.current = Math.PI / 2
+        isSleepingAtPod = true
       } else {
         // Walking back to Desk
-        const p = (cycleT - 84) / 6
+        const p = (cycleT - 110) / 10
         const easeP = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
         let x = 0, z = 0, dx = 0, dz = 0
         if (easeP < 0.30) {
@@ -175,9 +217,17 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         targetPos.current.set(x, 0, z)
         targetYaw.current = Math.atan2(dx, dz)
       }
-    } else if (state === 'AWAITING_APPROVAL') {
-      targetPos.current.set(0, 0, 0)
-      targetYaw.current = 0
+    }
+
+    // ── 4. Visor Emissive intensity (Dimmed 0.05 when sleeping) ──
+    if (visorMatRef.current) {
+      if (isOffline) {
+        visorMatRef.current.emissiveIntensity = 0
+      } else if (isSleepingAtPod) {
+        visorMatRef.current.emissiveIntensity = 0.05
+      } else {
+        visorMatRef.current.emissiveIntensity = 0.55 + Math.sin(t * 3.5 + agentSeed) * 0.20
+      }
     }
 
     // Smooth frame-rate independent position & rotation damp
@@ -202,11 +252,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
     distanceWalked.current += moveSpeed * delta * 7.5
 
     // Set outer group damped position
-    const stepBob = Math.abs(Math.sin(distanceWalked.current * 2)) * 0.035 * Math.min(1.0, moveSpeed * 0.8)
+    const stepBob = isSleepingAtPod ? 0 : Math.abs(Math.sin(distanceWalked.current * 2)) * 0.035 * Math.min(1.0, moveSpeed * 0.8)
     outerGroupRef.current.position.set(currPos.current.x, currPos.current.y + stepBob, currPos.current.z)
     outerGroupRef.current.rotation.set(0, currYaw.current, 0)
 
-    // ── 4. Dynamic Limb & Gait Animations ──
+    // ── 5. Distinct Limb & Posture Animations by Behavior State ──
     if (moveSpeed > 0.12) {
       // Walking gait synced with ground movement
       const stride = Math.sin(distanceWalked.current) * Math.min(0.55, moveSpeed * 0.40)
@@ -214,34 +264,100 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
       if (rightLegRef.current) rightLegRef.current.rotation.x = -stride
       if (leftArmRef.current) leftArmRef.current.rotation.x = -stride * 0.8
       if (rightArmRef.current) rightArmRef.current.rotation.x = stride * 0.8
-      if (headRef.current) headRef.current.rotation.y = Math.sin(distanceWalked.current) * 0.06
-    } else if (state === 'ACTIVE') {
-      // Typing posture
+      if (headRef.current) headRef.current.rotation.set(0, Math.sin(distanceWalked.current) * 0.06, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0, 0, 0)
+    } else if (isSleepingAtPod) {
+      // Reclined Sleeping pose in Rest Pod bed
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.05
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.05
+      if (leftArmRef.current) leftArmRef.current.rotation.x = 0
+      if (rightArmRef.current) rightArmRef.current.rotation.x = 0
+      if (headRef.current) headRef.current.rotation.set(0, 0, 0)
+      if (torsoRef.current) {
+        torsoRef.current.rotation.set(-0.45, 0, 0)
+        torsoRef.current.scale.y = 1 + Math.sin(t * 0.8) * 0.04
+      }
+    } else if (behavior === 'WORK_TYPING') {
       if (leftArmRef.current) leftArmRef.current.rotation.x = -0.42 + Math.sin(t * 14) * 0.18
       if (rightArmRef.current) rightArmRef.current.rotation.x = -0.45 + Math.cos(t * 12) * 0.16
-      if (headRef.current) {
-        headRef.current.rotation.y = Math.sin(t * 1.6) * 0.15
-        headRef.current.rotation.x = 0.08 + Math.sin(t * 3.5) * 0.035
-      }
+      if (headRef.current) headRef.current.rotation.set(0.08 + Math.sin(t * 3.5) * 0.035, Math.sin(t * 1.6) * 0.15, 0)
       if (torsoRef.current) {
-        torsoRef.current.rotation.x = 0.05 + Math.sin(t * 2.2) * 0.015
+        torsoRef.current.rotation.set(0.05 + Math.sin(t * 2.2) * 0.015, 0, 0)
         torsoRef.current.scale.y = 1 + Math.sin(t * 2.0) * 0.01
       }
       if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
       if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
-    } else if (state === 'AWAITING_APPROVAL') {
+    } else if (behavior === 'WORK_MOUSE') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.38
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = -0.35 + Math.sin(t * 2) * 0.05
+        rightArmRef.current.rotation.z = Math.sin(t * 3) * 0.08
+      }
+      if (headRef.current) headRef.current.rotation.set(0.05, Math.sin(t * 1.2) * 0.10, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0.02, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'WORK_READING') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.28
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.28
+      if (headRef.current) headRef.current.rotation.set(0.22 + Math.sin(t * 0.6) * 0.02, 0, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0.04, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'WORK_MONITORING') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.30
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.30
+      if (headRef.current) headRef.current.rotation.set(0.06, Math.sin(t * 1.4) * 0.35, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'WORK_SUPERVISING') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.20
+      if (rightArmRef.current) rightArmRef.current.rotation.set(-0.65 + Math.sin(t * 2.2) * 0.18, 0.25, 0)
+      if (headRef.current) headRef.current.rotation.set(0, Math.sin(t * 1.5) * 0.20, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'WORK_COLLABORATING') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.15
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.30 + Math.sin(t * 2.8) * 0.14
+      if (headRef.current) headRef.current.rotation.set(0.06 + Math.sin(t * 3.5) * 0.09, Math.sin(t * 1.8) * 0.15, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0
+    } else if (behavior === 'THINKING') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.20
+      if (rightArmRef.current) rightArmRef.current.rotation.set(-1.15 + Math.sin(t * 0.8) * 0.04, 0, 0.35)
+      if (headRef.current) headRef.current.rotation.set(-0.05, 0, 0.14)
+      if (torsoRef.current) torsoRef.current.rotation.set(0, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'TROUBLESHOOTING' || behavior === 'ERROR_REVIEW') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.80
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.80
+      if (headRef.current) headRef.current.rotation.set(0.18 + Math.sin(t * 4) * 0.04, 0, 0)
+      if (torsoRef.current) torsoRef.current.rotation.set(0.14, 0, 0)
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+    } else if (behavior === 'WAITING_APPROVAL') {
       if (leftArmRef.current) leftArmRef.current.rotation.x = -0.15
       if (rightArmRef.current) rightArmRef.current.rotation.x = -0.15
-      if (headRef.current) {
-        headRef.current.rotation.y = Math.sin(t * 1.2) * 0.12
-        headRef.current.rotation.x = -0.08 + Math.sin(t * 0.8) * 0.02
-      }
+      if (headRef.current) headRef.current.rotation.set(-0.08 + Math.sin(t * 0.8) * 0.02, Math.sin(t * 1.2) * 0.12, 0)
       if (beaconRef.current) {
         const pulse = 1 + Math.sin(t * 2.5) * 0.15
         beaconRef.current.scale.set(pulse, pulse, pulse)
       }
+    } else if (behavior === 'IDLE_LOOK_AROUND') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.18
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.18
+      if (headRef.current) headRef.current.rotation.set(Math.sin(t * 1.2) * 0.08, Math.sin(t * 0.8) * 0.45, 0)
+      if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 1.4) * 0.012
+    } else if (behavior === 'BREAK_STRETCH') {
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -1.4 + Math.sin(t * 2) * 0.10
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -1.4 + Math.sin(t * 2) * 0.10
+      if (headRef.current) headRef.current.rotation.set(-0.15, 0, 0)
     } else {
-      // Seated / Standing Rest
+      // Default Seated / Standing Rest
       if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
       if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
       if (leftArmRef.current) leftArmRef.current.rotation.x = -0.18
