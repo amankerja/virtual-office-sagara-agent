@@ -62,6 +62,33 @@ class SagaraHermesGovernanceRepository:
                     "total_tokens": p_in + p_out,
                 }
 
+            # Query real daily trend for last 7 days
+            cur.execute("""
+                SELECT 
+                    DATE(started_at, 'unixepoch') AS day,
+                    SUM(input_tokens) AS input_t,
+                    SUM(output_tokens) AS output_t,
+                    COUNT(*) AS sess_count
+                FROM sessions
+                WHERE started_at IS NOT NULL
+                GROUP BY day
+                ORDER BY day ASC
+                LIMIT 7;
+            """)
+            trend_rows = cur.fetchall()
+            daily_trend = []
+            for tr in trend_rows:
+                d_in = int(tr["input_t"] or 0)
+                d_out = int(tr["output_t"] or 0)
+                daily_trend.append({
+                    "date": tr["day"],
+                    "input_tokens": d_in,
+                    "output_tokens": d_out,
+                    "total_tokens": d_in + d_out,
+                    "sessions": tr["sess_count"],
+                    "estimated_cost_usd": round((d_in * 0.000003) + (d_out * 0.000015), 4),
+                })
+
             conn.close()
 
             return GovernanceSnapshotDto(
@@ -76,6 +103,7 @@ class SagaraHermesGovernanceRepository:
                         actual_cost_usd=act_cost,
                     ),
                     breakdown=breakdown,
+                    daily_trend=daily_trend,
                 ),
                 budget=GovernanceBudgetDto(
                     monthly_limit_usd=150.0,

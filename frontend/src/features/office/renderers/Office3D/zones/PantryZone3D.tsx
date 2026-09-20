@@ -1,4 +1,6 @@
-import React, { useMemo } from 'react'
+import React, { useMemo, useRef } from 'react'
+import { useFrame } from '@react-three/fiber'
+import type { Mesh } from 'three'
 import { Text, RoundedBox } from '@react-three/drei'
 import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
 import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
@@ -14,6 +16,18 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
   isDark = true,
 }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
+  const steamRef = useRef<Mesh>(null)
+
+  useFrame(({ clock }) => {
+    if (steamRef.current) {
+      const t = clock.getElapsedTime()
+      const progress = (t % 1.5) / 1.5
+      steamRef.current.position.y = 1.18 + progress * 0.2
+      steamRef.current.scale.setScalar(0.6 + progress * 0.5)
+      const mat = steamRef.current.material as any
+      if (mat) mat.opacity = Math.max(0, 0.6 * (1 - progress))
+    }
+  })
 
   const floorColor = isDark ? '#1e293b' : '#e2e8f0'
   const counterColor = p.officeDeskTop
@@ -49,7 +63,7 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
       </RoundedBox>
 
       {/* Espresso Steam / LED Indicator */}
-      <mesh position={[-3.0, 1.18, -1.8]}>
+      <mesh ref={steamRef} position={[-3.0, 1.18, -1.8]}>
         <SharedGeometry kind="cylinder" args={[0.04, 0.04, 0.06, 12]} />
         <SharedMaterial
           kind="basic"

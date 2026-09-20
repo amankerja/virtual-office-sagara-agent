@@ -36,7 +36,7 @@ async def test_hybrid_agent_projection_unknown_runtime():
 
     # Lead agent (has real definition, but no matching runtime in MockRuntimeAdapter)
     lead_agent = by_id["lead"]
-    assert lead_agent.definition.name == "Lead Coordinator"
+    assert lead_agent.definition.name == "Sagara Lead Orchestrator"
     assert lead_agent.definition.role == "Operations Lead"
     assert lead_agent.runtime.state == "UNKNOWN"
     assert lead_agent.runtime.confidence == "UNKNOWN"

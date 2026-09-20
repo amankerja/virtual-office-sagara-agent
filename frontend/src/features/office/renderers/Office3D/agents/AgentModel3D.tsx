@@ -11,6 +11,7 @@ import { resolveOfficeBehavior, type OfficeBehaviorState } from '@/features/offi
 import { AgentNameplate3D } from './AgentNameplate3D'
 import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
 import { getProfileJacketColor } from '@/features/office/systems/OfficeStatusColors'
+import { officeAudio } from '../audio/OfficeAudioEngine'
 
 interface AgentModel3DProps {
   agent: AgentProjection
@@ -432,9 +433,16 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
     <group
       position={position}
       rotation={[0, rotationY, 0]}
-      onClick={(e) => { e.stopPropagation(); onSelect(agent.id) }}
+      onClick={(e) => {
+        e.stopPropagation()
+        officeAudio.init()
+        officeAudio.playTypingClick(0.25)
+        onSelect(agent.id)
+      }}
       onPointerOver={(e) => {
         e.stopPropagation()
+        officeAudio.init()
+        officeAudio.playTypingClick(0.12)
         onHover?.(agent.id)
         if (typeof document !== 'undefined') document.body.style.cursor = 'pointer'
       }}

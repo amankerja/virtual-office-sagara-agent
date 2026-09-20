@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from typing import Optional
+from app.adapters.telegram_notify import dispatch_telegram_approval_alert
 from app.api.errors import ResourceNotFoundError
 from app.repositories.protocols import ActivityRepository, ApprovalRepository, AuditRepository
 from app.schemas.activity import ActivityDto
@@ -76,6 +77,14 @@ class ApprovalService:
                 correlation_id=correlation_id,
                 related=RelatedEntities(approval_id=approval.id, task_id=approval.task_id, agent_id=approval.agent_id),
             )
+        )
+
+        await dispatch_telegram_approval_alert(
+            approval_id=approval.id,
+            title=approval.title,
+            action_type=approval.action_type,
+            risk_level=approval.risk,
+            status=approval.state,
         )
 
         return approval

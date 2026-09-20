@@ -49,9 +49,8 @@ async def test_sagara_profile_catalog_adapter():
     # Complete enabled profile
     lead = by_id["lead"]
     assert lead.enabled is True
-    assert lead.role == "Operations Lead"
-    assert lead.allowed_skills == ["skill-hermes-agent", "skill-systematic-debugging"]
-    assert lead.memory_namespace == "mem-lead"
+    assert lead.role == "Lead Autonomous Coordinator"
+    assert lead.memory_namespace == "profile:lead"
 
     # Profile without optional role
     personal = by_id["personal"]
