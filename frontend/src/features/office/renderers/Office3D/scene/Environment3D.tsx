@@ -31,72 +31,49 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
   return (
     <group>
-      {/* ══ 1. Main Office Foundation Slab ══ */}
-      <mesh position={[0, -0.25, 0]} receiveShadow>
-        <SharedGeometry kind="box" args={[31, 0.5, 23]} />
-        <SharedMaterial color={p.officeSlab}
-          roughness={0.8}
-          metalness={0.0}
-         />
-      </mesh>
-
-      {/* Main Office Perimeter bevel trim strip */}
-      <mesh position={[0, -0.03, 0]}>
-        <SharedGeometry kind="box" args={[31.1, 0.04, 23.1]} />
-        <SharedMaterial color={p.officeEdgeTrim}
-          roughness={0.3}
-          metalness={0.7}
-          emissive={p.officeEdgeTrim}
-          emissiveIntensity={isDark ? 0.15 : 0.05}
-         />
-      </mesh>
-
-      {/* ══ 1B. SEPARATE ANNEX BUILDING SLAB (Pantry & Kamar Tidur Annex) ══ */}
-      <mesh position={[22.5, -0.25, 3.0]} receiveShadow>
-        <SharedGeometry kind="box" args={[13.0, 0.5, 19.5]} />
+      {/* ══ 1. UNIFIED SEAMLESS BUILDING COMPLEX SLAB ══ */}
+      {/* Unified Foundation Base Slab (Main Office + Skyway Connector + Annex Building) */}
+      <mesh position={[6.5, -0.25, 0.5]} receiveShadow>
+        <SharedGeometry kind="box" args={[44, 0.5, 24]} />
         <SharedMaterial color={p.officeSlab} roughness={0.8} metalness={0.0} />
       </mesh>
-      <mesh position={[22.5, -0.03, 3.0]}>
-        <SharedGeometry kind="box" args={[13.1, 0.04, 19.6]} />
-        <SharedMaterial color={p.officeEdgeTrim} roughness={0.3} metalness={0.7} emissive={p.officeEdgeTrim} emissiveIntensity={isDark ? 0.2 : 0.08} />
+
+      {/* Perimeter Bevel Edge Trim */}
+      <mesh position={[6.5, -0.03, 0.5]}>
+        <SharedGeometry kind="box" args={[44.1, 0.04, 24.1]} />
+        <SharedMaterial color={p.officeEdgeTrim} roughness={0.3} metalness={0.7} emissive={p.officeEdgeTrim} emissiveIntensity={isDark ? 0.18 : 0.06} />
       </mesh>
-      {/* Annex Interior Floor Slab */}
-      <mesh position={[22.5, 0.008, 3.0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <SharedGeometry kind="plane" args={[12.5, 19.0]} />
+
+      {/* ══ 2. DISTINCT FLOORING ZONES (Lantai Bangunan Utama vs Annex) ══ */}
+      {/* 2A. Main Office Interior Floor */}
+      <mesh position={[0, 0.008, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <SharedGeometry kind="plane" args={[30.4, 22.4]} />
         <SharedMaterial color={p.officeFloor} roughness={0.75} metalness={0.02} />
       </mesh>
 
-      {/* ══ 1C. COVERED SKYWAY GLASS CORRIDOR BRIDGE ══ */}
-      {/* Bridge Floor */}
-      <mesh position={[15.65, 0.015, 3.0]} rotation={[-Math.PI / 2, 0, 0]}>
-        <SharedGeometry kind="plane" args={[2.5, 3.2]} />
-        <SharedMaterial color={p.officeFloorCorridor} roughness={0.6} />
+      {/* 2B. Recreation Annex Interior Floor (Pantry & Kamar Tidur) */}
+      <mesh position={[22.5, 0.009, 0.5]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <SharedGeometry kind="plane" args={[12.5, 19.5]} />
+        <SharedMaterial color={isDark ? '#0f172a' : '#e2e8f0'} roughness={0.85} metalness={0.05} />
       </mesh>
-      {/* Bridge Glass Wall North */}
-      <mesh position={[15.65, 1.25, 1.45]}>
-        <SharedGeometry kind="box" args={[2.5, 2.4, 0.06]} />
-        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.35} transparent roughness={0.1} />
+
+      {/* ══ 3. MAIN INDOOR HIGHWAY / HALLWAY AISLE (Jalan Utama Berbeda Warna) ══ */}
+      {/* Main East-West Highway Aisle Carpet (Runner from Main Office across Connector into Annex) */}
+      <mesh position={[6.5, 0.015, 3.0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <SharedGeometry kind="plane" args={[43.0, 3.2]} />
+        <SharedMaterial color={isDark ? '#1e1b4b' : '#dbeafe'} roughness={0.55} metalness={0.25} />
       </mesh>
-      {/* Bridge Glass Wall South */}
-      <mesh position={[15.65, 1.25, 4.55]}>
-        <SharedGeometry kind="box" args={[2.5, 2.4, 0.06]} />
-        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.35} transparent roughness={0.1} />
+
+      {/* Glowing LED Border Trim Strip North for Main Highway */}
+      <mesh position={[6.5, 0.018, 1.40]}>
+        <SharedGeometry kind="box" args={[43.0, 0.012, 0.06]} />
+        <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
-      {/* Bridge Roof Canopy */}
-      <mesh position={[15.65, 2.50, 3.0]}>
-        <SharedGeometry kind="box" args={[2.6, 0.08, 3.2]} />
-        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+      {/* Glowing LED Border Trim Strip South for Main Highway */}
+      <mesh position={[6.5, 0.018, 4.60]}>
+        <SharedGeometry kind="box" args={[43.0, 0.012, 0.06]} />
+        <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
-      {/* Entrance Arch Signage above Skyway Corridor */}
-      <group position={[15.65, 2.85, 3.0]}>
-        <mesh>
-          <SharedGeometry kind="box" args={[2.4, 0.26, 0.05]} />
-          <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
-        </mesh>
-        <Text position={[0, 0, 0.03]} fontSize={0.10} color={isDark ? OFFICE_DETAIL_COLORS.textLight : OFFICE_DETAIL_COLORS.textDark} anchorX="center" anchorY="middle" letterSpacing={0.12}>
-          PANTRY & REST ANNEX ➔
-        </Text>
-      </group>
 
       {/* ══ 2. Primary Interior Floor ══ */}
       <mesh geometry={FLOOR_GEOMETRY} receiveShadow dispose={null}>

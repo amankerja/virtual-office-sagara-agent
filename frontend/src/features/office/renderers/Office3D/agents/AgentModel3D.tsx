@@ -128,30 +128,31 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         7.5 - position[2],
       ]
 
-      const corridorDoor: [number, number, number] = [14.0 - position[0], 0, 1.5 - position[2]]
-      const annexDoor: [number, number, number]    = [17.8 - position[0], 0, 1.5 - position[2]]
+      // Obstacle-Free Waypoints (relative to agent desk)
+      const wp1: [number, number, number] = [0, 0, 3.0 - position[2]]                    // Step out into clear main highway (Z=3.0)
+      const wp2: [number, number, number] = [22.5 - position[0], 0, 3.0 - position[2]]     // Annex main highway junction (X=22.5, Z=3.0)
 
-      const getIndoorPath = (p: number, pathType: 'toPantry' | 'toSleep' | 'toDesk'): { pos: [number, number, number]; yaw: number } => {
+      const getObstacleAwarePath = (p: number, pathType: 'toPantry' | 'toSleep' | 'toDesk'): { pos: [number, number, number]; yaw: number } => {
         let x = 0, z = 0, dirX = 0, dirZ = 0
         if (pathType === 'toPantry') {
-          if (p < 0.4) {
-            const subP = p / 0.4
-            x = corridorDoor[0] * subP
-            z = corridorDoor[2] * subP
-            dirX = corridorDoor[0]
-            dirZ = corridorDoor[2]
-          } else if (p < 0.7) {
-            const subP = (p - 0.4) / 0.3
-            x = corridorDoor[0] + (annexDoor[0] - corridorDoor[0]) * subP
-            z = corridorDoor[2] + (annexDoor[2] - corridorDoor[2]) * subP
-            dirX = annexDoor[0] - corridorDoor[0]
-            dirZ = annexDoor[2] - corridorDoor[2]
+          if (p < 0.25) {
+            const subP = p / 0.25
+            x = wp1[0] * subP
+            z = wp1[2] * subP
+            dirX = wp1[0] || 0.001
+            dirZ = wp1[2]
+          } else if (p < 0.70) {
+            const subP = (p - 0.25) / 0.45
+            x = wp1[0] + (wp2[0] - wp1[0]) * subP
+            z = wp1[2] + (wp2[2] - wp1[2]) * subP
+            dirX = wp2[0] - wp1[0]
+            dirZ = wp2[2] - wp1[2]
           } else {
-            const subP = (p - 0.7) / 0.3
-            x = annexDoor[0] + (relPantry[0] - annexDoor[0]) * subP
-            z = annexDoor[2] + (relPantry[2] - annexDoor[2]) * subP
-            dirX = relPantry[0] - annexDoor[0]
-            dirZ = relPantry[2] - annexDoor[2]
+            const subP = (p - 0.70) / 0.30
+            x = wp2[0] + (relPantry[0] - wp2[0]) * subP
+            z = wp2[2] + (relPantry[2] - wp2[2]) * subP
+            dirX = relPantry[0] - wp2[0]
+            dirZ = relPantry[2] - wp2[2]
           }
         } else if (pathType === 'toSleep') {
           x = relPantry[0] + (relSleep[0] - relPantry[0]) * p
@@ -159,24 +160,24 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
           dirX = relSleep[0] - relPantry[0]
           dirZ = relSleep[2] - relPantry[2]
         } else {
-          if (p < 0.35) {
-            const subP = p / 0.35
-            x = relSleep[0] + (annexDoor[0] - relSleep[0]) * subP
-            z = relSleep[2] + (annexDoor[2] - relSleep[2]) * subP
-            dirX = annexDoor[0] - relSleep[0]
-            dirZ = annexDoor[2] - relSleep[2]
-          } else if (p < 0.65) {
-            const subP = (p - 0.35) / 0.3
-            x = annexDoor[0] + (corridorDoor[0] - annexDoor[0]) * subP
-            z = annexDoor[2] + (corridorDoor[2] - annexDoor[2]) * subP
-            dirX = corridorDoor[0] - annexDoor[0]
-            dirZ = corridorDoor[2] - annexDoor[2]
+          if (p < 0.30) {
+            const subP = p / 0.30
+            x = relSleep[0] + (wp2[0] - relSleep[0]) * subP
+            z = relSleep[2] + (wp2[2] - relSleep[2]) * subP
+            dirX = wp2[0] - relSleep[0]
+            dirZ = wp2[2] - relSleep[2]
+          } else if (p < 0.75) {
+            const subP = (p - 0.30) / 0.45
+            x = wp2[0] + (wp1[0] - wp2[0]) * subP
+            z = wp2[2] + (wp1[2] - wp2[2]) * subP
+            dirX = wp1[0] - wp2[0]
+            dirZ = wp1[2] - wp2[2]
           } else {
-            const subP = (p - 0.65) / 0.35
-            x = corridorDoor[0] * (1 - subP)
-            z = corridorDoor[2] * (1 - subP)
-            dirX = -corridorDoor[0]
-            dirZ = -corridorDoor[2]
+            const subP = (p - 0.75) / 0.25
+            x = wp1[0] * (1 - subP)
+            z = wp1[2] * (1 - subP)
+            dirX = -wp1[0] || -0.001
+            dirZ = -wp1[2]
           }
         }
         const yaw = Math.atan2(dirX, dirZ)
@@ -194,9 +195,9 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
         if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
       } else if (cycleT >= 30 && cycleT < 38) {
-        // Walking from Desk to Pantry (Strict Indoor Waypoint Navigation)
+        // Walking from Desk to Pantry (Obstacle-Aware Indoor Waypoint Navigation)
         const progress = (cycleT - 30) / 8
-        const waypoint = getIndoorPath(progress, 'toPantry')
+        const waypoint = getObstacleAwarePath(progress, 'toPantry')
         outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
         outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
@@ -217,7 +218,7 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
       } else if (cycleT >= 58 && cycleT < 66) {
         // Walking from Pantry to Rest Pods / Kamar Tidur (Inside Annex Floor)
         const progress = (cycleT - 58) / 8
-        const waypoint = getIndoorPath(progress, 'toSleep')
+        const waypoint = getObstacleAwarePath(progress, 'toSleep')
         outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
         outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
@@ -235,9 +236,9 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         if (leftLegRef.current) leftLegRef.current.rotation.x = 0
         if (rightLegRef.current) rightLegRef.current.rotation.x = 0
       } else {
-        // Walking back to Desk (Strict Indoor Waypoint Navigation)
+        // Walking back to Desk (Obstacle-Aware Indoor Waypoint Navigation)
         const progress = (cycleT - 84) / 6
-        const waypoint = getIndoorPath(progress, 'toDesk')
+        const waypoint = getObstacleAwarePath(progress, 'toDesk')
         outerGroupRef.current.position.set(waypoint.pos[0], Math.abs(Math.sin(t * 12)) * 0.04, waypoint.pos[2])
         outerGroupRef.current.rotation.set(0, waypoint.yaw, 0)
 
