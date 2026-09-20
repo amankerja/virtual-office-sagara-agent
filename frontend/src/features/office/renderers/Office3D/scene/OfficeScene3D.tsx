@@ -19,6 +19,7 @@ import { ConferenceTable3D } from '../furniture/ConferenceTable3D'
 import { PantryZone3D } from '../zones/PantryZone3D'
 import { RestPodZone3D } from '../zones/RestPodZone3D'
 import { GameLounge3D } from '../zones/GameLounge3D'
+import { Bookshelf3D } from '../furniture/Bookshelf3D'
 import type { OfficeSceneProjection, OfficeDeskProjection } from '@/features/office/types/office'
 import type { GraphicsQuality } from '../types'
 
@@ -149,6 +150,10 @@ export const OfficeScene3D: React.FC<OfficeScene3DProps> = ({
 
       {/* 12. Recreation Game Lounge (Billiards & Entertainment) — Separate Annex Building (Lower Wing) */}
       <GameLounge3D position={[22.5, 0, 12.5]} isDark={isDark} />
+
+      {/* 13. Decorative Colorful Bookshelves (Command & Annex Zones) */}
+      <Bookshelf3D position={[-14.2, 0, -8.2]} rotationY={Math.PI / 2} isDark={isDark} />
+      <Bookshelf3D position={[28.8, 0, -3.5]} rotationY={-Math.PI / 2} isDark={isDark} />
     </group>
     </FurnitureInstances>
     </OfficeQualityContext>

@@ -1,7 +1,7 @@
 import { GRID_GEOMETRY, WALL_GEOMETRY, WALL_CAP_GEOMETRY, FLOOR_GEOMETRY, WALL_BASE_SHADOW_GEOMETRY } from './architecture-geometry'
-import { surfaceNoise } from '../systems/scene-resources'
+import { surfaceNoise, woodFloorTexture } from '../systems/scene-resources'
+import * as THREE from 'three'
 import { RoundedBox } from '@react-three/drei'
-import { useOfficeQuality } from '../systems/OfficeQualityContext'
 import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
 /**
  * Environment3D — Premium Architectural Foundation
@@ -27,7 +27,6 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
   // Tile grid color
   const gridColor = p.officeMetal
-  const quality = useOfficeQuality()
 
   return (
     <group>
@@ -75,13 +74,16 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
         <SharedMaterial color={p.officeAccentCyan} emissive={p.officeAccentCyan} emissiveIntensity={isDark ? 0.7 : 0.35} roughness={0.2} />
       </mesh>
 
-      {/* ══ 2. Primary Interior Floor ══ */}
+      {/* ══ 2. Primary Interior Floor (Warm Varnished Wood Grain) ══ */}
       <mesh geometry={FLOOR_GEOMETRY} receiveShadow dispose={null}>
-        <SharedMaterial color={p.officeFloor}
-          map={surfaceNoise}
-          roughness={0.75}
+        <SharedMaterial
+          kind="physical"
+          color="#a67c52"
+          map={woodFloorTexture}
+          roughness={0.42}
           metalness={0.02}
-         />
+          clearcoat={0.05}
+        />
       </mesh>
 
       <mesh geometry={GRID_GEOMETRY} dispose={null}>
@@ -178,29 +180,34 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       {/* Corridor Glass Walls (North & South) */}
       <mesh position={[17.5, 1.25, 1.40]}>
         <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
-        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.4} transparent roughness={0.1} />
+        <SharedMaterial kind="physical" color="#e0f2fe" transmission={0.92} roughness={0.05} thickness={0.3} ior={1.5} transparent opacity={0.85} />
       </mesh>
       <mesh position={[17.5, 1.25, 4.60]}>
         <SharedGeometry kind="box" args={[4.6, 2.5, 0.06]} />
-        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.4} transparent roughness={0.1} />
-      </mesh>
-      {/* Corridor Roof Structure */}
-      <mesh position={[17.5, 2.55, 3.0]}>
-        <SharedGeometry kind="box" args={[4.7, 0.08, 3.26]} />
-        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+        <SharedMaterial kind="physical" color="#e0f2fe" transmission={0.92} roughness={0.05} thickness={0.3} ior={1.5} transparent opacity={0.85} />
       </mesh>
 
-      {/* ══ 6. Clean Internal Glass Partitions (No Desk Collisions) ══ */}
+      {/* ══ 5B. Sunlight Shafts / God Rays (Warm Light Volume Strips) ══ */}
+      <mesh position={[6.0, 1.6, -3.5]} rotation={[0.65, 0.35, -0.15]}>
+        <SharedGeometry kind="plane" args={[16.0, 9.0]} />
+        <SharedMaterial kind="basic" color="#fff4d6" transparent opacity={isDark ? 0.05 : 0.08} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh position={[18.0, 1.6, 2.5]} rotation={[0.65, 0.35, -0.15]}>
+        <SharedGeometry kind="plane" args={[8.0, 6.0]} />
+        <SharedMaterial kind="basic" color="#fff4d6" transparent opacity={isDark ? 0.04 : 0.07} side={THREE.DoubleSide} />
+      </mesh>
+
+      {/* ══ 6. Clean Internal Glass Partitions ══ */}
       {/* Command Room separator glass (North-West) */}
       <mesh position={[-4.2, 0.75, -5.5]}>
         <SharedGeometry kind="box" args={[0.07, 1.5, 5.5]} />
-        <SharedMaterial kind="physical" color={p.officeGlass}
-          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
-          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
+        <SharedMaterial kind="physical" color="#e0f2fe"
+          transmission={0.92}
+          opacity={0.85}
           transparent
-          roughness={0.14}
-          metalness={0.1}
-          thickness={0.07}
+          roughness={0.05}
+          thickness={0.3}
+          ior={1.5}
          />
       </mesh>
       {/* Command Room glass frame top */}
@@ -211,13 +218,13 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       {/* Server Room security glass (North-East) */}
       <mesh position={[4.2, 0.75, -5.5]}>
         <SharedGeometry kind="box" args={[0.07, 1.5, 5.5]} />
-        <SharedMaterial kind="physical" color={p.officeGlass}
-          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
-          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
+        <SharedMaterial kind="physical" color="#e0f2fe"
+          transmission={0.92}
+          opacity={0.85}
           transparent
-          roughness={0.14}
-          metalness={0.1}
-          thickness={0.07}
+          roughness={0.05}
+          thickness={0.3}
+          ior={1.5}
          />
       </mesh>
       {/* Server Room glass frame top */}
@@ -228,13 +235,13 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       {/* Artifact Vault rear glass wall */}
       <mesh position={[0, 0.75, -9.2]}>
         <SharedGeometry kind="box" args={[5.5, 1.5, 0.07]} />
-        <SharedMaterial kind="physical" color={p.officeGlass}
-          transmission={quality.detailLevel === 'ultra' ? 0.65 : 0}
-          opacity={quality.detailLevel === 'ultra' ? 0.88 : 0.18}
+        <SharedMaterial kind="physical" color="#e0f2fe"
+          transmission={0.92}
+          opacity={0.85}
           transparent
-          roughness={0.06}
-          metalness={0.1}
-          thickness={0.07}
+          roughness={0.05}
+          thickness={0.3}
+          ior={1.5}
          />
       </mesh>
     </group>

@@ -50,11 +50,11 @@ export interface OfficePaletteSet {
 }
 
 const DARK: OfficePaletteSet = {
-  officeBackground:       '#171b20',
-  officeFloor:            '#444540',
-  officeFloorCorridor:    '#343938',
-  officeWall:             '#77766e',
-  officeGlass:            '#b8d2d0',
+  officeBackground:       '#12151c',
+  officeFloor:            '#8b5e3c',
+  officeFloorCorridor:    '#6d482f',
+  officeWall:             '#5c5a52',
+  officeGlass:            '#e0f2fe',
   officeEdgeTrim:         '#2563eb',
   officeSlab:             '#252826',
   officeDeskTop:          '#92795d',

@@ -42,6 +42,51 @@ surfaceNoise.minFilter = THREE.LinearMipmapLinearFilter
 surfaceNoise.generateMipmaps = true
 surfaceNoise.needsUpdate = true
 
+export function generateWoodFloorTexture(): THREE.CanvasTexture {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return new THREE.CanvasTexture(null as unknown as HTMLCanvasElement)
+  }
+  const canvas = document.createElement('canvas')
+  canvas.width = 512
+  canvas.height = 512
+  const ctx = canvas.getContext('2d')
+  if (ctx) {
+    ctx.fillStyle = '#8b5e3c'
+    ctx.fillRect(0, 0, 512, 512)
+
+    const plankHeight = 32
+    const plankColors = ['#a67c52', '#8b5e3c', '#9c6f46', '#b88a5c', '#7c5030']
+
+    for (let y = 0; y < 512; y += plankHeight) {
+      const color = plankColors[Math.floor(y / plankHeight) % plankColors.length]
+      ctx.fillStyle = color
+      ctx.fillRect(0, y, 512, plankHeight - 2)
+
+      ctx.fillStyle = '#4a2f19'
+      ctx.fillRect(0, y + plankHeight - 2, 512, 2)
+
+      const shift = ((Math.floor(y / plankHeight)) % 3) * 128
+      for (let x = shift; x < 512; x += 256) {
+        ctx.fillRect(x, y, 2, plankHeight - 2)
+      }
+
+      ctx.fillStyle = 'rgba(74, 47, 25, 0.12)'
+      for (let g = 0; g < 6; g++) {
+        const gy = y + 4 + g * 4
+        ctx.fillRect(0, gy, 512, 1)
+      }
+    }
+  }
+  const texture = new THREE.CanvasTexture(canvas)
+  texture.wrapS = THREE.RepeatWrapping
+  texture.wrapT = THREE.RepeatWrapping
+  texture.repeat.set(12, 10)
+  texture.needsUpdate = true
+  return texture
+}
+
+export const woodFloorTexture = generateWoodFloorTexture()
+
 const constructors = {
   box: THREE.BoxGeometry, plane: THREE.PlaneGeometry, cylinder: THREE.CylinderGeometry,
   ring: THREE.RingGeometry, sphere: THREE.SphereGeometry, circle: THREE.CircleGeometry,
