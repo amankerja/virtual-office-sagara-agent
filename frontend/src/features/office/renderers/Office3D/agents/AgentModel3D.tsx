@@ -29,6 +29,32 @@ interface AgentModel3DProps {
   isDark?: boolean
 }
 
+/**
+ * Safety clamp helper to enforce indoor floor boundary limits.
+ * Prevents character target positions from rendering outside perimeter walls.
+ */
+function clampToFloorBounds(absX: number, absZ: number): [number, number] {
+  // Annex Building Bounds (X >= 16.5)
+  if (absX >= 16.5) {
+    return [
+      Math.max(17.8, Math.min(28.5, absX)),
+      Math.max(-5.5, Math.min(11.5, absZ)),
+    ]
+  }
+  // Skybridge Corridor Transition (13.5 < X < 16.5)
+  if (absX > 13.5) {
+    return [
+      Math.max(13.6, Math.min(16.4, absX)),
+      Math.max(0.4, Math.min(2.6, absZ)),
+    ]
+  }
+  // Main Office Bounds (X <= 13.5)
+  return [
+    Math.max(-14.2, Math.min(14.2, absX)),
+    Math.max(-10.2, Math.min(10.2, absZ)),
+  ]
+}
+
 // Reusable geometries & materials
 const HEAD_GEO    = new THREE.SphereGeometry(0.20, 16, 16)
 const VISOR_GEO   = new THREE.BoxGeometry(0.24, 0.072, 0.072)
@@ -128,6 +154,10 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
       behavior === 'TROUBLESHOOTING' ||
       behavior === 'ERROR_REVIEW'
 
+    // Open Floor Meeting Spot in Main Office (North-West Central Aisle x=-4.5, z=-2.5, well clear of walls & desks)
+    const MEETING_SPOT_X = -4.5
+    const MEETING_SPOT_Z = -2.5
+
     const relPantry: [number, number, number] = [
       22.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
       0,
@@ -139,23 +169,30 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
       4.5 - position[2],
     ]
     const relMeeting: [number, number, number] = [
-      15.0 + ((agentSeed % 2) - 0.5) * 1.5 - position[0],
+      MEETING_SPOT_X + ((agentSeed % 2) - 0.5) * 1.2 - position[0],
       0,
-      1.5 + (((agentSeed >> 1) % 2) - 0.5) * 1.5 - position[2],
+      MEETING_SPOT_Z + (((agentSeed >> 1) % 2) - 0.5) * 1.2 - position[2],
     ]
 
     const wp1: [number, number, number] = [0, 0, 1.5 - position[2]]
     const wp2: [number, number, number] = [22.5 - position[0], 0, 1.5 - position[2]]
 
+    const setClampedTarget = (relX: number, relY: number, relZ: number) => {
+      const absX = position[0] + relX
+      const absZ = position[2] + relZ
+      const [safeAbsX, safeAbsZ] = clampToFloorBounds(absX, absZ)
+      targetPos.current.set(safeAbsX - position[0], relY, safeAbsZ - position[2])
+    }
+
     let isSleepingAtPod = false
 
     if (isWorkAtDesk) {
       // Immediate return / wake up to desk when task / work is active
-      targetPos.current.set(0, 0, 0)
+      setClampedTarget(0, 0, 0)
       targetYaw.current = 0
     } else if (behavior === 'WORK_COLLABORATING') {
-      // Gather at Shared Meeting Lounge / Connector Portal & face partner
-      targetPos.current.set(relMeeting[0], 0, relMeeting[2])
+      // Gather at Shared Open Meeting Spot & face partner
+      setClampedTarget(relMeeting[0], 0, relMeeting[2])
       targetYaw.current = Math.PI / 4
     } else {
       // Free / Idle time cycle (Pantry -> Rest Pod Bed -> Desk)
@@ -163,7 +200,7 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
 
       if (cycleT < 45) {
         // Seated at Desk
-        targetPos.current.set(0, 0, 0)
+        setClampedTarget(0, 0, 0)
         targetYaw.current = 0
       } else if (cycleT >= 45 && cycleT < 55) {
         // Walking to Pantry
@@ -180,11 +217,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
           const sp = (easeP - 0.70) / 0.30
           x = wp2[0] + (relPantry[0] - wp2[0]) * sp; z = wp2[2] + (relPantry[2] - wp2[2]) * sp; dx = relPantry[0] - wp2[0]; dz = relPantry[2] - wp2[2]
         }
-        targetPos.current.set(x, 0, z)
+        setClampedTarget(x, 0, z)
         targetYaw.current = Math.atan2(dx, dz)
       } else if (cycleT >= 55 && cycleT < 75) {
         // Standing at Pantry
-        targetPos.current.set(relPantry[0], 0, relPantry[2])
+        setClampedTarget(relPantry[0], 0, relPantry[2])
         targetYaw.current = Math.PI / 4
       } else if (cycleT >= 75 && cycleT < 85) {
         // Walking to Rest Pod
@@ -192,11 +229,11 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         const easeP = p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2
         const x = relPantry[0] + (relSleep[0] - relPantry[0]) * easeP
         const z = relPantry[2] + (relSleep[2] - relPantry[2]) * easeP
-        targetPos.current.set(x, 0, z)
+        setClampedTarget(x, 0, z)
         targetYaw.current = Math.atan2(relSleep[0] - relPantry[0], relSleep[2] - relPantry[2])
       } else if (cycleT >= 85 && cycleT < 110) {
         // Truly Free -> Reclined Sleeping at Rest Pod Bed
-        targetPos.current.set(relSleep[0], 0.36, relSleep[2])
+        setClampedTarget(relSleep[0], 0.36, relSleep[2])
         targetYaw.current = Math.PI / 2
         isSleepingAtPod = true
       } else {
@@ -214,7 +251,7 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
           const sp = (easeP - 0.75) / 0.25
           x = wp1[0] * (1 - sp); z = wp1[2] * (1 - sp); dx = -wp1[0] || -0.001; dz = -wp1[2]
         }
-        targetPos.current.set(x, 0, z)
+        setClampedTarget(x, 0, z)
         targetYaw.current = Math.atan2(dx, dz)
       }
     }
