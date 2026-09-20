@@ -16,7 +16,7 @@ import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
  */
 import React, { useMemo } from 'react'
 import { Text } from '@react-three/drei'
-import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
+import { getOfficePalette } from '../systems/OfficePalette'
 
 interface Environment3DProps {
   isDark?: boolean
