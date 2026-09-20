@@ -76,28 +76,61 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
     const t = clock.getElapsedTime()
 
     if (state === 'ACTIVE') {
-      // Subtle typing oscillation (±8°)
-      if (leftArmRef.current)  leftArmRef.current.rotation.x  = -0.45 + Math.sin(t * 10) * 0.14
-      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.45 + Math.cos(t * 10) * 0.14
-      // Very slight head bob
-      if (headRef.current) headRef.current.rotation.x = 0.10 + Math.sin(t * 3.5) * 0.025
+      // Realistic typing & mouse motion
+      if (leftArmRef.current) {
+        leftArmRef.current.rotation.x = -0.42 + Math.sin(t * 14) * 0.18
+        leftArmRef.current.rotation.z = Math.cos(t * 9) * 0.06
+      }
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = -0.45 + Math.cos(t * 12) * 0.16
+        rightArmRef.current.rotation.z = -Math.sin(t * 7) * 0.05
+      }
+      // Dynamic head glance looking across dual/triple monitors
+      if (headRef.current) {
+        headRef.current.rotation.y = Math.sin(t * 1.6) * 0.15
+        headRef.current.rotation.x = 0.08 + Math.sin(t * 3.5) * 0.035
+      }
+      // Torso slight leaning into workstation screen
+      if (torsoRef.current) {
+        torsoRef.current.rotation.x = 0.05 + Math.sin(t * 2.2) * 0.015
+        torsoRef.current.scale.y = 1 + Math.sin(t * 2.0) * 0.01
+      }
     } else if (state === 'IDLE' || state === 'RECENTLY_ACTIVE') {
-      // Breathing only (scale y gently)
+      // Natural idle breathing & periodic head shift
       if (torsoRef.current) {
         const breath = 1 + Math.sin(t * 1.6) * 0.018
         torsoRef.current.scale.y = breath
+        torsoRef.current.rotation.x = 0
       }
-      if (leftArmRef.current)  leftArmRef.current.rotation.x  = -0.18
-      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.18
-      if (headRef.current) headRef.current.rotation.x = 0.04
+      if (leftArmRef.current) {
+        leftArmRef.current.rotation.x = -0.22
+        leftArmRef.current.rotation.z = 0
+      }
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = -0.22
+        rightArmRef.current.rotation.z = 0
+      }
+      if (headRef.current) {
+        headRef.current.rotation.y = Math.sin(t * 0.7) * 0.09
+        headRef.current.rotation.x = 0.04 + Math.sin(t * 1.2) * 0.02
+      }
     } else if (state === 'AWAITING_APPROVAL') {
-      // Hands resting, slight upward head tilt — waiting posture
-      if (leftArmRef.current)  leftArmRef.current.rotation.x  = -0.12
-      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.12
-      if (headRef.current) headRef.current.rotation.x = -0.10 + Math.sin(t * 0.8) * 0.02
+      // Hands resting, attentive upward head tilt with side glance
+      if (leftArmRef.current) {
+        leftArmRef.current.rotation.x = -0.15
+        leftArmRef.current.rotation.z = 0
+      }
+      if (rightArmRef.current) {
+        rightArmRef.current.rotation.x = -0.15
+        rightArmRef.current.rotation.z = 0
+      }
+      if (headRef.current) {
+        headRef.current.rotation.y = Math.sin(t * 1.2) * 0.12
+        headRef.current.rotation.x = -0.08 + Math.sin(t * 0.8) * 0.02
+      }
       // Attention beacon slow pulse
       if (beaconRef.current) {
-        const pulse = 1 + Math.sin(t * 2.0) * 0.10
+        const pulse = 1 + Math.sin(t * 2.5) * 0.15
         beaconRef.current.scale.set(pulse, pulse, pulse)
       }
     }

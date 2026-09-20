@@ -74,34 +74,45 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
       <group position={[0, 0.025, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         {/* Outer accent ring */}
         <mesh>
-          <SharedGeometry kind="ring" args={[1.62, 1.70, 48]} />
-          <SharedMaterial kind="basic" color={p.officeBrandPrimary} transparent opacity={isDark ? 0.50 : 0.35}  />
+          <SharedGeometry kind="ring" args={[1.85, 1.95, 64]} />
+          <SharedMaterial kind="basic" color={p.officeBrandPrimary} transparent opacity={isDark ? 0.60 : 0.40} />
         </mesh>
         {/* Inner thin ring */}
         <mesh>
-          <SharedGeometry kind="ring" args={[1.52, 1.56, 48]} />
-          <SharedMaterial kind="basic" color={p.officeEdgeTrim} transparent opacity={isDark ? 0.35 : 0.20}  />
+          <SharedGeometry kind="ring" args={[1.72, 1.76, 64]} />
+          <SharedMaterial kind="basic" color={p.officeEdgeTrim} transparent opacity={isDark ? 0.40 : 0.25} />
         </mesh>
-        {/* Wordmark */}
+        {/* Central Glowing Hexagon Node Emblem */}
+        <mesh rotation={[0, 0, Math.PI / 6]}>
+          <SharedGeometry kind="ring" args={[0.45, 0.52, 6]} />
+          <SharedMaterial kind="basic" color={p.officeBrandPrimary} transparent opacity={isDark ? 0.75 : 0.50} />
+        </mesh>
+        {/* Core AI Pulse Center */}
+        <mesh position={[0, 0, 0.001]}>
+          <SharedGeometry kind="circle" args={[0.22, 32]} />
+          <SharedMaterial kind="basic" color={p.officeBrandPrimary} transparent opacity={isDark ? 0.50 : 0.30} />
+        </mesh>
+
+        {/* Wordmark: SAGARA AGENTIC */}
         <Text
-          position={[0, 0.28, 0]}
-          fontSize={0.40}
+          position={[0, 0.95, 0]}
+          fontSize={0.34}
           color={p.officeBrandPrimary}
           anchorX="center"
           anchorY="middle"
-          letterSpacing={0.12}
+          letterSpacing={0.14}
         >
-          SAGARA
+          SAGARA AGENTIC
         </Text>
         <Text
-          position={[0, -0.24, 0]}
-          fontSize={0.14}
+          position={[0, -0.95, 0]}
+          fontSize={0.16}
           color={p.officeBrandSecondary}
           anchorX="center"
           anchorY="middle"
-          letterSpacing={0.18}
+          letterSpacing={0.20}
         >
-          MISSION CONTROL
+          MISSION CONTROL 3D • VIRTUAL OFFICE
         </Text>
       </group>
 

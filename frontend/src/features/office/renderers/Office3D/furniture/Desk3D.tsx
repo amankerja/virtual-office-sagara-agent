@@ -80,16 +80,26 @@ export const Desk3D: React.FC<Desk3DProps> = ({
         />
       </mesh>
 
-      {/* ── Under-desk status accent trim (subtle ambient glow) ── */}
-      <mesh position={[0, H - 0.075, 0]}>
-        <SharedGeometry kind="box" args={[W * 0.9, 0.015, D * 0.9]} />
-        <SharedMaterial
-          color={statusAccent.color}
-          emissive={statusAccent.emissive}
-          emissiveIntensity={isDark ? 0.35 : 0.15}
-          roughness={0.5}
-          metalness={0.2}
-        />
+      {/* ── Desktop Accessories (Mat, Keyboard, Mouse, Mug) ── */}
+      {/* Desk Mat */}
+      <mesh position={[0, H + 0.038, 0.08]}>
+        <SharedGeometry kind="box" args={[0.95, 0.005, 0.45]} />
+        <SharedMaterial color={p.officeMetal} roughness={0.8} />
+      </mesh>
+      {/* Mechanical Keyboard */}
+      <mesh position={[-0.06, H + 0.046, 0.12]}>
+        <SharedGeometry kind="box" args={[0.42, 0.014, 0.16]} />
+        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Mouse */}
+      <mesh position={[0.26, H + 0.046, 0.14]}>
+        <SharedGeometry kind="box" args={[0.075, 0.016, 0.11]} />
+        <SharedMaterial color={p.officeMetal} roughness={0.2} metalness={0.8} />
+      </mesh>
+      {/* Beverage Mug */}
+      <mesh position={[W / 2 - 0.22, H + 0.085, -0.15]}>
+        <SharedGeometry kind="cylinder" args={[0.04, 0.035, 0.09, 14]} />
+        <SharedMaterial color={p.officeAccentCyan} roughness={0.3} />
       </mesh>
 
       {/* ── Legs — 4 corner square metal legs ── */}
