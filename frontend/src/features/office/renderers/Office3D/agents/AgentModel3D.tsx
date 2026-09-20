@@ -62,10 +62,13 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
   const accent = profileColor
   const state: AgentStatus = agent.runtime.state
 
+  const outerGroupRef = useRef<THREE.Group>(null)
   const torsoRef    = useRef<THREE.Mesh>(null)
   const headRef     = useRef<THREE.Group>(null)
   const leftArmRef  = useRef<THREE.Mesh>(null)
   const rightArmRef = useRef<THREE.Mesh>(null)
+  const leftLegRef  = useRef<THREE.Mesh>(null)
+  const rightLegRef = useRef<THREE.Mesh>(null)
   const beaconRef   = useRef<THREE.Mesh>(null)
 
   const isOffline          = state === 'OFFLINE'
@@ -74,12 +77,25 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
 
   const suitColor = isOffline ? OFFICE_DETAIL_COLORS.offlineSuit : profileColor
 
-  // Frame-loop: all animation in refs, no new objects created
+  // Deterministic seed per agent
+  const agentSeed = useMemo(() => {
+    const str = agent.id || 'agent'
+    let h = 0
+    for (let i = 0; i < str.length; i++) h = (h * 31 + str.charCodeAt(i)) & 0xffffffff
+    return Math.abs(h)
+  }, [agent.id])
+
+  // Frame-loop: autonomous walking, pantry coffee break, and sleeping in rest pod
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime()
 
+    if (!outerGroupRef.current) return
+
     if (state === 'ACTIVE') {
-      // Realistic typing & mouse motion
+      // Return to desk immediately & perform typing
+      outerGroupRef.current.position.set(0, 0, 0)
+      outerGroupRef.current.rotation.set(0, 0, 0)
+
       if (leftArmRef.current) {
         leftArmRef.current.rotation.x = -0.42 + Math.sin(t * 14) * 0.18
         leftArmRef.current.rotation.z = Math.cos(t * 9) * 0.06
@@ -88,50 +104,105 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         rightArmRef.current.rotation.x = -0.45 + Math.cos(t * 12) * 0.16
         rightArmRef.current.rotation.z = -Math.sin(t * 7) * 0.05
       }
-      // Dynamic head glance looking across dual/triple monitors
       if (headRef.current) {
         headRef.current.rotation.y = Math.sin(t * 1.6) * 0.15
         headRef.current.rotation.x = 0.08 + Math.sin(t * 3.5) * 0.035
       }
-      // Torso slight leaning into workstation screen
       if (torsoRef.current) {
         torsoRef.current.rotation.x = 0.05 + Math.sin(t * 2.2) * 0.015
         torsoRef.current.scale.y = 1 + Math.sin(t * 2.0) * 0.01
       }
+      if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+      if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
     } else if (state === 'IDLE' || state === 'RECENTLY_ACTIVE') {
-      // Natural idle breathing & periodic head shift
-      if (torsoRef.current) {
-        const breath = 1 + Math.sin(t * 1.6) * 0.018
-        torsoRef.current.scale.y = breath
-        torsoRef.current.rotation.x = 0
-      }
-      if (leftArmRef.current) {
-        leftArmRef.current.rotation.x = -0.22
-        leftArmRef.current.rotation.z = 0
-      }
-      if (rightArmRef.current) {
-        rightArmRef.current.rotation.x = -0.22
-        rightArmRef.current.rotation.z = 0
-      }
-      if (headRef.current) {
-        headRef.current.rotation.y = Math.sin(t * 0.7) * 0.09
-        headRef.current.rotation.x = 0.04 + Math.sin(t * 1.2) * 0.02
+      // Autonomous schedule when IDLE / Bebas (90s cycle)
+      const cycleT = (t + (agentSeed % 90)) % 90
+      const relPantry: [number, number, number] = [
+        -12.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
+        0,
+        9.2 + ((agentSeed % 2) * 0.8) - position[2],
+      ]
+      const relSleep: [number, number, number] = [
+        12.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
+        0.42,
+        9.2 - position[2],
+      ]
+
+      if (cycleT < 30) {
+        // At Desk (Seated / Idle)
+        outerGroupRef.current.position.set(0, 0, 0)
+        outerGroupRef.current.rotation.set(0, 0, 0)
+        if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 1.6) * 0.018
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -0.22
+        if (rightArmRef.current) rightArmRef.current.rotation.x = -0.22
+        if (headRef.current) headRef.current.rotation.y = Math.sin(t * 0.7) * 0.09
+        if (leftLegRef.current) leftLegRef.current.rotation.x = 0.55
+        if (rightLegRef.current) rightLegRef.current.rotation.x = 0.55
+      } else if (cycleT >= 30 && cycleT < 38) {
+        // Walking from Desk to Pantry
+        const progress = (cycleT - 30) / 8
+        const curX = relPantry[0] * progress
+        const curZ = relPantry[2] * progress
+        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
+        outerGroupRef.current.rotation.set(0, Math.atan2(relPantry[0], relPantry[2]), 0)
+
+        if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
+        if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -Math.sin(t * 12) * 0.4
+        if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * 12) * 0.4
+      } else if (cycleT >= 38 && cycleT < 58) {
+        // Standing / Relaxing at Pantry
+        outerGroupRef.current.position.set(relPantry[0], 0, relPantry[2])
+        outerGroupRef.current.rotation.set(0, Math.PI / 4, 0)
+        if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 1.4) * 0.015
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -0.38
+        if (rightArmRef.current) rightArmRef.current.rotation.x = -0.15
+        if (headRef.current) headRef.current.rotation.y = Math.sin(t * 0.9) * 0.12
+        if (leftLegRef.current) leftLegRef.current.rotation.x = 0
+        if (rightLegRef.current) rightLegRef.current.rotation.x = 0
+      } else if (cycleT >= 58 && cycleT < 66) {
+        // Walking from Pantry to Rest Pods / Kamar Tidur
+        const progress = (cycleT - 58) / 8
+        const curX = relPantry[0] + (relSleep[0] - relPantry[0]) * progress
+        const curZ = relPantry[2] + (relSleep[2] - relPantry[2]) * progress
+        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
+        outerGroupRef.current.rotation.set(0, Math.atan2(relSleep[0] - relPantry[0], relSleep[2] - relPantry[2]), 0)
+
+        if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
+        if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -Math.sin(t * 12) * 0.4
+        if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * 12) * 0.4
+      } else if (cycleT >= 66 && cycleT < 84) {
+        // Sleeping in Rest Pod (Lying down flat in capsule bed)
+        outerGroupRef.current.position.set(relSleep[0], relSleep[1], relSleep[2])
+        outerGroupRef.current.rotation.set(-Math.PI / 2, 0, 0) // Lying flat
+        if (torsoRef.current) torsoRef.current.scale.y = 1 + Math.sin(t * 0.9) * 0.025
+        if (leftArmRef.current) leftArmRef.current.rotation.x = 0
+        if (rightArmRef.current) rightArmRef.current.rotation.x = 0
+        if (leftLegRef.current) leftLegRef.current.rotation.x = 0
+        if (rightLegRef.current) rightLegRef.current.rotation.x = 0
+      } else {
+        // Walking back to Desk
+        const progress = (cycleT - 84) / 6
+        const curX = relSleep[0] * (1 - progress)
+        const curZ = relSleep[2] * (1 - progress)
+        outerGroupRef.current.position.set(curX, Math.abs(Math.sin(t * 12)) * 0.04, curZ)
+        outerGroupRef.current.rotation.set(0, Math.atan2(-relSleep[0], -relSleep[2]), 0)
+
+        if (leftLegRef.current) leftLegRef.current.rotation.x = Math.sin(t * 12) * 0.5
+        if (rightLegRef.current) rightLegRef.current.rotation.x = -Math.sin(t * 12) * 0.5
+        if (leftArmRef.current) leftArmRef.current.rotation.x = -Math.sin(t * 12) * 0.4
+        if (rightArmRef.current) rightArmRef.current.rotation.x = Math.sin(t * 12) * 0.4
       }
     } else if (state === 'AWAITING_APPROVAL') {
-      // Hands resting, attentive upward head tilt with side glance
-      if (leftArmRef.current) {
-        leftArmRef.current.rotation.x = -0.15
-        leftArmRef.current.rotation.z = 0
-      }
-      if (rightArmRef.current) {
-        rightArmRef.current.rotation.x = -0.15
-        rightArmRef.current.rotation.z = 0
-      }
+      outerGroupRef.current.position.set(0, 0, 0)
+      outerGroupRef.current.rotation.set(0, 0, 0)
+      if (leftArmRef.current) leftArmRef.current.rotation.x = -0.15
+      if (rightArmRef.current) rightArmRef.current.rotation.x = -0.15
       if (headRef.current) {
         headRef.current.rotation.y = Math.sin(t * 1.2) * 0.12
         headRef.current.rotation.x = -0.08 + Math.sin(t * 0.8) * 0.02
       }
-      // Attention beacon slow pulse
       if (beaconRef.current) {
         const pulse = 1 + Math.sin(t * 2.5) * 0.15
         beaconRef.current.scale.set(pulse, pulse, pulse)
@@ -229,68 +300,71 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
         </mesh>
       )}
 
-      {/* ── Head Group ── */}
-      <group ref={headRef} position={[0, 1.44, 0]}>
-        <mesh geometry={HEAD_GEO} castShadow>
-          <meshStandardMaterial
-            color={p.officeAgentSkin}
-            roughness={0.48}
-            metalness={0.02}
-          />
+      {/* ── Avatar Character Outer Group (Walking / Sitting / Sleeping) ── */}
+      <group ref={outerGroupRef}>
+        {/* ── Head Group ── */}
+        <group ref={headRef} position={[0, 1.44, 0]}>
+          <mesh geometry={HEAD_GEO} castShadow>
+            <meshStandardMaterial
+              color={p.officeAgentSkin}
+              roughness={0.48}
+              metalness={0.02}
+            />
+          </mesh>
+          {/* Visor / sensor strip facing away from desk */}
+          <mesh position={[0, 0.02, -0.16]} geometry={VISOR_GEO}>
+            <meshStandardMaterial
+              color={accent}
+              emissive={accent}
+              emissiveIntensity={isOffline ? 0 : 0.65}
+              roughness={0.18}
+            />
+          </mesh>
+        </group>
+
+        {/* ── Torso ── */}
+        <mesh ref={torsoRef} position={[0, 1.04, 0]} geometry={TORSO_GEO} castShadow>
+          <meshStandardMaterial color={suitColor} roughness={0.55} />
         </mesh>
-        {/* Visor / sensor strip facing away from desk */}
-        <mesh position={[0, 0.02, -0.16]} geometry={VISOR_GEO}>
-          <meshStandardMaterial
-            color={accent}
-            emissive={accent}
-            emissiveIntensity={isOffline ? 0 : 0.65}
-            roughness={0.18}
-          />
+        {/* Chest badge */}
+        <mesh position={[0, 1.14, -0.140]} geometry={BADGE_GEO}>
+          <meshBasicMaterial color={accent} />
+        </mesh>
+
+        {/* ── Left Arm (positioned at desk typing angle) ── */}
+        <mesh ref={leftArmRef} position={[-0.26, 1.04, 0]} geometry={ARM_GEO} castShadow
+          rotation={[-0.35, 0, 0]}>
+          <meshStandardMaterial color={suitColor} roughness={0.55} />
+        </mesh>
+
+        {/* ── Right Arm ── */}
+        <mesh ref={rightArmRef} position={[0.26, 1.04, 0]} geometry={ARM_GEO} castShadow
+          rotation={[-0.35, 0, 0]}>
+          <meshStandardMaterial color={suitColor} roughness={0.55} />
+        </mesh>
+
+        {/* ── Legs — seated/standing/walking posture ── */}
+        {/* Left thigh */}
+        <mesh ref={leftLegRef} position={[-0.12, 0.72, -0.22]} rotation={[0.55, 0, 0]} castShadow>
+          <boxGeometry args={[0.11, 0.38, 0.11]} />
+          <meshStandardMaterial color={suitColor} roughness={0.60} />
+        </mesh>
+        {/* Right thigh */}
+        <mesh ref={rightLegRef} position={[0.12, 0.72, -0.22]} rotation={[0.55, 0, 0]} castShadow>
+          <boxGeometry args={[0.11, 0.38, 0.11]} />
+          <meshStandardMaterial color={suitColor} roughness={0.60} />
+        </mesh>
+        {/* Left lower leg (shin) */}
+        <mesh position={[-0.12, 0.44, 0.12]} rotation={[-0.45, 0, 0]} castShadow>
+          <boxGeometry args={[0.09, 0.32, 0.09]} />
+          <meshStandardMaterial color={suitColor} roughness={0.60} />
+        </mesh>
+        {/* Right lower leg */}
+        <mesh position={[0.12, 0.44, 0.12]} rotation={[-0.45, 0, 0]} castShadow>
+          <boxGeometry args={[0.09, 0.32, 0.09]} />
+          <meshStandardMaterial color={suitColor} roughness={0.60} />
         </mesh>
       </group>
-
-      {/* ── Torso ── */}
-      <mesh ref={torsoRef} position={[0, 1.04, 0]} geometry={TORSO_GEO} castShadow>
-        <meshStandardMaterial color={suitColor} roughness={0.55} />
-      </mesh>
-      {/* Chest badge */}
-      <mesh position={[0, 1.14, -0.140]} geometry={BADGE_GEO}>
-        <meshBasicMaterial color={accent} />
-      </mesh>
-
-      {/* ── Left Arm (positioned at desk typing angle) ── */}
-      <mesh ref={leftArmRef} position={[-0.26, 1.04, 0]} geometry={ARM_GEO} castShadow
-        rotation={[-0.35, 0, 0]}>
-        <meshStandardMaterial color={suitColor} roughness={0.55} />
-      </mesh>
-
-      {/* ── Right Arm ── */}
-      <mesh ref={rightArmRef} position={[0.26, 1.04, 0]} geometry={ARM_GEO} castShadow
-        rotation={[-0.35, 0, 0]}>
-        <meshStandardMaterial color={suitColor} roughness={0.55} />
-      </mesh>
-
-      {/* ── Legs — seated posture: thighs forward ── */}
-      {/* Left thigh */}
-      <mesh position={[-0.12, 0.72, -0.22]} rotation={[0.55, 0, 0]} castShadow>
-        <boxGeometry args={[0.11, 0.38, 0.11]} />
-        <meshStandardMaterial color={suitColor} roughness={0.60} />
-      </mesh>
-      {/* Right thigh */}
-      <mesh position={[0.12, 0.72, -0.22]} rotation={[0.55, 0, 0]} castShadow>
-        <boxGeometry args={[0.11, 0.38, 0.11]} />
-        <meshStandardMaterial color={suitColor} roughness={0.60} />
-      </mesh>
-      {/* Left lower leg (shin) */}
-      <mesh position={[-0.12, 0.44, 0.12]} rotation={[-0.45, 0, 0]} castShadow>
-        <boxGeometry args={[0.09, 0.32, 0.09]} />
-        <meshStandardMaterial color={suitColor} roughness={0.60} />
-      </mesh>
-      {/* Right lower leg */}
-      <mesh position={[0.12, 0.44, 0.12]} rotation={[-0.45, 0, 0]} castShadow>
-        <boxGeometry args={[0.09, 0.32, 0.09]} />
-        <meshStandardMaterial color={suitColor} roughness={0.60} />
-      </mesh>
 
       {/* ── Active Task Desk Panel ── */}
       {agent.runtime.currentTaskId && (

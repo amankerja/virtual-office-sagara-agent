@@ -31,9 +31,9 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
   return (
     <group>
-      {/* ══ 1. Foundation Slab ══ */}
+      {/* ══ 1. Foundation Slab (Expanded 38m x 28m) ══ */}
       <mesh position={[0, -0.25, 0]} receiveShadow>
-        <SharedGeometry kind="box" args={[31, 0.5, 23]} />
+        <SharedGeometry kind="box" args={[38, 0.5, 28]} />
         <SharedMaterial color={p.officeSlab}
           roughness={0.8}
           metalness={0.0}
@@ -42,7 +42,7 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
       {/* Perimeter bevel trim strip */}
       <mesh position={[0, -0.03, 0]}>
-        <SharedGeometry kind="box" args={[31.1, 0.04, 23.1]} />
+        <SharedGeometry kind="box" args={[38.1, 0.04, 28.1]} />
         <SharedMaterial color={p.officeEdgeTrim}
           roughness={0.3}
           metalness={0.7}

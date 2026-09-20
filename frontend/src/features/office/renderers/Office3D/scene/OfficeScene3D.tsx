@@ -16,6 +16,8 @@ import { ApprovalPod3D } from '../zones/ApprovalPod3D'
 import { ServerRoom3D } from '../zones/ServerRoom3D'
 import { ArtifactVault3D } from '../zones/ArtifactVault3D'
 import { ConferenceTable3D } from '../furniture/ConferenceTable3D'
+import { PantryZone3D } from '../zones/PantryZone3D'
+import { RestPodZone3D } from '../zones/RestPodZone3D'
 import type { OfficeSceneProjection, OfficeDeskProjection } from '@/features/office/types/office'
 import type { GraphicsQuality } from '../types'
 
@@ -137,6 +139,12 @@ export const OfficeScene3D: React.FC<OfficeScene3DProps> = ({
 
       {/* 9. Central Collaboration Table */}
       <ConferenceTable3D position={[0, 0, 4.2]} isDark={isDark} />
+
+      {/* 10. Pantry & Coffee Breakroom — South-West */}
+      <PantryZone3D position={[-12.5, 0, 9.2]} isDark={isDark} />
+
+      {/* 11. Rest Pods & Bedrooms (Kamar Tidur) — South-East */}
+      <RestPodZone3D position={[12.5, 0, 9.2]} isDark={isDark} />
     </group>
     </FurnitureInstances>
     </OfficeQualityContext>
