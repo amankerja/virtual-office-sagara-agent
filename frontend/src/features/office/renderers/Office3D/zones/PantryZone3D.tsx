@@ -10,7 +10,7 @@ interface PantryZone3DProps {
 }
 
 export const PantryZone3D: React.FC<PantryZone3DProps> = ({
-  position = [-11.5, 0, 8.5],
+  position = [22.5, 0, -1.5],
   isDark = true,
 }) => {
   const p = useMemo(() => getOfficePalette(isDark), [isDark])
@@ -23,13 +23,13 @@ export const PantryZone3D: React.FC<PantryZone3DProps> = ({
     <group position={position}>
       {/* ── Zone Floor Pad ── */}
       <mesh position={[0, 0.017, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <SharedGeometry kind="plane" args={[8.5, 6.2]} />
+        <SharedGeometry kind="plane" args={[10.5, 7.8]} />
         <SharedMaterial color={floorColor} roughness={0.75} />
       </mesh>
 
       {/* Perimeter Accent Strip */}
-      <mesh position={[0, 0.022, -3.05]}>
-        <SharedGeometry kind="box" args={[8.5, 0.016, 0.055]} />
+      <mesh position={[0, 0.022, -3.85]}>
+        <SharedGeometry kind="box" args={[10.5, 0.016, 0.055]} />
         <SharedMaterial
           color={accentColor}
           emissive={accentColor}

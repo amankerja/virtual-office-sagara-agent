@@ -118,14 +118,14 @@ export const AgentModel3D: React.FC<AgentModel3DProps> = ({
       // Autonomous schedule when IDLE / Bebas (90s cycle)
       const cycleT = (t + (agentSeed % 90)) % 90
       const relPantry: [number, number, number] = [
-        -12.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
+        22.5 + ((agentSeed % 3) - 1) * 1.1 - position[0],
         0,
-        9.2 + ((agentSeed % 2) * 0.8) - position[2],
+        -2.5 + ((agentSeed % 2) * 0.8) - position[2],
       ]
       const relSleep: [number, number, number] = [
-        12.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
+        22.5 + (((agentSeed >> 2) % 3) - 1) * 2.6 - position[0],
         0.42,
-        9.2 - position[2],
+        7.5 - position[2],
       ]
 
       if (cycleT < 30) {

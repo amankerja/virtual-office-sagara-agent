@@ -140,11 +140,11 @@ export const OfficeScene3D: React.FC<OfficeScene3DProps> = ({
       {/* 9. Central Collaboration Table */}
       <ConferenceTable3D position={[0, 0, 4.2]} isDark={isDark} />
 
-      {/* 10. Pantry & Coffee Breakroom — South-West */}
-      <PantryZone3D position={[-12.5, 0, 9.2]} isDark={isDark} />
+      {/* 10. Pantry & Coffee Breakroom — Separate Annex Building (Upper Wing) */}
+      <PantryZone3D position={[22.5, 0, -2.5]} isDark={isDark} />
 
-      {/* 11. Rest Pods & Bedrooms (Kamar Tidur) — South-East */}
-      <RestPodZone3D position={[12.5, 0, 9.2]} isDark={isDark} />
+      {/* 11. Rest Pods & Bedrooms (Kamar Tidur) — Separate Annex Building (Lower Wing) */}
+      <RestPodZone3D position={[22.5, 0, 8.5]} isDark={isDark} />
     </group>
     </FurnitureInstances>
     </OfficeQualityContext>

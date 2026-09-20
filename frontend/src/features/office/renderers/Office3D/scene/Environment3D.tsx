@@ -16,7 +16,7 @@ import { SharedGeometry, SharedMaterial } from '../systems/SceneResources'
  */
 import React, { useMemo } from 'react'
 import { Text } from '@react-three/drei'
-import { getOfficePalette } from '../systems/OfficePalette'
+import { getOfficePalette, OFFICE_DETAIL_COLORS } from '../systems/OfficePalette'
 
 interface Environment3DProps {
   isDark?: boolean
@@ -31,18 +31,18 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
 
   return (
     <group>
-      {/* ══ 1. Foundation Slab (Expanded 38m x 28m) ══ */}
+      {/* ══ 1. Main Office Foundation Slab ══ */}
       <mesh position={[0, -0.25, 0]} receiveShadow>
-        <SharedGeometry kind="box" args={[38, 0.5, 28]} />
+        <SharedGeometry kind="box" args={[31, 0.5, 23]} />
         <SharedMaterial color={p.officeSlab}
           roughness={0.8}
           metalness={0.0}
          />
       </mesh>
 
-      {/* Perimeter bevel trim strip */}
+      {/* Main Office Perimeter bevel trim strip */}
       <mesh position={[0, -0.03, 0]}>
-        <SharedGeometry kind="box" args={[38.1, 0.04, 28.1]} />
+        <SharedGeometry kind="box" args={[31.1, 0.04, 23.1]} />
         <SharedMaterial color={p.officeEdgeTrim}
           roughness={0.3}
           metalness={0.7}
@@ -50,6 +50,53 @@ export const Environment3D: React.FC<Environment3DProps> = ({ isDark = true }) =
           emissiveIntensity={isDark ? 0.15 : 0.05}
          />
       </mesh>
+
+      {/* ══ 1B. SEPARATE ANNEX BUILDING SLAB (Pantry & Kamar Tidur Annex) ══ */}
+      <mesh position={[22.5, -0.25, 3.0]} receiveShadow>
+        <SharedGeometry kind="box" args={[13.0, 0.5, 19.5]} />
+        <SharedMaterial color={p.officeSlab} roughness={0.8} metalness={0.0} />
+      </mesh>
+      <mesh position={[22.5, -0.03, 3.0]}>
+        <SharedGeometry kind="box" args={[13.1, 0.04, 19.6]} />
+        <SharedMaterial color={p.officeEdgeTrim} roughness={0.3} metalness={0.7} emissive={p.officeEdgeTrim} emissiveIntensity={isDark ? 0.2 : 0.08} />
+      </mesh>
+      {/* Annex Interior Floor Slab */}
+      <mesh position={[22.5, 0.008, 3.0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+        <SharedGeometry kind="plane" args={[12.5, 19.0]} />
+        <SharedMaterial color={p.officeFloor} roughness={0.75} metalness={0.02} />
+      </mesh>
+
+      {/* ══ 1C. COVERED SKYWAY GLASS CORRIDOR BRIDGE ══ */}
+      {/* Bridge Floor */}
+      <mesh position={[15.65, 0.015, 3.0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <SharedGeometry kind="plane" args={[2.5, 3.2]} />
+        <SharedMaterial color={p.officeFloorCorridor} roughness={0.6} />
+      </mesh>
+      {/* Bridge Glass Wall North */}
+      <mesh position={[15.65, 1.25, 1.45]}>
+        <SharedGeometry kind="box" args={[2.5, 2.4, 0.06]} />
+        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.35} transparent roughness={0.1} />
+      </mesh>
+      {/* Bridge Glass Wall South */}
+      <mesh position={[15.65, 1.25, 4.55]}>
+        <SharedGeometry kind="box" args={[2.5, 2.4, 0.06]} />
+        <SharedMaterial kind="physical" color={p.officeGlass} transmission={0.75} opacity={0.35} transparent roughness={0.1} />
+      </mesh>
+      {/* Bridge Roof Canopy */}
+      <mesh position={[15.65, 2.50, 3.0]}>
+        <SharedGeometry kind="box" args={[2.6, 0.08, 3.2]} />
+        <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.7} />
+      </mesh>
+      {/* Entrance Arch Signage above Skyway Corridor */}
+      <group position={[15.65, 2.85, 3.0]}>
+        <mesh>
+          <SharedGeometry kind="box" args={[2.4, 0.26, 0.05]} />
+          <SharedMaterial color={p.officeMetal} roughness={0.3} metalness={0.6} />
+        </mesh>
+        <Text position={[0, 0, 0.03]} fontSize={0.10} color={isDark ? OFFICE_DETAIL_COLORS.textLight : OFFICE_DETAIL_COLORS.textDark} anchorX="center" anchorY="middle" letterSpacing={0.12}>
+          PANTRY & REST ANNEX ➔
+        </Text>
+      </group>
 
       {/* ══ 2. Primary Interior Floor ══ */}
       <mesh geometry={FLOOR_GEOMETRY} receiveShadow dispose={null}>
